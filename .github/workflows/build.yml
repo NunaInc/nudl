@@ -1,0 +1,18 @@
+name: bazel_build
+on: [push, pull_request]
+jobs:
+  bazel-build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Cpp
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: llvm
+          clangtidy: true
+          clangformat true
+      - uses: bazelbuild/setup-bazelisk@v1
+      - name: Bazel build
+        run: bazel build //...
+      - name: Bazel test
+        run: bazel test --test_summary=detailed --test_output=errors //...

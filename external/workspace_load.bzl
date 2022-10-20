@@ -31,16 +31,9 @@ def nuna_nudl_load_workspace():
     ## Google protobuf
     http_archive(
         name = "com_google_protobuf",
-        sha256 = "77ad26d3f65222fd96ccc18b055632b0bfedf295cb748b712a98ba1ac0b704b2",
-        strip_prefix = "protobuf-3.17.3",
-        urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protobuf-all-3.17.3.tar.gz"],
-    )
-
-    ## Python rules
-    http_archive(
-        name = "rules_python",
-        sha256 = "934c9ceb552e84577b0faf1e5a2f0450314985b4d8712b2b70717dc679fdc01b",
-        url = "https://github.com/bazelbuild/rules_python/releases/download/0.3.0/rules_python-0.3.0.tar.gz",
+        sha256 = "f6251f2d00aad41b34c1dfa3d752713cb1bb1b7020108168a4deaa206ba8ed42",
+        strip_prefix = "protobuf-3.21.8",
+        urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protobuf-cpp-3.21.8.tar.gz"],
     )
 
     ## Antlr
