@@ -10,7 +10,7 @@ jobs:
         with:
           compiler: llvm
           clangtidy: true
-          clangformat true
+          clangformat: true
       - uses: bazelbuild/setup-bazelisk@v1
       - name: Bazel build
         run: bazel build //...
