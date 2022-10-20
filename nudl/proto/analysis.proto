@@ -1,0 +1,302 @@
+syntax = "proto2";
+
+import "nudl/proto/dsl.proto";
+
+package nudl.pb;
+
+// Identifiers for all types:
+enum TypeId {
+  UNKNOWN_ID = 0;
+  ANY_ID = 1;
+  NULL_ID = 2;
+  NUMERIC_ID = 3;
+  INT_ID = 4;
+  INT8_ID = 5;
+  INT16_ID = 6;
+  INT32_ID = 7;
+  UINT_ID = 8;
+  UINT8_ID = 9;
+  UINT16_ID = 10;
+  UINT32_ID = 11;
+  STRING_ID = 12;
+  BYTES_ID = 13;
+  BOOL_ID = 14;
+  FLOAT32_ID = 15;
+  FLOAT64_ID = 16;
+  DATE_ID = 17;
+  DATETIME_ID = 18;
+  TIMEINTERVAL_ID = 19;
+  TIMESTAMP_ID = 20;
+  DECIMAL_ID = 21;
+  ITERABLE_ID = 22;
+  ARRAY_ID = 23;
+  TUPLE_ID = 24;
+  SET_ID = 25;
+  MAP_ID = 26;
+  STRUCT_ID = 27;
+  FUNCTION_ID = 28;
+  UNION_ID = 29;
+  NULLABLE_ID = 30;
+  DATASET_ID = 31;
+  TYPE_ID = 32;
+  MODULE_ID = 33;
+
+  // Update this as you add new types.
+  NEXT_TYPE_ID = 34;
+
+  FIRST_CUSTOM_ID = 10000;
+}
+
+enum ObjectKind {
+  OBJ_UNKNOWN = 0;
+  // A variable in a scope.
+  OBJ_VARIABLE = 1;
+  // A parameter in a module.
+  OBJ_PARAMETER = 2;
+  // An argument to a function.
+  OBJ_ARGUMENT = 3;
+  // A field in of a type.
+  OBJ_FIELD = 4;
+  // A scope in an unspecified location (e.g. with).
+  OBJ_SCOPE = 5;
+  // A normal named function, which is implicitly a scope.
+  OBJ_FUNCTION = 6;
+  // A named member function for a type, which is implicitly a scope.
+  OBJ_METHOD = 7;
+  // An unnamed lambda function, which is implicitly a scope.
+  OBJ_LAMBDA = 8;
+  // A module, which is implicitly a scope.
+  OBJ_MODULE = 9;
+  // A type.
+  OBJ_TYPE = 10;
+  // A group of functions with the same name.
+  OBJ_FUNCTION_GROUP = 11;
+}
+
+enum FunctionResultKind {
+  // No return / yield was recorded in the function.
+  // The last expression in the function is default result.
+  RESULT_NONE = 0;
+  // Result produced through value - return.
+  RESULT_RETURN = 1;
+  // Result produced through generator - yield / pass.
+  RESULT_YIELD = 2;
+  // Not a result kind, but used only internally to mark a pass.
+  RESULT_PASS = 3;
+}
+
+enum ExpressionKind {
+  EXPR_UNKNOWN = 0;
+  // Assignment expression:  `<name> = <expression>` e.g. `a = <...>`
+  EXPR_ASSIGNMENT = 1;
+  // Untyped empty structure: `[]`
+  EXPR_EMPTY_STRUCT = 2;
+  // A basic literla: `123`, `"foo"` etc.
+  EXPR_LITERAL = 3;
+  // A reference to a named object via an identifier x, foo.bar
+  EXPR_IDENTIFIER = 4;
+  // Passing the result in a function `return <...>` or `yield <..>` or `pass`
+  EXPR_FUNCTION_RESULT = 5;
+  // An array / set definition: `[<..>, <..>]`
+  EXPR_ARRAY_DEF = 6;
+  // A map definitions: `[<..>: <..>, <..>: <..>]`
+  EXPR_MAP_DEF = 7;
+  // An if expression with all branches: `if (<..>) <..> else <..>`
+  EXPR_IF = 8;
+  // Indexed access in an expression: `<..>[<..>]`
+  EXPR_INDEX = 9;
+  // Indexed access in an tuple: `<..>[<..>]`
+  EXPR_TUPLE_INDEX = 10;
+  // A lambda definition expression `<..> => <..>`
+  EXPR_LAMBDA = 11;
+  // An expression block `{<..>; <..> }`
+  EXPR_BLOCK = 12;
+  // An expression accessing via dot: `<..>.<..>`
+  EXPR_DOT_ACCESS = 13;
+  // A function call: `<..>(<..>, <..>)` or `<..>.<..>(<..>)`
+  EXPR_FUNCTION_CALL = 14;
+  // An import - this expression appears only in modules.
+  EXPR_IMPORT_STATEMENT = 15;
+  // A function definition - this expression appears only in modules.
+  EXPR_FUNCTION_DEF = 16;
+  // A schema definition - this appears only in modules.
+  EXPR_SCHEMA_DEF = 17;
+  // A no-operation expression - for now used for pragmas.
+  EXPR_NOP = 18;
+};
+
+// Name of a scope: composed of module name & function name:
+// E.g. a.b.c::foo::bar =>
+//   { module_name: ["a", "b", "c"]
+//     function_name: ["foo", "bar"] }
+message ScopeName {
+  repeated string module_name = 1;
+  repeated string function_name = 2;
+  optional string name = 3;  // this is set only on a flag.
+}
+
+// Name in a scope: composed of the name of the scope as above,
+// and a name inside a scope - a valid single identifier.
+// E.g. a.b.c::foo::bar.baz =>
+//   { scope_name { module_name: ["a", "b", "c"]
+//                  function_name: ["foo", "bar"] }
+//     name: "baz" }
+message ScopedName {
+  optional ScopeName scope_name = 1;
+  optional string name = 2;
+  optional string full_name = 3;  // this is set only on a flag.
+}
+
+// Type of an expression:
+message ExpressionTypeSpec {
+  // The identifier of a type - from above.
+  optional TypeId type_id = 1;
+  // Defined name of the type - for most of type_ids is just
+  // standard (e.g. TypeId.INT_ID => "Int"), but sometimes
+  // different (e.g. for TypeId.STRUCT_ID)
+  optional string name = 2;
+  // Parameters for type definition. Not set for basic types,
+  // but for parametrized types (e.g. Array<Int> => Int)
+  repeated ExpressionTypeSpec parameter = 3;
+  // used for:
+  //   - Struct - field names
+  //   - Function - parameter names
+  repeated string parameter_name = 4;
+  // used for:
+  //   - Decimal - precision_, scale_
+  //   - Function - first default value index
+  repeated int64 parameter_value = 5;
+}
+
+// Short reference to a named object:
+message NamedObjectRef {
+  // The name of the object - can be composed.
+  optional string name = 1;
+  // The kind of the object - from above
+  optional ObjectKind kind = 2;
+}
+
+// Complete expansion of a named object:
+message NamedObject {
+  // The name of the object - can be composed - as in NamedObjectRef.
+  optional string name = 1;
+  // Under which name is registered in the parent NameStore (normally
+  //   part of `name`)
+  optional string local_name = 3;
+  // The kind of the object - from above
+  optional ObjectKind kind = 2;
+  // For NameStore-s - these are objects registered in the store.
+  repeated NamedObject child = 4;
+  // If is wrapping a different store, this is the name of that store.
+  optional string wrapped_store = 5;
+}
+
+// Representation of a function definition:
+message FunctionDefinitionSpec {
+  // Name of the function as recorded in the scopes.
+  optional ScopeName scope_name = 1;
+  // The kind of the function: can be one of OBJ_FUNCTION, OBJ_METHOD
+  // or OBJ_LAMBDA.
+  optional ObjectKind kind = 2;
+  // Defined parameters of the function.
+  message Parameter {
+    // Name of the parameter.
+    optional string name = 1;
+    // Deduced type of the parameter (Any if not specified or so).
+    optional ExpressionTypeSpec type_spec = 2;
+    // Default value of the parameter if specified.
+    optional ExpressionSpec default_value = 3;
+  }
+  // The parameters of the function.
+  repeated Parameter parameter = 3;
+  // The deduced return type of the function.
+  optional ExpressionTypeSpec result_type = 4;
+  // Declared function name - this is the name following `def`.
+  optional string function_name = 5;
+  // The actual qualified name of the function - this may be different
+  // from function_name - as functions w/ same name but different
+  // signatures or bindings, get allocated different names.
+  optional ScopedName qualified_name = 6;
+
+  // Note: In practice only one of these has members.
+  // The body of the function if defined as a set of expressions.
+  repeated ExpressionSpec body = 7;
+  // If the function is declared as implemented in a native language,
+  // this contains that specification.
+  repeated NativeSnippet native_snippet = 8;
+
+  // If a function has specific type-bindings per call, these are
+  // specific bindings of those functions.
+  repeated FunctionDefinitionSpec binding = 9;
+};
+
+// Information about a function call.
+message FunctionCallSpec {
+  oneof function_spec {
+    // If the function is presented a simple name (ie. reference)
+    // from a module.
+    ScopedName call_name = 1;
+    // If the function is produced from an expression, this is the
+    // expression. E.g. `foo(..)(x, y)`, this would be `foo(..)`
+    ExpressionSpec left_expression = 2;
+  };
+  // If the called function is a method.
+  optional bool is_method = 3;
+  // The arguments passed to the function call.
+  message Argument {
+    // Name of the argument - always set, even if not specified in the call.
+    optional string name = 1;
+    // The value of the argument - as an expression. Can be pulled from
+    // the default value specified in the function definitions.
+    optional ExpressionSpec value = 2;
+  }
+  // Arguments for the call.
+  repeated Argument argument = 4;
+  // The type for the function determined from the binding of the function
+  // of the representing type.
+  optional ExpressionTypeSpec binding_type = 5;
+}
+
+// Specification for an import.
+message ImportSpec {
+  // The name under which the module is to be referenced in the
+  // local scope - can be the full name of the module or an alias.
+  optional string local_name = 1;
+  // If the name is an alias.
+  optional bool is_alias = 2;
+}
+
+// An expression in the language - processed and analyzed.
+message ExpressionSpec {
+  // Type of the expression - from above.
+  optional ExpressionKind kind = 1;
+  // Any children of the expression - their meaning depends on kind.
+  // E.g. for an operator, these are the operands, for an index
+  // expression, first is the operand, then the index etc.
+  repeated ExpressionSpec child = 2;
+  // The negotiated return type of the expression.
+  optional ExpressionTypeSpec type_spec = 3;
+  // If the expression refers to an object, this names the object:
+  optional NamedObjectRef named_object = 4;
+  // Specific information set per each expression kind.:
+  oneof value {
+    // Set for literals.
+    Literal literal = 10;
+    // Set for identifier expressions.
+    ScopedName identifier = 11;
+    // Set for lambdas and function definitions.
+    FunctionDefinitionSpec function_spec = 12;
+    // Set for function calls.
+    FunctionCallSpec call_spec = 13;
+    // Set for import statements.
+    ImportSpec import_spec = 14;
+  }
+}
+
+// Specification of a module.
+message ModuleSpec {
+  // Name of the module.
+  optional string name = 1;
+  // Expression (statements) defined inside the module, in their order.
+  repeated ExpressionSpec expression = 2;
+}

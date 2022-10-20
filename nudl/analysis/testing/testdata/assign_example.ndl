@@ -1,0 +1,31 @@
+//
+// Mimics Rob's demo computation done in R:
+//
+
+// A sketch of a claim, with just basic fields:
+schema Claim = {   // Just a partial schema
+  claim_id: String;
+  person_id_syn: String;
+  npi_id: String;
+  visit_id: String;
+}
+
+def assignMember(
+  member_id: String,
+  claims: Array<Claim>,
+  minimum_visit_count: UInt = 1u)=> {
+
+  claims
+    .filter((c, member_id = member_id) => c.person_id_syn == member_id)
+    // Aggregate to a tuple keyd by npi_id, sets of unique visits:
+    .aggregate_to_set(c => c.npi_id, c => c.visit_id)
+    // Filter these tuples and keep the ones with at least minimum_visit_count
+    .filter((t, min_count=minimum_visit_count)
+              => len(t[1]) >= min_count)
+    // Now aggregate by the count of visits:
+    .aggregate_to_array(t => len(t[1]), t => t[0])
+    // Take the one with the maximum count:
+    .max_by(t => t[0])
+    // And pick a random npi from the top list:
+    .ensured_run(t => t[1].shuffle().front())
+}

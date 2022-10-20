@@ -1,0 +1,72 @@
+package(default_visibility = ["//visibility:private"])
+
+load("@rules_antlr//antlr:antlr4.bzl", "antlr")
+load("//external/cpplint:cpplint.bzl", "cpplint")
+
+antlr(
+    name = "generated_grammar",
+    srcs = [
+        "NudlDslLexer.g4",
+        "NudlDslParser.g4",
+    ],
+    language = "Cpp",
+    no_listener = True,
+    package = "nudl",
+    visitor = True,
+)
+
+cc_library(
+    name = "grammar_lib",
+    srcs = [":generated_grammar"],
+    copts = [
+        "-Wno-unused-variable",
+    ],
+    linkstatic = True,
+    deps = [
+        ":generated_grammar",
+        "@antlr4_runtimes//:cpp",
+    ],
+)
+
+cc_library(
+    name = "grammar",
+    srcs = [
+        "dsl.cc",
+        "tree_builder.cc",
+        "tree_util.cc",
+    ],
+    hdrs = [
+        "dsl.h",
+        "tree_builder.h",
+        "tree_util.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":grammar_lib",
+        "//nudl/proto:dsl_cc",
+        "//nudl/status",
+        "@antlr4_runtimes//:cpp",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@com_google_absl//absl/types:optional",
+        "@com_googlesource_code_re2//:re2",
+    ],
+)
+
+cc_test(
+    name = "dsl_test",
+    srcs = ["dsl_test.cc"],
+    deps = [
+        ":grammar",
+        "//nudl/status:testing",
+        "//nudl/testing:protobuf_matchers",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_github_google_glog//:glog",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cpplint()

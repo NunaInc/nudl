@@ -1,0 +1,25 @@
+
+// Defining some structured types:
+
+schema Coding = {
+  system: String;
+  version: Nullable<String>;
+  code: String;
+  display: Nullable<String>;
+};
+
+schema HumanName = {
+  use: Nullable<String>;
+  family: Nullable<String>;
+  given: Nullable<String>;
+  prefix: Array<String>;
+  suffix: Array<String>;
+};
+
+schema Period = {
+  start: Timestamp;
+  end: Nullable<Timestamp>;
+};
+
+def GetFamilyName(name: HumanName) : String =>
+  ensure(name.family)

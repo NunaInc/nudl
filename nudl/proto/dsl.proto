@@ -1,0 +1,278 @@
+syntax = "proto2";
+
+import "google/protobuf/duration.proto";
+
+package nudl.pb;
+
+enum NullType {
+  NULL_VALUE = 0;
+}
+
+message Literal {
+  oneof value {
+    // null
+    NullType null_value = 1;
+    // "foo"
+    string str_value = 2;
+    // b"f\xcf"
+    bytes bytes_value = 3;
+    // 23
+    int64 int_value = 4;
+    // 55u
+    uint64 uint_value = 5;
+    // 2.34
+    double double_value = 6;
+    // 1.23f
+    float float_value = 7;
+    // true / false
+    bool bool_value = 8;
+    // 5minutes 1day
+    google.protobuf.Duration time_range = 10;
+  }
+  optional string original = 9;
+}
+
+// Int => {identifier: "Int"}
+// Array<Int> => {identifier: "Array", argument: { type_spec { identifier: "Int"
+// }}} Array<{X: Numeric}> =>
+//  { identifier: "Array",
+//    argument: { identifier: "X", {argument { identifier: "Numeric"} },
+//                is_local_type: true } }
+message TypeSpec {
+  message TypeArgument {
+    oneof value {
+      int64 int_value = 1;
+      TypeSpec type_spec = 2;
+    }
+  }
+  optional Identifier identifier = 1;
+  repeated TypeArgument argument = 2;
+  optional bool is_local_type = 3;
+}
+
+// A composed name of identifiers.
+// E.g. `a.b.c` => { name : ["a", "b", "c"] }
+message Identifier {
+  repeated string name = 1;
+}
+
+// a + b + c => op: ["+", "+"], argument: [<a>, <b>, <c>]
+// a ? (b : c) => op: ["?"], argument: [<a>, <b>, <c>]
+message OperatorExpression {
+  repeated string op = 1;
+  repeated Expression argument = 2;
+}
+
+message FunctionCall {
+  oneof function {
+    Identifier identifier = 1;   // foo(a, b) => foo
+    Expression expr_spec = 2;  // bar(...)(a, b) => bar(...)
+    TypeSpec type_spec = 3;  // Array<int>([1, 2, 3])
+  }
+  message Argument {
+    optional string name = 1;
+    optional Expression value = 2;
+  }
+  repeated Argument argument = 4;
+}
+
+message DotExpression {
+  optional Expression left = 1;  // foo(..).bar => foo(..)
+  oneof argument {
+    string name = 2;   // foo(..).bar => bar
+    FunctionCall function_call = 3;  // foo(...).bar(x, y) => bar(x, y)
+  }
+}
+
+// <object>[<index>]
+message IndexExpression {
+  optional Expression object = 1;
+  optional Expression index = 2;
+}
+
+// <name> : <type_spe> [= <default_value>]
+message FunctionParameter {
+  optional string name = 1;
+  optional TypeSpec type_spec = 2;
+  optional Expression default_value = 3;
+}
+
+// if (condition[0]) { expression_block[0] }
+// else if (condition[1]) { expression_block[1] }
+// ...
+// else if (condition[n]) { expression_block[n] }
+// else { expression_block[n + 1] }
+message IfExpression {
+  repeated Expression condition = 1;
+  repeated ExpressionBlock expression_block = 2;
+}
+
+message ArrayDefinition {
+  repeated Expression element = 1;
+}
+
+message MapDefinition {
+  message MapElement {
+    optional Expression key = 1;
+    optional Expression value = 2;
+  }
+  repeated MapElement element = 1;
+}
+
+enum QualifierType {
+  NONE = 0;
+  PARAM = 1;  // module level param - like flag.
+}
+
+// [<qualifier>] <identifier> [: <type_spec>] = <value>
+message Assignment {
+  optional Identifier identifier = 1;
+  optional TypeSpec type_spec = 2;
+  optional Expression value = 3;
+  repeated QualifierType qualifier = 4;
+}
+
+message CodeLocation {
+  // All are byte based positions (not character based!).
+  optional uint64 position = 1;  // zero based
+  optional uint32 line = 2;  // one based
+  optional uint32 column = 3;  // zero based
+}
+
+message CodeInterval {
+  optional CodeLocation begin = 1;  // Inclusive
+  optional CodeLocation end = 2;    // Exclusive
+}
+
+message ErrorNode {
+  optional string description = 1;
+  optional string node_type = 2;
+}
+
+message PragmaExpression {
+  optional string name = 1;
+  optional Expression value = 2;
+}
+
+message Expression {
+  oneof value {
+    // 1, 34.5, "xyz"
+    Literal literal = 1;
+    // a.b.c, foo
+    Identifier identifier = 2;
+    // a + b
+    OperatorExpression operator_expr = 3;
+    // foo(3, x)
+    FunctionCall function_call = 4;
+    // foo().bar
+    DotExpression dot_expr = 5;
+    // z[3]
+    IndexExpression index_expr = 18;
+    // s => s > 3
+    FunctionDefinition lambda_def = 6;
+    // if (foo) { bar }
+    IfExpression if_expr = 7;
+    // [1, 2, 3]
+    ArrayDefinition array_def = 8;
+    // [1: 2, 3: 4]
+    MapDefinition map_def = 9;
+    // x : int = <>
+    Assignment assignment = 10;
+    // yield <>
+    Expression yield_expr = 11;
+    // return <>
+    Expression return_expr = 12;
+    // pass
+    NullType pass_expr = 13;
+    // []
+    NullType empty_struct = 14;
+    // Pragma expression - direction for the compiler.
+    PragmaExpression pragma_expr = 19;
+    // Set internally on error
+    ErrorNode error = 15;
+  }
+  // Where the expression is defined in the code.
+  optional CodeInterval code_interval = 16;
+  // The code snippet containing the expression.
+  optional string code = 17;
+}
+
+message ExpressionBlock {
+  repeated Expression expression = 1;
+}
+
+message NativeSnippet {
+  optional string name = 1;
+  optional string body = 2;
+}
+
+message FunctionDefinition {
+  // Name of the function, missing for lambdas.
+  optional string name = 1;
+  // If function is defined with `def method`
+  optional bool is_method = 5;
+  // The parameters defined in the function, in their
+  // definition order.
+  repeated FunctionParameter param = 2;
+  // The type of the function result, if defined.
+  optional TypeSpec result_type = 3;
+  // The expressions defined inside the function.
+  optional ExpressionBlock expression_block = 4;
+  // Native implementation of the function.
+  repeated NativeSnippet snippet = 6;
+}
+
+message ImportStatement {
+  // import a.b.c as foo
+  // => { module: ["a", "b", "c"], alias = "foo" }
+  message Specification {
+    optional Identifier module = 1;
+    optional string alias = 2;
+  }
+  repeated Specification spec = 1;
+}
+
+message SchemaDefinition {
+  message Field {
+    message FieldOption {
+      optional string name = 1;
+      optional Expression value = 2;
+    }
+    optional string name = 1;
+    optional TypeSpec type_spec = 2;
+    repeated FieldOption field_option = 3;
+  }
+  optional string name = 1;
+  repeated Field field = 2;
+}
+
+// An element in a module, can be one of the statement members:
+message ModuleElement {
+  oneof statement {
+    ImportStatement import_stmt = 1;
+    SchemaDefinition schema = 2;
+    FunctionDefinition function_def = 3;
+    Assignment assignment = 4;
+    PragmaExpression pragma_expr = 7;
+  }
+  // Line number, column interval where the code for this element
+  // is found in the sources.
+  optional CodeInterval code_interval = 5;
+  // The actual text from the source.
+  optional string code = 6;
+}
+
+// Top of the DSL parse tree:
+message Module {
+  repeated ModuleElement element = 1;
+}
+
+message ErrorInfo {
+  optional CodeLocation location = 1;
+  optional string error_message = 2;
+  optional string snippet = 3;
+};
+
+message ParseErrors {
+  repeated ErrorInfo error = 1;
+}

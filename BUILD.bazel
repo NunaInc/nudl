@@ -1,0 +1,37 @@
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+exports_files([
+    "CPPLINT.cfg",
+])
+
+config_setting(
+    name = "clang_compiler",
+    flag_values = {
+        "@bazel_tools//tools/cpp:compiler": "clang",
+    },
+)
+
+config_setting(
+    name = "gcc_compiler",
+    flag_values = {
+        "@bazel_tools//tools/cpp:compiler": "gcc",
+    },
+)
+
+config_setting(
+    name = "osx",
+    constraint_values = [
+        "@platforms//os:osx",
+    ],
+)
+
+config_setting(
+    name = "linux",
+    constraint_values = [
+        "@platforms//os:linux",
+    ],
+)

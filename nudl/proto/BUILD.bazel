@@ -1,0 +1,41 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl", "cc_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")
+load("@nuna_nudl_pip_deps//:requirements.bzl", "requirement")
+
+proto_library(
+    name = "dsl",
+    srcs = ["dsl.proto"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "dsl_cc",
+    deps = [":dsl"],
+)
+
+py_proto_library(
+    name = "dsl_py",
+    srcs = ["dsl.proto"],
+    py_libs = [
+        requirement("protobuf"),
+    ],
+    deps = [
+        "@com_google_protobuf//:protobuf_python"
+    ],
+)
+
+proto_library(
+    name = "analysis",
+    srcs = ["analysis.proto"],
+    deps = [":dsl"],
+)
+
+cc_proto_library(
+    name = "analysis_cc",
+    deps = [":analysis"],
+)

@@ -1,0 +1,262 @@
+// Example 1: builtins for a simple run.
+
+def __pos__(x: {T: Numeric}) : T =>
+$$pyinline
++${x}
+$$end
+
+def __neg__(x: {T: Numeric}) : T =>
+$$pyinline
+-${x}
+$$end
+
+def __inv__(x: Int) : Int =>
+$$pyinline
+~${x}
+$$end
+
+def __not__(x: Bool) : Bool =>
+$$pyinline
+not ${x}
+$$end
+
+def __if__(cond: Bool, val_true: {T : Any}, val_false: T) : T =>
+$$pyinline
+(${val_true} if ${cond} else ${val_false})
+$$end
+
+def __between__(val: {T}, min_val: T, max_val: T) : Bool =>
+$$pyinline
+(${min_val} <= ${val} <= ${max_val})
+$$end
+
+def __mul__(x: {T: Numeric}, y: T) : T =>
+$$pyinline
+${x} * ${y}
+$$end
+
+def __div__(x: {T: Numeric}, y: T) : T =>
+$$pyinline
+${x} / ${y}
+$$end
+
+def __mod__(x: {T: Numeric}, y: T) : T =>
+$$pyinline
+${x} % ${y}
+$$end
+
+def __add__(x: {T: Numeric}, y: T) : T =>
+$$pyinline
+${x} + ${y}
+$$end
+
+def __sub__(x: {T: Numeric}, y: T) : T =>
+$$pyinline
+${x} - ${y}
+$$end
+
+def __rshift__(x: Int, y: UInt) : Int =>
+$$pyinline
+${x} >> ${y}
+$$end
+
+def __lshift__(x: {T: Union<Int, UInt>}, y: T) : T =>
+$$pyinline
+${x} << ${y}
+$$end
+
+def __lt__(x: {T: Union<Numeric, String>}, y: T) : Bool =>
+$$pyinline
+${x} < ${y}
+$$end
+
+def __le__(x: {T: Union<Numeric, String>}, y: T) : Bool =>
+$$pyinline
+${x} <= ${y}
+$$end
+
+def __eq__(x: {T: Union<Numeric, String>}, y: T) : Bool =>
+$$pyinline
+${x} == ${y}
+$$end
+
+def __ne__(x: {T: Union<Numeric, String>}, y: T) : Bool =>
+$$pyinline
+${x} != ${y}
+$$end
+
+def __gt__(x: {T: Union<Numeric, String>}, y: T) : Bool =>
+$$pyinline
+${x} < ${y}
+$$end
+
+def __ge__(x: {T: Union<Numeric, String>}, y: T) : Bool =>
+$$pyinline
+${x} <= ${y}
+$$end
+
+def __bit_and__(x: Int, y: Int) : Int =>
+$$pyinline
+${x} & ${y}
+$$end
+
+def __bit_or__(x: Int, y: Int) : Int =>
+$$pyinline
+${x} | ${y}
+$$end
+
+def __bit_xor__(x: Int, y: Int) : Int =>
+$$pyinline
+${x} ^ ${y}
+$$end
+
+def __and__(x: Bool, y: Bool) : Bool =>
+$$pyinline
+${x} and ${y}
+$$end
+
+def __or__(x: Bool, y: Bool) : Bool =>
+$$pyinline
+${x} or ${y}
+$$end
+
+def __xor__(x: Bool, y: Bool) : Bool =>
+$$pyinline
+${x} != ${y}
+$$end
+
+def _bool(x: Any) : Bool =>
+$$pyinline
+bool(${x})
+$$end
+
+def is_null(x: Nullable<{T:Any}>) : Bool =>
+$$pyinline
+${x} is None
+$$end
+
+def _ensured(x: Nullable<{T:Any}>) : T =>
+$$pyinline
+${x}
+$$end
+
+def ensure(x: Nullable<{T:Int}>, val: Int = 0) : Int =>
+  is_null(x) ? (val, _ensured(x))
+
+def ensure(x: Nullable<{T:UInt}>, val: UInt = 0u) : UInt  =>
+  is_null(x) ? (val, _ensured(x))
+
+def ensure(x: Nullable<String>, val: String = "") : String  =>
+  is_null(x) ? (val, _ensured(x))
+
+def ensure(x: Nullable<Bytes>, val: Bytes = b"") : Bytes  =>
+  is_null(x) ? (val, _ensured(x))
+
+def ensure(x: Nullable<Bool>, val: Bool = false) : Bool  =>
+  is_null(x) ? (val, _ensured(x))
+
+def method ensured_run(x: Nullable<{X}>,
+  f: Function<X, Nullable<{Y}>>) : Nullable<Y> =>
+// Normal implementation - need to sort out calling non-function
+//  named objects is_null(x) ? (null, f(_ensured(x)))
+$$pyinline
+nudl.ensured_run(${x,} ${f})
+$$end
+
+def method concat(x: Iterable<String>, joiner: String) : String =>
+$$pyinline
+${joiner}.join(${x})
+$$end
+
+def method len(l: {X: Union<Iterable<{Y}>, String, Bytes>}) : UInt =>
+// May actually want to do something different for Iterable.
+// as len(filter(...)) would not work.
+$$pyinline
+len(${l})
+$$end
+
+def method map(
+  l: Iterable<{X : Any}>,
+  f: Function<X, {Y : Any}>) : Array<Y> =>
+$$pyinline
+map(lambda x: ${f}(x), ${l})
+$$end
+
+def method sum(l: Iterable<{X : Numeric}>) : X =>
+$$pyinline
+sum(${l})
+$$end
+
+def method filter(
+  l: Iterable<{X : Any}>,
+  f: Function<X, Bool>) : Array<X> =>
+$$pyinline
+[__x for __x in ${l} if ${f}(${l})]
+$$end
+
+def method aggregate_to_array(
+  l: Iterable<{X : Any}>,
+  key: Function<X, {Y: Any}>,
+  value: Function<X, {Z: Any}>) : Array<Tuple<Y, Array<Z>>> =>
+$$pyinline
+nudl.aggregate_to_array(${l}, ${key}, ${value})
+$$end
+
+def method aggregate_to_set(
+  l: Iterable<{X : Any}>,
+  key: Function<X, {Y: Any}>,
+  value: Function<X, {Z: Any}>) : Array<Tuple<Y, Set<Z>>> =>
+$$pyinline
+nudl.aggregate_to_set(${l}, ${key}, ${value})
+$$end
+
+def method sort(
+  l: Array<{X : Any}>,
+  sorter: Function<X, X, Bool>) : Array<X> =>
+$$pyinline
+nudl.sort_stable(${l}, ${sorter})
+$$end
+
+def method front(
+  l: Array<{X: Any}>) : Nullable<X> =>
+$$pyinline
+${l}[0] if ${l} else None
+$$end
+
+def method shuffle(
+  l: Array<{X: Any}>) : Array<X> =>
+$$pyimport
+nudl.shuffle(l)
+$$end
+
+def method max(
+  l: Array<{X: Union<String, Bytes, Numeric>}>) : X =>
+$$pyimport
+max(${l})
+$$end
+
+def method min(
+  l: Array<{X: Union<String, Bytes, Numeric>}>) : X =>
+$$pyimport
+min(${l})
+$$end
+
+def method max_by(
+  l: Iterable<{X}>, f: Function<X, {Y: Union<String, Bytes, Numeric>}>)
+    : Nullable<X> =>
+$$pyimport
+min(map(lambda e: (${f}(e), e), l))[1]
+$$end
+
+def method min_by(
+  l: Iterable<{X}>, f: Function<X, {Y: Union<String, Bytes, Numeric>}>)
+    : Nullable<X> =>
+$$pyimport
+min(map(lambda e: (${f}(e), e), l))[1]
+$$end
+
+def method empty(
+  l: Iterable<{X: Any}>) : Bool =>
+$$pyimport
+nudl.empty({l})
+$$end

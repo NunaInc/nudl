@@ -1,0 +1,38 @@
+import cdm
+
+// Various kinds of lambdas:
+
+// Types fully specified:
+def ProcessNames(names: Array<String>) : UInt =>
+  sum(map(names, (s : String) : UInt => len(s)))
+
+// Lambda bound on call:
+def ProcessNames2(names: Array<String>) : UInt =>
+  sum(map(names, s => len(s)))
+
+// `names` and lambda bound on call:
+def ProcessNames3(names) =>
+  sum(map(names, s => len(s)))
+
+// Binds the ProcessNames3 fully upon call:
+def UseProcessNames3(name: cdm.HumanName) =>
+  ProcessNames3(name.prefix)
+
+// Using a standard function:
+def ProcessNames4(names: Array<String>) : UInt =>
+  sum(map(names, len))
+
+// Using a function variable - needs proper hings for binding:
+def ProcessNames5(names: Array<String>) : UInt => {
+  // Need the String annotation to bind the type of the lambda
+  process = s : String => len(s);
+  sum(map(names, process))
+}
+
+// Using external function:
+def ProcessNames6(names: Array<cdm.HumanName>) =>
+  sum(map(names, s => len(cdm.GetFamilyName(s))))
+
+// Showing fluent calls:
+def ProcessNames7(names: Array<String>) =>
+  names.map(s => len(s)).sum()

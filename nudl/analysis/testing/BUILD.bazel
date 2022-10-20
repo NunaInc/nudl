@@ -1,0 +1,70 @@
+package(default_visibility = ["//visibility:private"])
+
+load("//external/cpplint:cpplint.bzl", "cpplint")
+
+cc_test(
+    name = "names_test",
+    srcs = ["names_test.cc"],
+    deps = [
+        "//nudl/analysis",
+        "//nudl/status:testing",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "types_test",
+    srcs = ["types_test.cc"],
+    deps = [
+        "//nudl/analysis",
+        "//nudl/grammar",
+        "//nudl/status:testing",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "analysis_test",
+    hdrs = ["analysis_test.h"],
+    srcs = ["analysis_test.cc"],
+    testonly = 1,
+    deps = [
+        "//nudl/analysis",
+        "//nudl/status:testing",
+        "//nudl/testing:protobuf_matchers",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest",
+    ],
+    data = ["//nudl/analysis/testing/testdata:builtin.ndl"],
+)
+
+cc_test(
+    name = "lambda_test",
+    srcs = ["lambda_test.cc"],
+    deps = [
+        ":analysis_test",
+        "@com_google_googletest//:gtest_main",
+    ],
+    data = [
+        "//nudl/analysis/testing/testdata:lambda_test",
+        "//nudl/analysis/testing/testdata:cdm.ndl",
+    ],
+)
+
+cc_test(
+    name = "general_test",
+    srcs = ["general_test.cc"],
+    deps = [
+        ":analysis_test",
+        "@com_google_googletest//:gtest_main",
+    ],
+    data = [
+        "//nudl/analysis/testing/testdata:general_test",
+        "//nudl/analysis/testing/testdata:cdm.ndl",
+    ],
+)
+
+
+cpplint()

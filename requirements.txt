@@ -1,0 +1,2 @@
+absl-py==0.13.0
+protobuf==3.17.3

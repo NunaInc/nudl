@@ -1,0 +1,81 @@
+package(default_visibility = ["//visibility:private"])
+
+load("//external/cpplint:cpplint.bzl", "cpplint")
+
+cc_library(
+    name = "analysis",
+    srcs = [
+        "basic_converter.cc",
+        "converter.cc",
+        "errors.cc",
+        "expression.cc",
+        "function.cc",
+        "module.cc",
+        "named_object.cc",
+        "names.cc",
+        "pragma.cc",
+        "scope.cc",
+        "type_spec.cc",
+        "type_store.cc",
+        "types.cc",
+        "vars.cc",
+    ],
+    hdrs = [
+        "analysis.h",
+        "basic_converter.h",
+        "converter.h",
+        "errors.h",
+        "expression.h",
+        "function.h",
+        "module.h",
+        "named_object.h",
+        "names.h",
+        "pragma.h",
+        "scope.h",
+        "type_spec.h",
+        "type_store.h",
+        "types.h",
+        "vars.h",
+    ],
+    linkopts = select({
+        # TODO(catalin): Note the compiler constraints do not work for
+        # some reason - relaying to OS constraints - kind of stupid,
+        # but for now they work.
+        "//:osx": [],
+        "//:linux": ["-lstdc++fs"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//nudl/grammar",
+        "//nudl/proto:analysis_cc",
+        "//nudl/proto:dsl_cc",
+        "//nudl/status",
+        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/time",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_absl//absl/types:variant",
+        "@com_googlesource_code_re2//:re2",
+    ],
+)
+
+cc_binary(
+    name = "convert",
+    srcs = ["convert.cc"],
+    linkstatic = True,
+    deps = [
+        ":analysis",
+        "@com_google_absl//absl/debugging:failure_signal_handler",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_github_google_glog//:glog",
+    ]
+)
+
+cpplint()

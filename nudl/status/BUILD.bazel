@@ -1,0 +1,39 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("//external/cpplint:cpplint.bzl", "cpplint")
+
+cc_library(
+    name = "status",
+    srcs = ["status.cc"],
+    hdrs = ["status.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_github_google_glog//:glog",
+    ],
+)
+
+cc_library(
+    name = "testing",
+    testonly = 1,
+    hdrs = ["testing.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "status_test",
+    srcs = ["status_test.cc"],
+    deps = [
+        ":status",
+        ":testing",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cpplint()

@@ -1,0 +1,6 @@
+bazel-*
+bazel-*/
+.classpath
+.project
+.settings/
+/bin/

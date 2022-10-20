@@ -1,0 +1,52 @@
+// Some simple examples:
+
+import cdm
+
+// Top level parameter:
+param x: Int = 20
+
+// Untyped function - bound upon calling a'la C++ templates.
+def foo(p, q) => p + q
+
+// Top level constant
+y: Int = foo(x, 30)
+
+// Example function with fully defined type:
+def ExtractFullName(name: cdm.HumanName) : String => {
+  concat([concat(name.prefix, " "),
+          ensure(name.family),
+          ensure(name.given),
+          concat(name.suffix, " ")], " ")
+}
+
+// Another function with inferred retrun type:
+def IsDillinger(name: cdm.HumanName) =>
+  ensure(name.family) == "Dillinger" and ensure(name.given) == "John"
+
+// Another function example:
+def MaxTermination(name: cdm.HumanName) =>
+  max([len(name.prefix), len(name.suffix)])
+
+// Plays with the above:
+
+// Returns the max len of a list of lists or so.
+// Also makes it a member of Iterable, so we can call it fluently:
+def method maxlen(l: Iterable<Iterable<{X}>>) => l.map(len).max()
+
+// Same as above but uses maxlen (in a fluent way):
+def MaxTermination2(name: cdm.HumanName) => {
+  [name.prefix, name.suffix].maxlen()
+}
+
+// Untyped maxlen from above:
+def maxlen2(l) => l.map(len).max()
+
+// Using maxlen2 in a fluent way:
+def MaxTermination3(name: cdm.HumanName) => {
+  maxlen2([name.prefix, name.suffix])
+}
+
+def FilterName(names: Array<String>, extra: String) => {
+  filtered = names.filter((name, arg=extra) => { len(name) > len(arg) });
+  return not filtered.empty();
+}

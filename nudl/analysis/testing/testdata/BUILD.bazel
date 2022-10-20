@@ -1,0 +1,15 @@
+package(default_visibility = ["//nudl/analysis:__subpackages__"])
+
+exports_files(
+    glob(["*.ndl"]),
+)
+
+filegroup(
+    name="lambda_test",
+    srcs = glob(["lambda_test/*.pb"])
+)
+
+filegroup(
+    name="general_test",
+    srcs = glob(["general_test/*.pb"])
+)
