@@ -10,7 +10,7 @@ jobs:
         with:
           path: ${{ runner.tool_cache }}/nudl
           key: nudl-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/BUILD.bazel') }}
-        restore-keys: nudl-${{ runner.os }}-${{ runner.arch }}
+          restore-keys: nudl-${{ runner.os }}-${{ runner.arch }}
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
         with:
