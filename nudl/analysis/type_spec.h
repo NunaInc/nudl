@@ -77,6 +77,8 @@ class TypeSpec : public NamedObject {
   std::shared_ptr<NameStore> type_member_store_ptr() const;
   // Local name of the type in the store.
   const std::string& local_name() const;
+  // The scope in which the type is defined:
+  virtual const ScopeName& scope_name() const = 0;
 
   // Converts this type to a proto representation.
   virtual pb::ExpressionTypeSpec ToProto() const;

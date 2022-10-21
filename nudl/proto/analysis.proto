@@ -166,6 +166,8 @@ message ExpressionTypeSpec {
   //   - Decimal - precision_, scale_
   //   - Function - first default value index
   repeated int64 parameter_value = 5;
+  // Scope in which type is defined:
+  optional ScopeName scope_name = 6;
 }
 
 // Short reference to a named object:

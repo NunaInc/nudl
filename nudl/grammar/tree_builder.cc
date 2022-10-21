@@ -126,9 +126,16 @@ class DslVisitor : public NudlDslParserBaseVisitor {
       }
       literal->set_uint_value(value);
     } else if (context->LITERAL_FLOAT()) {
+      float value;
+      if (!absl::SimpleAtof(absl::StripSuffix(literal->original(), "f"),
+                            &value)) {
+        return setError(&expression, context, "Invalid float literal");
+      }
+      literal->set_float_value(value);
+    } else if (context->LITERAL_DOUBLE()) {
       double value;
       if (!absl::SimpleAtod(literal->original(), &value)) {
-        return setError(&expression, context, "Invalid floating point literal");
+        return setError(&expression, context, "Invalid double literal");
       }
       literal->set_double_value(value);
     } else if (context->LITERAL_STRING()) {

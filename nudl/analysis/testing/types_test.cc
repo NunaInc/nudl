@@ -405,7 +405,7 @@ TEST_F(TypesTest, Unions) {
     true, false, false, false, false, false,
     false, false, true, true, false, false,
     // Union<Bool, Int32, Struct<Int, String>>
-    false, false, false, false, false, false,
+    true, false, false, false, false, false,
     false, false, false, true, false, false,
     // Union<Int, String>
     true, true, false, false, false, false,

@@ -318,10 +318,13 @@ absl::Status Module::ProcessImport(const pb::ImportStatement& element,
     ASSIGN_OR_RETURN(auto module,
                      module_store_->ImportModule(module_name, import_chain),
                      _ << context.ToErrorInfo("Error importing module"));
-
     RETURN_IF_ERROR(AddChildStore(local_name, module))
         << "For module: " << module_name
         << context.ToErrorInfo("Registering imported module");
+    if (spec.has_alias()) {
+      RETURN_IF_ERROR(type_store()->AddAlias(
+          module->scope_name(), scope_name().Submodule(local_name).value()));
+    }
     expressions_.emplace_back(std::make_unique<ImportStatementExpression>(
         this, local_name, spec.has_alias(), module));
   }

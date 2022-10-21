@@ -30,10 +30,13 @@ class StoredTypeSpec : public TypeSpec {
   }
   std::unique_ptr<TypeSpec> Clone() const override;
   const TypeSpec* type_spec() const override;
+  const ScopeName& scope_name() const override;
+  void set_scope_name(ScopeName scope_name);
 
  protected:
   TypeStore* const type_store_;
   const TypeSpec* const object_type_spec_;
+  std::optional<ScopeName> scope_name_;
 };
 
 class BaseTypesStore : public ScopeTypeStore {
@@ -102,6 +105,10 @@ class TypeUtils {
   // Finds specific types in type_spec or parameters that are unbound.
   static void FindUnboundTypes(const TypeSpec* type_spec,
                                absl::flat_hash_set<std::string>* type_names);
+
+  static bool IsIntType(pb::TypeId type_id);
+  static bool IsUIntType(pb::TypeId type_id);
+  static bool IsFloatType(pb::TypeId type_id);
 };
 
 // Type that represents the type of a type named object.
@@ -141,12 +148,14 @@ class TypeInt : public StoredTypeSpec {
  public:
   TypeInt(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeInt8 : public StoredTypeSpec {
  public:
   TypeInt8(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeInt16 : public StoredTypeSpec {
@@ -154,6 +163,7 @@ class TypeInt16 : public StoredTypeSpec {
   TypeInt16(TypeStore* type_store,
             std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeInt32 : public StoredTypeSpec {
@@ -161,12 +171,14 @@ class TypeInt32 : public StoredTypeSpec {
   TypeInt32(TypeStore* type_store,
             std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeUInt : public StoredTypeSpec {
  public:
   TypeUInt(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeUInt8 : public StoredTypeSpec {
@@ -174,6 +186,7 @@ class TypeUInt8 : public StoredTypeSpec {
   TypeUInt8(TypeStore* type_store,
             std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeUInt16 : public StoredTypeSpec {
@@ -181,6 +194,7 @@ class TypeUInt16 : public StoredTypeSpec {
   TypeUInt16(TypeStore* type_store,
              std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeUInt32 : public StoredTypeSpec {
@@ -188,6 +202,7 @@ class TypeUInt32 : public StoredTypeSpec {
   TypeUInt32(TypeStore* type_store,
              std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeFloat64 : public StoredTypeSpec {
@@ -195,6 +210,7 @@ class TypeFloat64 : public StoredTypeSpec {
   TypeFloat64(TypeStore* type_store,
               std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeFloat32 : public StoredTypeSpec {
@@ -202,6 +218,7 @@ class TypeFloat32 : public StoredTypeSpec {
   TypeFloat32(TypeStore* type_store,
               std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeString : public StoredTypeSpec {
@@ -474,6 +491,7 @@ class TypeUnknown : public TypeSpec {
   explicit TypeUnknown(std::shared_ptr<NameStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   const TypeSpec* type_spec() const override;
+  const ScopeName& scope_name() const override;
 
   static const TypeUnknown* Instance();
 };

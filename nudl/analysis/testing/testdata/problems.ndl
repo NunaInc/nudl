@@ -1,2 +1,4 @@
 
-// No problems known.
+import cdm
+
+def f(name: cdm.HumanName) => len(name.prefix)

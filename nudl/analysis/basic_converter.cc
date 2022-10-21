@@ -99,11 +99,18 @@ absl::Status BasicConverter::ProcessModule(Module* module,
 
 std::string BasicConverter::GetTypeString(const TypeSpec* type_spec,
                                           BasicConvertState* state) const {
+  std::string prefix;
+  if (!type_spec->scope_name().empty() &&
+      type_spec->scope_name().name() != state->module()->name()) {
+    // TODO(catalin): treat for alias imports
+    // i.e. type_spec->scope_name().name() refers to original name
+    prefix = absl::StrCat(type_spec->scope_name().name(), ".");
+  }
   if (type_spec->type_id() == pb::TypeId::STRUCT_ID) {
-    return type_spec->name();
+    return absl::StrCat(prefix, type_spec->name());
   }
   // May want something deeper, but for now:
-  return type_spec->full_name();
+  return absl::StrCat(prefix, type_spec->full_name());
 }
 
 absl::Status BasicConverter::ConvertAssignment(const Assignment& expression,

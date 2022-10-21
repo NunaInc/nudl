@@ -160,6 +160,9 @@ pb::ExpressionTypeSpec TypeSpec::ToProto() const {
   for (auto param : parameters_) {
     *proto.add_parameter() = param->ToProto();
   }
+  if (!scope_name().empty()) {
+    *proto.mutable_scope_name() = scope_name().ToProto();
+  }
   return proto;
 }
 

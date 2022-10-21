@@ -73,6 +73,21 @@ absl::string_view TypeUtils::BaseTypeName(pb::TypeId type_id) {
   return it->second;
 }
 
+bool TypeUtils::IsUIntType(pb::TypeId type_id) {
+  return (type_id == pb::TypeId::UINT_ID || type_id == pb::TypeId::UINT8_ID ||
+          type_id == pb::TypeId::UINT16_ID || type_id == pb::TypeId::UINT32_ID);
+}
+
+bool TypeUtils::IsIntType(pb::TypeId type_id) {
+  return (type_id == pb::TypeId::INT_ID || type_id == pb::TypeId::INT8_ID ||
+          type_id == pb::TypeId::INT16_ID || type_id == pb::TypeId::INT32_ID);
+}
+
+bool TypeUtils::IsFloatType(pb::TypeId type_id) {
+  return (type_id == pb::TypeId::FLOAT32_ID ||
+          type_id == pb::TypeId::FLOAT64_ID);
+}
+
 std::vector<const TypeSpec*> TypeUtils::DedupTypes(
     absl::Span<const TypeSpec*> parameters) {
   std::vector<const TypeSpec*> results;
@@ -228,6 +243,17 @@ std::unique_ptr<TypeSpec> StoredTypeSpec::Clone() const {
 
 const TypeSpec* StoredTypeSpec::type_spec() const { return object_type_spec_; }
 
+const ScopeName& StoredTypeSpec::scope_name() const {
+  if (scope_name_.has_value()) {
+    return scope_name_.value();
+  }
+  return type_store_->scope_name();
+}
+
+void StoredTypeSpec::set_scope_name(ScopeName scope_name) {
+  scope_name_ = std::move(scope_name);
+}
+
 TypeType::TypeType(TypeStore* type_store,
                    std::shared_ptr<NameStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::TYPE_ID, kTypeNameType,
@@ -280,6 +306,9 @@ TypeInt::TypeInt(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeInt::Clone() const {
   return CloneType<TypeInt>();
 }
+bool TypeInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsIntType(type_spec.type_id());
+}
 
 TypeInt8::TypeInt8(TypeStore* type_store,
                    std::shared_ptr<NameStore> type_member_store)
@@ -288,6 +317,9 @@ TypeInt8::TypeInt8(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
 std::unique_ptr<TypeSpec> TypeInt8::Clone() const {
   return CloneType<TypeInt8>();
+}
+bool TypeInt8::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsIntType(type_spec.type_id());
 }
 
 TypeInt16::TypeInt16(TypeStore* type_store,
@@ -298,6 +330,9 @@ TypeInt16::TypeInt16(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeInt16::Clone() const {
   return CloneType<TypeInt16>();
 }
+bool TypeInt16::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsIntType(type_spec.type_id());
+}
 
 TypeInt32::TypeInt32(TypeStore* type_store,
                      std::shared_ptr<NameStore> type_member_store)
@@ -306,6 +341,9 @@ TypeInt32::TypeInt32(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
 std::unique_ptr<TypeSpec> TypeInt32::Clone() const {
   return CloneType<TypeInt32>();
+}
+bool TypeInt32::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsIntType(type_spec.type_id());
 }
 
 TypeUInt::TypeUInt(TypeStore* type_store,
@@ -316,6 +354,9 @@ TypeUInt::TypeUInt(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeUInt::Clone() const {
   return CloneType<TypeUInt>();
 }
+bool TypeUInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsUIntType(type_spec.type_id());
+}
 
 TypeUInt8::TypeUInt8(TypeStore* type_store,
                      std::shared_ptr<NameStore> type_member_store)
@@ -324,6 +365,9 @@ TypeUInt8::TypeUInt8(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameUInt)) {}
 std::unique_ptr<TypeSpec> TypeUInt8::Clone() const {
   return CloneType<TypeUInt8>();
+}
+bool TypeUInt8::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsUIntType(type_spec.type_id());
 }
 
 TypeUInt16::TypeUInt16(TypeStore* type_store,
@@ -334,6 +378,9 @@ TypeUInt16::TypeUInt16(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeUInt16::Clone() const {
   return CloneType<TypeUInt16>();
 }
+bool TypeUInt16::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsUIntType(type_spec.type_id());
+}
 
 TypeUInt32::TypeUInt32(TypeStore* type_store,
                        std::shared_ptr<NameStore> type_member_store)
@@ -342,6 +389,9 @@ TypeUInt32::TypeUInt32(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameUInt)) {}
 std::unique_ptr<TypeSpec> TypeUInt32::Clone() const {
   return CloneType<TypeUInt32>();
+}
+bool TypeUInt32::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsUIntType(type_spec.type_id());
 }
 
 TypeFloat64::TypeFloat64(TypeStore* type_store,
@@ -352,6 +402,9 @@ TypeFloat64::TypeFloat64(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeFloat64::Clone() const {
   return CloneType<TypeFloat64>();
 }
+bool TypeFloat64::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsFloatType(type_spec.type_id());
+}
 
 TypeFloat32::TypeFloat32(TypeStore* type_store,
                          std::shared_ptr<NameStore> type_member_store)
@@ -360,6 +413,9 @@ TypeFloat32::TypeFloat32(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameFloat64)) {}
 std::unique_ptr<TypeSpec> TypeFloat32::Clone() const {
   return CloneType<TypeFloat32>();
+}
+bool TypeFloat32::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsFloatType(type_spec.type_id());
 }
 
 TypeString::TypeString(TypeStore* type_store,
@@ -596,6 +652,7 @@ absl::StatusOr<TypeStruct*> TypeStruct::AddTypeStruct(
       struct_type->struct_member_store()->AddFields(struct_type->fields()))
       << "Adding fields to: " << struct_type->full_name();
   TypeStruct* ret_type = struct_type.get();
+  struct_type->set_scope_name(scope_name);
   RETURN_IF_ERROR(
       type_store->DeclareType(scope_name, name, std::move(struct_type))
           .status());
@@ -1274,6 +1331,11 @@ const TypeUnknown* TypeUnknown::Instance() {
 }
 
 const TypeSpec* TypeUnknown::type_spec() const { return this; }
+
+const ScopeName& TypeUnknown::scope_name() const {
+  static const auto kEmptyScope = new ScopeName();
+  return *kEmptyScope;
+}
 
 }  // namespace analysis
 }  // namespace nudl

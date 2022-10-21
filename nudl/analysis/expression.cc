@@ -166,6 +166,9 @@ std::string EmptyStruct::DebugString() const { return "[]"; }
 absl::StatusOr<const TypeSpec*> EmptyStruct::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   if (!type_hint.has_value()) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Empty iterable [] expression needs to have a type "
+              "specification associated";
     ASSIGN_OR_RETURN(auto type_spec, scope_->FindTypeByName("Iterable<Any>"),
                      _ << "Finding standard type" << kBugNotice);
     return type_spec;
@@ -242,7 +245,7 @@ std::string Literal::DebugString() const { return str_value_; }
 
 pb::ExpressionSpec Literal::ToProto() const {
   auto proto = Expression::ToProto();
-  switch (type_spec_.value()->type_id()) {
+  switch (build_type_spec_->type_id()) {
     case pb::TypeId::NULL_ID:
       proto.mutable_literal()->set_null_value(pb::NullType::NULL_VALUE);
       break;

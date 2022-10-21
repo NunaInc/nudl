@@ -27,7 +27,7 @@ absl::optional<ScopeTypeStore*> GlobalTypeStore::FindStore(
     absl::string_view name) const {
   const auto it = scopes_.find(name);
   if (it != scopes_.end()) {
-    return it->second.get();
+    return it->second;
   }
   return {};
 }
@@ -85,8 +85,25 @@ absl::Status GlobalTypeStore::AddScope(std::shared_ptr<ScopeName> scope_name) {
            << "Cannot overwrite module " << scope_name->name();
   }
   std::string key(scope_name->name());
-  scopes_.emplace(std::move(key), std::make_unique<ScopeTypeStore>(
-                                      std::move(scope_name), this));
+  scopes_store_.emplace_back(
+      std::make_unique<ScopeTypeStore>(std::move(scope_name), this));
+  scopes_.emplace(std::move(key), scopes_store_.back().get());
+  return absl::OkStatus();
+}
+
+absl::Status GlobalTypeStore::AddAlias(const ScopeName& scope_name,
+                                       const ScopeName& alias_name) {
+  if (scopes_.contains(alias_name.name())) {
+    return status::AlreadyExistsErrorBuilder()
+           << "A type scope named: " << alias_name.name() << " already exists";
+  }
+  auto it = scopes_.find(scope_name.name());
+  if (it == scopes_.end()) {
+    return status::NotFoundErrorBuilder()
+           << "Cannot file a type scoped names: " << scope_name.name()
+           << " for adding an alias to it";
+  }
+  scopes_.emplace(alias_name.name(), it->second);
   return absl::OkStatus();
 }
 
@@ -96,11 +113,17 @@ absl::StatusOr<const TypeSpec*> GlobalTypeStore::DeclareType(
   auto it = scopes_.find(scope_name.name());
   if (it == scopes_.end()) {
     std::string key(scope_name.name());
-    std::tie(it, std::ignore) = scopes_.emplace(
-        scope_name.name(), std::make_unique<ScopeTypeStore>(
-                               absl::make_unique<ScopeName>(scope_name), this));
+    scopes_store_.emplace_back(std::make_unique<ScopeTypeStore>(
+        absl::make_unique<ScopeName>(scope_name), this));
+    std::tie(it, std::ignore) =
+        scopes_.emplace(scope_name.name(), scopes_store_.back().get());
   }
   return it->second->DeclareType(scope_name, name, std::move(type_spec));
+}
+
+const ScopeName& GlobalTypeStore::scope_name() const {
+  static const auto kEmptyScope = new ScopeName();
+  return *kEmptyScope;
 }
 
 ScopeTypeStore::ScopeTypeStore(std::shared_ptr<ScopeName> scope_name,
@@ -108,6 +131,8 @@ ScopeTypeStore::ScopeTypeStore(std::shared_ptr<ScopeName> scope_name,
     : TypeStore(),
       scope_name_(std::move(scope_name)),
       global_store_(global_store) {}
+
+const ScopeName& ScopeTypeStore::scope_name() const { return *scope_name_; }
 
 bool ScopeTypeStore::HasType(absl::string_view type_name) const {
   return types_.contains(type_name);

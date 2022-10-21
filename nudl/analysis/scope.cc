@@ -972,7 +972,14 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIndexExpression(
     } else {
       return status::InvalidArgumentErrorBuilder()
              << "Tuples require a static integer index"
-             << context.ToErrorInfo("In indexed expression");
+             << context.ToErrorInfo("In tuple indexed expression");
+    }
+    if (index >= object_type->parameters().size()) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Tuples index: " << index
+             << " out of tuple type range: " << object_type->parameters().size()
+             << " for type: " << object_type->full_name()
+             << context.ToErrorInfo("In tuple indexed expression");
     }
     result_expression = absl::make_unique<TupleIndexExpression>(
         this, std::move(object_expression), std::move(index_expression), index);
