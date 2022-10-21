@@ -17,4 +17,4 @@ as a test step (follow examples)
 `clang-format -style=Google -i <file>` for specific file.
 https://formulae.brew.sh/formula/clang-format
   - Note: use `// clang-format off` and `// clang-format on`
-   to disable `clang-format` in a section of a file
+  to disable `clang-format` in a section of a file.
