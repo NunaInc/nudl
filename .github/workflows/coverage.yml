@@ -1,0 +1,34 @@
+name: coverage
+on: [push, pull_request]
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ runner.tool_cache }}/nudl
+          key: nudl-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/BUILD.bazel') }}
+          restore-keys: nudl-${{ runner.os }}-${{ runner.arch }}
+      - name: Setup Cpp
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: llvm
+          clangtidy: true
+          clangformat: true
+      - uses: bazelbuild/setup-bazelisk@v1
+      - name: Bazel build
+        run: bazel build //...
+      - name: Bazel test
+        run: bazel test --test_summary=detailed --test_output=errors //...
+      - name: Install lcov
+        run: sudo apt-get install -y lcov
+      - name: Run coverage
+        run: bazel coverage --combined_report=lcov //...
+      - name: Generate coverage report
+        run: genhtml --output genhtml "$(bazel info output_path)/_coverage/_coverage_report.dat"
+      - name: Publish coverage report 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: genhtml
