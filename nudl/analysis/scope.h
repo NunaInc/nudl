@@ -75,12 +75,17 @@ class Scope : public BaseNameStore {
   std::shared_ptr<ScopeName> scope_name_ptr() const;
   // Expressions defined within this scope.
   const std::vector<std::unique_ptr<Expression>>& expressions() const;
+  // Adds an expression into the scope - mainly for testing.
+  void add_expression(std::unique_ptr<Expression> expression);
 
   // The type of name object we are: kScope
   pb::ObjectKind kind() const override;
 
   // We add a little more details here:
   std::string full_name() const override;
+
+  // Normally returning the type of last expression.
+  const TypeSpec* type_spec() const override;
 
   // This returns the parent_ scope.
   absl::optional<NameStore*> parent_store() const override;
@@ -111,7 +116,6 @@ class Scope : public BaseNameStore {
 
   // Builds an expression object from the provided proto.
   absl::StatusOr<std::unique_ptr<Expression>> BuildExpression(
-      // TODO(catalin): may need more args here.
       const pb::Expression& expression);
 
   // Builds all expressions from the provided expression block, and

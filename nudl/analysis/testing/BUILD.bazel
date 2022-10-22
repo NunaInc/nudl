@@ -19,6 +19,7 @@ cc_test(
         "//nudl/analysis",
         "//nudl/grammar",
         "//nudl/status:testing",
+        "//nudl/testing:protobuf_matchers",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
@@ -62,6 +63,21 @@ cc_test(
     ],
     data = [
         "//nudl/analysis/testing/testdata:general_test",
+        "//nudl/analysis/testing/testdata:cdm.ndl",
+        "//nudl/analysis/testing/testdata:submodule/__init__.ndl",
+        "//nudl/analysis/testing/testdata:submodule/compute.ndl",
+    ],
+)
+
+cc_test(
+    name = "coverage_test",
+    srcs = ["coverage_test.cc"],
+    deps = [
+        ":analysis_test",
+        "@com_google_googletest//:gtest_main",
+    ],
+    data = [
+        "//nudl/analysis/testing/testdata:coverage_test",
         "//nudl/analysis/testing/testdata:cdm.ndl",
     ],
 )

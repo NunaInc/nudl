@@ -39,7 +39,7 @@ absl::Status TypeMemberStore::CheckAddedObject(absl::string_view local_name,
   pb::ObjectKind kind = CHECK_NOTNULL(object)->kind();
   if (kind != pb::ObjectKind::OBJ_FIELD && kind != pb::ObjectKind::OBJ_METHOD) {
     return status::InvalidArgumentErrorBuilder()
-           << "Type members can only be fields or method. "
+           << "Type members can only be fields or methods. "
            << "Got: " << object->full_name() << " to be added "
            << " to store: " << full_name();
   }
@@ -344,6 +344,7 @@ absl::Status TypeSpec::set_name(absl::string_view name) {
   }
   ASSIGN_OR_RETURN(name_, NameUtil::ValidatedName(std::string(name)),
                    _ << "Setting name of : " << full_name());
+  is_name_set_ = true;
   return absl::OkStatus();
 }
 

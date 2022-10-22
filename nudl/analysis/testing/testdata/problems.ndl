@@ -1,4 +1,39 @@
-
 import cdm
+def f(name: cdm.HumanName) => {
+  z = name;  // = is copy
+  z.given = "Jeff"
+  z
+}
 
-def f(name: cdm.HumanName) => len(name.prefix)
+
+/*
+def foo(x: Int) => {
+  if (x % 2) {
+    return x / 2
+  }
+  // Need an error here
+}
+
+def foo(x: Int) => {
+  if (x % 2) {
+    x = x + 1
+  } else {
+    return x
+  }
+  // Need an error here
+}
+
+def foo(x: Int) => {
+  return x / 2
+  // Need an error here:
+  x = x + 1
+}
+
+def foo(x: Int) => {
+  if (x % 2) {
+    y = 10
+  }
+  // Need an error here - ie scopes per if expression.
+  y + x
+}
+*/

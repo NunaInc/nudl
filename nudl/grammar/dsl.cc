@@ -65,6 +65,9 @@ absl::Status ParseDataBase::ParseInternal(absl::string_view code_arg,
     }
     lexer->removeErrorListeners();
     parser->removeErrorListeners();
+    auto extra_errors = TreeUtil::FindErrors(tree);
+    std::move(extra_errors.begin(), extra_errors.end(),
+              std::back_inserter(errors));
     if (errors.empty()) {
       absl::string_view visitor_code;
       if (!options.no_intervals) {
@@ -76,29 +79,21 @@ absl::Status ParseDataBase::ParseInternal(absl::string_view code_arg,
       Visit(visitor.get());
     }
   } catch (const antlr4::ParseCancellationException& e) {
-    return status::CancelledErrorBuilder("ANTLR4 ParseCancellationException: ")
-           << e.what();
+    return absl::InternalError(absl::StrCat("ANTLR4 ParseCancel: ", e.what()));
   } catch (const antlr4::CancellationException& e) {
-    return status::CancelledErrorBuilder("ANTLR4 CancellationException: ")
-           << e.what();
+    return absl::InternalError(absl::StrCat("ANTLR4 Cancellation: ", e.what()));
   } catch (const antlr4::IllegalStateException& e) {
-    return status::InvalidArgumentErrorBuilder("ANTLR4 IllegalStateException: ")
-           << e.what();
+    return absl::InternalError(absl::StrCat("ANTLR4 IllegalState: ", e.what()));
   } catch (const antlr4::IllegalArgumentException& e) {
-    return status::InvalidArgumentErrorBuilder(
-               "ANTLR4 IllegalArgumentException: ")
-           << e.what();
+    return absl::InternalError(absl::StrCat("ANTLR4 IllegalArg: ", e.what()));
   } catch (const antlr4::UnsupportedOperationException& e) {
-    return status::UnimplementedErrorBuilder(
-               "ANTLR4 UnsupportedOperationException: ")
-           << e.what();
+    return absl::InternalError(absl::StrCat("ANTLR4 Unsupported: ", e.what()));
   } catch (const antlr4::IOException& e) {
-    return status::InternalErrorBuilder("ANTLR4 IOException: ") << e.what();
+    return absl::InternalError(absl::StrCat("ANTLR4 IOError: ", e.what()));
   } catch (const antlr4::RuntimeException& e) {
-    return status::InternalErrorBuilder("ANTLR4 RuntimeException: ")
-           << e.what();
+    return absl::InternalError(absl::StrCat("ANTLR4 RuntimeErr: ", e.what()));
   } catch (const std::exception& e) {
-    return status::UnknownErrorBuilder("ANTLR4 std::exception: ") << e.what();
+    return absl::InternalError(absl::StrCat("ANTLR4 Error: ", e.what()));
   }
   return absl::OkStatus();
 }

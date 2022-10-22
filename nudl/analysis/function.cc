@@ -521,9 +521,10 @@ absl::StatusOr<VarBase*> Function::ValidateAssignment(
   VarBase* root_var = CHECK_NOTNULL(var_base->GetRootVar());
   if (!IsAncestorOf(root_var)) {
     return status::InvalidArgumentErrorBuilder()
-           << "Function: " << name.name() << " cannot assign variables "
-           << "or fields of variables outside its scope: " << root_var->name()
-           << " through name: " << name.name();
+           << "Function: " << call_name() << " cannot assign variables "
+           << "or fields of variables outside its scope: "
+           << root_var->full_name() << " through name: `" << name.name()
+           << "` for: `" << var_base->full_name() << "`";
   }
   if (object->kind() == pb::ObjectKind::OBJ_ARGUMENT &&
       !object->type_spec()->IsBasicType()) {
@@ -534,26 +535,34 @@ absl::StatusOr<VarBase*> Function::ValidateAssignment(
   return var_base;
 }
 
-absl::Status Function::InitializeAsMethod() {
-  CHECK_EQ(kind_, pb::ObjectKind::OBJ_METHOD);
-  if (arguments_.empty()) {
-    return status::InvalidArgumentErrorBuilder()
-           << "Method function requires at lease a parameter, "
-              "to specify which type is to be bound to.";
-  }
-  auto member_type = arguments_.front()->type_spec();
+absl::Status Function::AddAsMethod(const TypeSpec* member_type) {
   auto type_member_store = member_type->type_member_store();
   if (type_member_store == nullptr) {
     return status::InvalidArgumentErrorBuilder()
            << "Type: " << member_type->full_name()
-           << " does not support "
-              "additional methods.";
+           << " does not support additional methods.";
   }
   RETURN_IF_ERROR(type_member_store->AddName(function_name(), this))
       << "Adding defined function " << name()
-      << " as a method "
-         " of type: "
-      << member_type->full_name();
+      << " as a method of type: " << member_type->full_name();
+  return absl::OkStatus();
+}
+
+absl::Status Function::InitializeAsMethod() {
+  CHECK_EQ(kind_, pb::ObjectKind::OBJ_METHOD);
+  if (arguments_.empty()) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Method function requires at least a parameter, "
+              "to specify which type is to be bound to.";
+  }
+  auto member_type = arguments_.front()->type_spec();
+  if (member_type->type_id() == pb::TypeId::UNION_ID) {
+    for (const auto param : member_type->parameters()) {
+      RETURN_IF_ERROR(AddAsMethod(param));
+    }
+  } else {
+    RETURN_IF_ERROR(AddAsMethod(member_type));
+  }
   return absl::OkStatus();
 }
 
@@ -574,14 +583,14 @@ absl::StatusOr<pb::FunctionResultKind> Function::RegisterResultKind(
       }
       if (result_kind == pb::FunctionResultKind::RESULT_RETURN) {
         return absl::InvalidArgumentError(
-            "Can only `yield` in in a function that uses `pass` -"
+            "Can only `yield` in a function that uses `pass` -"
             " `return` is not acceptable");
       }
       break;
     case pb::FunctionResultKind::RESULT_YIELD:
       if (result_kind == pb::FunctionResultKind::RESULT_RETURN) {
         return absl::InvalidArgumentError(
-            "Cannot `return` ina function that uses `yield`");
+            "Cannot `return` in a function that uses `yield`");
       }
       if (result_kind == pb::FunctionResultKind::RESULT_NONE) {
         // Last statement in a Yield function is actually a pass
@@ -778,7 +787,8 @@ FunctionBinding::FunctionBinding(Function* fun)
       pragmas(fun->pragma_handler()) {
   num_args = fun->arguments().size();
   CHECK_EQ(num_args, fun->default_values().size());
-  CHECK_EQ(fun_type->parameters().size(), num_args + 1);
+  CHECK_EQ(fun_type->parameters().size(), num_args + 1)
+      << "For: " << fun << " => " << fun->full_name();
   type_arguments.reserve(num_args + 1);
   call_expressions.reserve(num_args);
   names.reserve(num_args);
@@ -796,6 +806,12 @@ FunctionBinding::FunctionBinding(const TypeFunction* fun_type,
 
 absl::StatusOr<std::unique_ptr<FunctionBinding>> FunctionBinding::Bind(
     Function* fun, const std::vector<FunctionCallArgument>& arguments) {
+  if (fun->type_spec()->type_id() != pb::TypeId::FUNCTION_ID ||
+      fun->type_spec()->parameters().empty()) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Cannot build binding for function of unresolved type: "
+           << fun->full_name();
+  }
   auto result = absl::WrapUnique(new FunctionBinding(fun));
   RETURN_IF_ERROR(result->BindImpl(arguments));
   return {std::move(result)};
@@ -804,6 +820,12 @@ absl::StatusOr<std::unique_ptr<FunctionBinding>> FunctionBinding::Bind(
 absl::StatusOr<std::unique_ptr<FunctionBinding>> FunctionBinding::BindType(
     const TypeFunction* fun_type, const PragmaHandler* pragmas,
     const std::vector<FunctionCallArgument>& arguments) {
+  if (fun_type->type_id() != pb::TypeId::FUNCTION_ID ||
+      fun_type->parameters().empty()) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Cannot build binding for improper function type: "
+           << fun_type->full_name();
+  }
   auto result = absl::WrapUnique(new FunctionBinding(fun_type, pragmas));
   RETURN_IF_ERROR(result->BindImpl(arguments));
   return {std::move(result)};

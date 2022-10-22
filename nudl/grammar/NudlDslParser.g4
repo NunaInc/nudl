@@ -268,7 +268,7 @@ blockBody
     ;
 
 pragmaExpression
-    : KW_PRAGMA IDENTIFIER computeExpression?
+    : KW_PRAGMA IDENTIFIER (LBRACE computeExpression RBRACE)?
     ;
 
 blockElement

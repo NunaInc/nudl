@@ -1,0 +1,10 @@
+
+pi: Float64 = 3.141592653589793238
+
+def area(radius: Float64) => {
+    pi * radius * radius
+}
+
+def circumference(radius: Float64) => {
+    2 * pi * radius
+}

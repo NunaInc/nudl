@@ -252,25 +252,7 @@ pb::ExpressionSpec Literal::ToProto() const {
     case pb::TypeId::INT_ID:
       proto.mutable_literal()->set_int_value(std::any_cast<int64_t>(value_));
       break;
-    case pb::TypeId::INT8_ID:
-      proto.mutable_literal()->set_int_value(std::any_cast<int64_t>(value_));
-      break;
-    case pb::TypeId::INT16_ID:
-      proto.mutable_literal()->set_int_value(std::any_cast<int64_t>(value_));
-      break;
-    case pb::TypeId::INT32_ID:
-      proto.mutable_literal()->set_int_value(std::any_cast<int64_t>(value_));
-      break;
     case pb::TypeId::UINT_ID:
-      proto.mutable_literal()->set_uint_value(std::any_cast<uint64_t>(value_));
-      break;
-    case pb::TypeId::UINT8_ID:
-      proto.mutable_literal()->set_uint_value(std::any_cast<uint64_t>(value_));
-      break;
-    case pb::TypeId::UINT16_ID:
-      proto.mutable_literal()->set_uint_value(std::any_cast<uint64_t>(value_));
-      break;
-    case pb::TypeId::UINT32_ID:
       proto.mutable_literal()->set_uint_value(std::any_cast<uint64_t>(value_));
       break;
     case pb::TypeId::STRING_ID:

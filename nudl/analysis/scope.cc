@@ -60,6 +60,16 @@ pb::ObjectKind Scope::kind() const { return pb::ObjectKind::OBJ_SCOPE; }
 
 const ScopeName& Scope::scope_name() const { return *scope_name_; }
 
+const TypeSpec* Scope::type_spec() const {
+  if (!expressions_.empty()) {
+    auto type_spec = expressions_.back()->stored_type_spec();
+    if (type_spec.has_value()) {
+      return type_spec.value();
+    }
+  }
+  return TypeUnknown::Instance();
+}
+
 absl::optional<NameStore*> Scope::parent_store() const {
   if (!parent_) {
     return {};
@@ -88,6 +98,10 @@ PragmaHandler* Scope::pragma_handler() const {
 
 const std::vector<std::unique_ptr<Expression>>& Scope::expressions() const {
   return expressions_;
+}
+
+void Scope::add_expression(std::unique_ptr<Expression> expression) {
+  expressions_.emplace_back(std::move(expression));
 }
 
 std::string Scope::full_name() const {
@@ -162,20 +176,18 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
       auto scope_result = FindChildStore(scoped_name.scope_name());
       if (scope_result.ok()) {
         const bool is_function =
-            Function::IsFunctionKind(*scope_result.value())
-
-            || FunctionGroup::IsFunctionGroup(*scope_result.value());
+            Function::IsFunctionKind(*scope_result.value()) ||
+            FunctionGroup::IsFunctionGroup(*scope_result.value());
         if (scope_result.value()->HasName(scoped_name.name())) {
           if (!is_function || scope_result.value() == this) {
             return scope_result.value()->GetName(scoped_name.name());
           } else {
             status::UpdateOrAnnotate(
-                find_status, absl::NotFoundError(absl::StrCat(
-                                 "Found name: ", scoped_name.name(),
-                                 " in function: ", scope_result.value()->name(),
-                                 " cannot be accessed from "
-                                 "scope: ",
-                                 lookup_scope.name())));
+                find_status,
+                absl::NotFoundError(absl::StrCat(
+                    "Found name: ", scoped_name.name(),
+                    " in function: ", scope_result.value()->name(),
+                    " cannot be accessed from scope: ", lookup_scope.name())));
           }
         }
         if (!is_function) {
@@ -213,13 +225,12 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
         if (!is_function || result.value() == this) {
           return result.value()->GetName(scoped_name.name());
         } else {
-          status::UpdateOrAnnotate(find_status,
-                                   absl::NotFoundError(absl::StrCat(
-                                       "Found name: ", scoped_name.name(),
-                                       " in function: ", result.value()->name(),
-                                       " cannot be accessed from "
-                                       "scope: ",
-                                       lookup_scope.name())));
+          status::UpdateOrAnnotate(
+              find_status,
+              absl::NotFoundError(absl::StrCat(
+                  "Found name: ", scoped_name.name(),
+                  " in function: ", result.value()->name(),
+                  " cannot be accessed from scope: ", lookup_scope.name())));
         }
       } else if (!result.value()->name().empty() &&
                  (!is_function || result.value() == this)) {
@@ -317,10 +328,11 @@ bool Scope::IsScopeKind(const NamedObject& object) {
 
 absl::optional<Function*> Scope::FindFunctionAncestor() {
   Scope* scope = this;
-  while (scope) {
+  while (scope && scope->parent() != scope) {
     if (Function::IsFunctionKind(*scope)) {
       return static_cast<Function*>(scope);
     }
+    scope = scope->parent();
   }
   return {};
 }
@@ -386,13 +398,15 @@ absl::Status CheckNoRedefinitions(const VarBase* var_base,
                                   const CodeContext& context) {
   if (element.has_type_spec()) {
     return status::InvalidArgumentErrorBuilder()
-           << "For " << var_base->full_name()
-           << context.ToErrorInfo("Cannot redefine type in reassignment");
+           << "Cannot redefine type in reassignment for: "
+           << var_base->full_name()
+           << context.ToErrorInfo("Redefining variable");
   }
   if (!element.qualifier().empty()) {
     return status::InvalidArgumentErrorBuilder()
-           << "For " << var_base->full_name()
-           << context.ToErrorInfo("Cannot used qualifiers in reassignment");
+           << "Cannot use qualifiers in reassignment for: "
+           << var_base->full_name()
+           << context.ToErrorInfo("Redefining variable");
   }
   return absl::OkStatus();
 }
@@ -437,8 +451,7 @@ absl::StatusOr<std::tuple<VarBase*, bool>> Scope::ProcessVarFind(
            << ", when defining a "
               "variable typed as a Function, this type needs to be bound. "
               "Please add non-abstract type specifications to all arguments "
-              "and "
-              "define the return value as well if necessary. Type found: "
+              "and define the return value as well if necessary. Type found: "
            << type_spec->full_name()
            << " unbound types: " << absl::StrJoin(unbound_types, ", ");
   }
@@ -564,12 +577,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIdentifier(
                    _ << context.ToErrorInfo("In identifier name"));
   ASSIGN_OR_RETURN(auto named_object, FindName(scope_name(), scoped_name),
                    _ << context.ToErrorInfo("Finding identifier in scope"));
-  if (!named_object->type_spec()) {
-    return status::FailedPreconditionErrorBuilder()
-           << "Object found by identifier `" << scoped_name.name()
-           << "`: " << named_object->full_name() << " does not return a type"
-           << kBugNotice;
-  }
+  RET_CHECK(named_object->type_spec()) << kBugNotice;
   if (named_object->kind() == pb::ObjectKind::OBJ_METHOD) {
     if (element.name().size() > 1) {
       pb::Identifier object_identifier(element);
@@ -699,7 +707,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildBinaryOperator(
       << kBugNotice << context.ToErrorInfo("In binary operator expression");
   static const auto* const kBinaryOperators =
       new absl::flat_hash_map<std::string, std::pair<std::string, bool>>({
-          {"*", {"__mul___", false}},    {"/", {"__div__", false}},
+          {"*", {"__mul__", false}},     {"/", {"__div__", false}},
           {"%", {"__mod__", false}},     {"+", {"__add__", false}},
           {"-", {"__sub__", false}},     {"<<", {"__lshift__", false}},
           {">>", {"__rshift__", false}}, {"<", {"__lt__", true}},
@@ -854,10 +862,15 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpressionBlock(
   absl::Status status;
   std::vector<std::unique_ptr<Expression>> expressions;
   bool last_is_result = false;
+  Expression* last_expression = nullptr;
   for (const auto& expression : expression_block.expression()) {
     auto expression_result = BuildExpression(expression);
     MergeErrorStatus(expression_result.status(), status);
     if (expression_result.ok()) {
+      if (expression_result.value()->expr_kind() !=
+          pb::ExpressionKind::EXPR_NOP) {
+        last_expression = expression_result.value().get();
+      }
       // TODO(catalin): maybe negotiate types here..
       expressions.emplace_back(std::move(expression_result).value());
       last_is_result = IsResultReturnExpression(expression);
@@ -881,13 +894,18 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpressionBlock(
     }
   }
   if (register_return && !last_is_result) {
+    if (last_expression == nullptr) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Expression block that needs to produce something, does "
+                "not have any proper expressions defined";
+    }
     auto parent_function = FindFunctionAncestor();
     RET_CHECK(parent_function.has_value())
         << "Expecting to be inside a function " << kBugNotice;
     CodeContext context =
         CodeContext::FromProto(*expression_block.expression().rbegin());
     RETURN_IF_ERROR(parent_function.value()->RegisterResultExpression(
-        pb::FunctionResultKind::RESULT_NONE, expressions.back().get()))
+        pb::FunctionResultKind::RESULT_NONE, last_expression))
         << context.ToErrorInfo("Registering default function return");
   }
   return {std::make_unique<ExpressionBlock>(this, std::move(expressions))};

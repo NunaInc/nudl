@@ -63,7 +63,6 @@ struct ErrorInfo {
   static ErrorInfo FromException(const antlr4::RecognitionException& e,
                                  absl::string_view code);
   static ErrorInfo FromProto(const pb::ErrorInfo& info);
-  static std::vector<ErrorInfo> FromParseErrors(const pb::ParseErrors& errors);
 };
 
 class TreeUtil {
@@ -74,6 +73,9 @@ class TreeUtil {
   // Returns a sort string describing the type of the tree.
   static std::string TreeTypeString(const antlr4::tree::ParseTree& pt,
                                     const antlr4::Parser& parser);
+
+  // Returns the underlying token if pt is a terminal node, else null.
+  static const antlr4::Token* GetToken(const antlr4::tree::ParseTree& pt);
 
   // Returns the tree as a nicely formatted multiline string.
   // We have to use the non const ref due to underlying API requirement

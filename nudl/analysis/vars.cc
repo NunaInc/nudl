@@ -39,6 +39,10 @@ const std::vector<Expression*> VarBase::assignments() const {
   return assignments_;
 }
 
+const std::vector<const TypeSpec*> VarBase::assign_types() const {
+  return assign_types_;
+}
+
 absl::StatusOr<std::unique_ptr<Expression>> VarBase::Assign(
     std::unique_ptr<Expression> expression) {
   ASSIGN_OR_RETURN(auto type_spec, expression->type_spec(type_spec_));
@@ -57,7 +61,10 @@ absl::StatusOr<std::unique_ptr<Expression>> VarBase::Assign(
   }
   // TODO(catalin): wrap this in type conversion or something.
   std::unique_ptr<Expression> converted_expression(std::move(expression));
-  type_spec_ = type_spec;
+  if (!type_spec_->IsBound()) {
+    type_spec_ = type_spec;
+  }
+  assign_types_.push_back(type_spec);
   assignments_.push_back(converted_expression.get());
   return {std::move(converted_expression)};
 }
@@ -117,7 +124,9 @@ Field::Field(absl::string_view name, const TypeSpec* type_spec,
              const TypeSpec* parent_type,
              absl::optional<NameStore*> parent_store)
     : VarBase(name, type_spec, parent_store),
-      parent_type_(CHECK_NOTNULL(parent_type)) {}
+      parent_type_(CHECK_NOTNULL(parent_type)) {
+  CHECK(parent_store.has_value());
+}
 
 pb::ObjectKind Field::kind() const { return pb::ObjectKind::OBJ_FIELD; }
 
@@ -125,7 +134,7 @@ std::string Field::full_name() const {
   return absl::StrCat(VarBase::full_name(), " of ", parent_type_->full_name());
 }
 
-std::unique_ptr<NamedObject> Field::Clone(
+std::unique_ptr<VarBase> Field::Clone(
     absl::optional<NameStore*> parent_store) const {
   return absl::make_unique<Field>(name_, original_type_, parent_type_,
                                   parent_store);
@@ -137,7 +146,7 @@ Var::Var(absl::string_view name, const TypeSpec* type_spec,
 
 pb::ObjectKind Var::kind() const { return pb::ObjectKind::OBJ_VARIABLE; }
 
-std::unique_ptr<NamedObject> Var::Clone(
+std::unique_ptr<VarBase> Var::Clone(
     absl::optional<NameStore*> parent_store) const {
   return absl::make_unique<Var>(name_, original_type_, parent_store);
 }
@@ -148,7 +157,7 @@ Parameter::Parameter(absl::string_view name, const TypeSpec* type_spec,
 
 pb::ObjectKind Parameter::kind() const { return pb::ObjectKind::OBJ_PARAMETER; }
 
-std::unique_ptr<NamedObject> Parameter::Clone(
+std::unique_ptr<VarBase> Parameter::Clone(
     absl::optional<NameStore*> parent_store) const {
   return absl::make_unique<Parameter>(name_, original_type_, parent_store);
 }
@@ -159,7 +168,7 @@ Argument::Argument(absl::string_view name, const TypeSpec* type_spec,
 
 pb::ObjectKind Argument::kind() const { return pb::ObjectKind::OBJ_ARGUMENT; }
 
-std::unique_ptr<NamedObject> Argument::Clone(
+std::unique_ptr<VarBase> Argument::Clone(
     absl::optional<NameStore*> parent_store) const {
   return std::make_unique<Argument>(name_, original_type_, parent_store);
 }

@@ -21,7 +21,7 @@ namespace {
 absl::StatusOr<std_filesystem::path> PathFromString(absl::string_view path) {
   try {
     return std_filesystem::path(path);
-  } catch (const std_filesystem::filesystem_error ex) {
+  } catch (const std_filesystem::filesystem_error& ex) {
     return status::InvalidArgumentErrorBuilder()
            << "Invalid path provided: `" << path << "` :" << ex.what();
   }
@@ -93,16 +93,13 @@ PathBasedFileReader::ReadModule(absl::string_view module_name) const {
                                       std::string(module_name), path.native(),
                                       crt_path.native()});
       }
-      if (std_filesystem::is_directory(crt_path) && !default_file_.empty()) {
-        auto default_path = crt_path / default_file_;
-        if (std_filesystem::is_regular_file(default_path)) {
-          return ReadFile(default_path,
-                          ModuleFileReader::ModuleReadResult{
-                              std::string(module_name), path.native(),
-                              default_path.native()});
-        }
+      auto top_path = path / ModuleNameToPath(module_name) / kDefaultModuleFile;
+      if (std_filesystem::is_regular_file(top_path)) {
+        return ReadFile(top_path, ModuleFileReader::ModuleReadResult{
+                                      std::string(module_name), path.native(),
+                                      top_path.native()});
       }
-    } catch (const std_filesystem::filesystem_error ex) {
+    } catch (const std_filesystem::filesystem_error& ex) {
       return status::InternalErrorBuilder()
              << "Filesystem error while checking to load module: "
              << module_name << " under path: " << path.native()
@@ -167,6 +164,7 @@ absl::StatusOr<Module*> ModuleStore::ImportModule(
   if (existing_module.has_value()) {
     return existing_module.value();
   }
+  import_chain->emplace_back(std::string(module_name));
   ModuleFileReader::ModuleReadResult read_result;
   auto it_code = module_code_.find(module_name);
   if (it_code != module_code_.end()) {

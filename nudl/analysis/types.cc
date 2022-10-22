@@ -403,7 +403,9 @@ std::unique_ptr<TypeSpec> TypeFloat64::Clone() const {
   return CloneType<TypeFloat64>();
 }
 bool TypeFloat64::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsFloatType(type_spec.type_id());
+  return (TypeUtils::IsFloatType(type_spec.type_id()) ||
+          TypeUtils::IsIntType(type_spec.type_id()) ||
+          TypeUtils::IsUIntType(type_spec.type_id()));
 }
 
 TypeFloat32::TypeFloat32(TypeStore* type_store,
@@ -415,7 +417,9 @@ std::unique_ptr<TypeSpec> TypeFloat32::Clone() const {
   return CloneType<TypeFloat32>();
 }
 bool TypeFloat32::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsFloatType(type_spec.type_id());
+  return (TypeUtils::IsFloatType(type_spec.type_id()) ||
+          TypeUtils::IsIntType(type_spec.type_id()) ||
+          TypeUtils::IsUIntType(type_spec.type_id()));
 }
 
 TypeString::TypeString(TypeStore* type_store,
@@ -486,7 +490,10 @@ TypeDecimal::TypeDecimal(TypeStore* type_store,
                          int precision, int scale)
     : StoredTypeSpec(type_store, pb::TypeId::DECIMAL_ID, kTypeNameDecimal,
                      std::move(type_member_store), precision > 0 && scale >= 0,
-                     TypeUtils::EnsureType(type_store, kTypeNameNumeric)) {}
+                     TypeUtils::EnsureType(type_store, kTypeNameNumeric)),
+      precision_(precision),
+      scale_(scale) {}
+
 std::unique_ptr<TypeSpec> TypeDecimal::Clone() const {
   return std::make_unique<TypeDecimal>(type_store_, type_member_store_,
                                        precision_, scale_);
@@ -779,7 +786,7 @@ absl::Status StructMemberStore::AddFields(
              << " in type: " << type_spec_->full_name();
     }
     field_vars_.emplace_back(std::make_unique<Field>(
-        field.name, CHECK_NOTNULL(field.type_spec), type_spec_));
+        field.name, CHECK_NOTNULL(field.type_spec), type_spec_, this));
     RETURN_IF_ERROR(AddChildStore(field.name, field_vars_.back().get()))
         << "Adding field: " << field.name
         << " to type: " << type_spec_->full_name();

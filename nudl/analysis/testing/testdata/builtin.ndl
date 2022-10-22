@@ -168,6 +168,7 @@ $$pyinline
 ${joiner}.join(${x})
 $$end
 
+// Different len method, as we want to get in the proper store
 def method len(l: {X: Union<Iterable<{Y}>, String, Bytes>}) : UInt =>
 // May actually want to do something different for Iterable.
 // as len(filter(...)) would not work.

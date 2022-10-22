@@ -216,6 +216,9 @@ class Function : public Scope {
   absl::Status InitBindInstance(absl::string_view type_signature,
                                 FunctionBinding* binding);
 
+  // Adds this function as a member method of provided type.
+  absl::Status AddAsMethod(const TypeSpec* member_type);
+
   // Builds the expression from function_body, and binds the computed
   // result type.
   absl::Status BuildFunctionBody();

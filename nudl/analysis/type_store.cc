@@ -262,7 +262,7 @@ absl::StatusOr<const TypeSpec*> ScopeTypeStore::DeclareType(
     type_spec->set_local_name(name);
   }
   if (types_.contains(name)) {
-    return status::InvalidArgumentErrorBuilder()
+    return status::AlreadyExistsErrorBuilder()
            << "Cannot redeclare existing type `" << name << "`"
            << " in scope: `" << scope_name_->name() << "`";
   }

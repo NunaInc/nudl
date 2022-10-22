@@ -82,6 +82,83 @@ std::string ReadSnippet() {
   return absl::StrJoin(lines, "\n");
 }
 
+TEST(Parser, SimpleComp) {
+  {
+    auto result = ParseModule("x = 10", ParseOptions{false, false, true, true});
+    ASSERT_OK(result.status());
+  }
+  {
+    auto result = ParseModule("x # 10", ParseOptions{false, false, true, true});
+    EXPECT_RAISES(result.status(), InvalidArgument);
+  }
+  {
+    std::vector<ErrorInfo> errors;
+    auto result = ParseModule("$3d", ParseOptions{false, false}, &errors);
+    EXPECT_RAISES(result.status(), InvalidArgument);
+    EXPECT_TRUE(!errors.empty());
+    for (const auto& error : errors) {
+      std::cout << "Expected error: " << error.ToString() << std::endl;
+    }
+  }
+  {
+    auto result = ParseModule("$3d", ParseOptions{false, false});
+    EXPECT_RAISES(result.status(), InvalidArgument);
+  }
+  {
+    std::vector<ErrorInfo> errors;
+    auto result = ParseModule("x = $3d", ParseOptions{false, false}, &errors);
+    EXPECT_RAISES(result.status(), InvalidArgument);
+    EXPECT_TRUE(!errors.empty());
+    for (const auto& error : errors) {
+      std::cout << "Expected error: " << error.ToString() << std::endl;
+    }
+  }
+  {
+    auto result = ParseModule("x = $3d", ParseOptions{false, false});
+    EXPECT_RAISES(result.status(), InvalidArgument);
+  }
+  {
+    std::vector<ErrorInfo> errors;
+    auto result = ParseModule("x = * 2", ParseOptions{false, false}, &errors);
+    EXPECT_RAISES(result.status(), InvalidArgument);
+    EXPECT_TRUE(!errors.empty());
+    for (const auto& error : errors) {
+      std::cout << "Expected error: " << error.ToString() << std::endl;
+    }
+  }
+  {
+    auto result = ParseModule("x = * 2", ParseOptions{false, false});
+    EXPECT_RAISES(result.status(), InvalidArgument);
+  }
+  {
+    ASSERT_OK_AND_ASSIGN(auto data, ModuleParseData::Parse("x = 20"));
+    auto err = ErrorInfo::FromParseTree(data->tree, "x = 20");
+    std::cout << "Pseudo error: " << err.ToString() << std::endl;
+    antlr4::RecognitionException except(
+        "foo", data->parser.get(), data->input.get(),
+        static_cast<antlr4::ParserRuleContext*>(data->tree), nullptr);
+    err = ErrorInfo::FromException(except, "x = 20");
+    std::cout << "Pseudo exception: " << err.ToString() << std::endl;
+  }
+  {
+    ASSERT_OK_AND_ASSIGN(auto data, TypeSpecParseData::Parse("foobar"));
+    auto token = const_cast<antlr4::Token*>(CHECK_NOTNULL(TreeUtil::GetToken(
+        *static_cast<NudlDslParser::TypeExpressionContext*>(data->tree)
+             ->composedIdentifier()
+             ->IDENTIFIER())));
+    auto err = ErrorInfo::FromToken(*token, "foobar");
+    std::cout << "Pseudo error: " << err.ToString() << std::endl;
+    antlr4::RecognitionException except("foo", data->parser.get(),
+                                        data->input.get(), nullptr, token);
+    err = ErrorInfo::FromException(except, "foobar");
+    std::cout << "Pseudo exception: " << err.ToString() << std::endl;
+    antlr4::RecognitionException except2("foo", data->parser.get(),
+                                         data->input.get(), nullptr, nullptr);
+    err = ErrorInfo::FromException(except, "foobar");
+    std::cout << "Pseudo exception2: " << err.ToString() << std::endl;
+  }
+}
+
 TEST(Parser, SimpleParse) {
   CheckOkParse("",
                R"(
@@ -95,7 +172,8 @@ module(assignExpression(x = y))
                R"(
 element { assignment { identifier { name: "x" }
                        value { identifier { name: "y" } } } }
-)");
+)",
+               true);
   CheckOkParse("x = -y;",
                R"(
 module(
@@ -2925,10 +3003,11 @@ element {
   }
 }
 )");
-  CheckOkParse("pragma write_out x(25) y = 10", R"(
+  CheckOkParse("pragma write_out { x(25) } y = 10", R"(
 module(
-  pragmaExpression(pragma write_out postfixExpression(x postfixValue(( 25 ))))
-  assignExpression(y = 10)
+  pragmaExpression(pragma write_out {
+    postfixExpression(x postfixValue(( 25 ))) }
+  ) assignExpression(y = 10)
 )
 )",
                R"(
@@ -2956,12 +3035,12 @@ element {
   }
 }
 )");
-  CheckOkParse("def f(x) => { pragma enable_foo; x + 1 }",
+  CheckOkParse("def f(x) => { pragma enable_foo x + 1 }",
                R"(
 module(
   functionDefinition(def f ( x ) =>
     expressionBlock({
-      blockBody(pragmaExpression(pragma enable_foo) ; additiveExpression(x + 1))
+      blockBody(pragmaExpression(pragma enable_foo) additiveExpression(x + 1))
       }
     )
   )
@@ -2988,14 +3067,14 @@ element {
     }
   }
 })");
-  CheckOkParse("def f(x) => { x + 1; pragma check_type x(33) }",
+  CheckOkParse("def f(x) => { x + 1; pragma check_type { x(33) } }",
                R"(
 module(
   functionDefinition(def f ( x ) =>
     expressionBlock({
       blockBody(additiveExpression(x + 1) ;
-        pragmaExpression(pragma check_type
-          postfixExpression(x postfixValue(( 33 )))
+        pragmaExpression(pragma check_type {
+          postfixExpression(x postfixValue(( 33 ))) }
         )
       ) }
     )

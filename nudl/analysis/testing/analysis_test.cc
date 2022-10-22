@@ -57,11 +57,9 @@ void AnalysisTest::CheckCode(absl::string_view test_name,
 
 void AnalysisTest::PrepareCode(absl::string_view test_name,
                                absl::string_view module_name,
-                               absl::string_view code, bool force_write) const {
+                               absl::string_view code, bool skip_write) const {
   auto module_result = ImportCode(module_name, code);
-  CHECK_OK(module_result.status()) << "For code:" << std::endl
-                                   << code << std::endl
-                                   << "---" << std::endl;
+  CHECK_OK(module_result.status()) << "For code:\n" << code;
   auto module = std::move(module_result).value();
   auto proto = module->ToProto();
   ASSERT_OK_AND_ASSIGN(auto pseudocode, BasicConverter().ConvertModule(module));
@@ -77,8 +75,8 @@ void AnalysisTest::PrepareCode(absl::string_view test_name,
   const std::string proto_file(
       absl::StrCat(search_path_, "/", test_name, "/", module_name, ".pb"));
   std::cout << "Writing to: " << proto_file << std::endl << "Confirm [Y/n]: ";
-  std::string confirm("Y");
-  if (!force_write) {
+  std::string confirm("N");
+  if (!skip_write) {
     std::getline(std::cin, confirm);
   }
   if (confirm.empty() || absl::StartsWith(confirm, "Y") ||
