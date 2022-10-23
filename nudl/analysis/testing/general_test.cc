@@ -310,13 +310,12 @@ def h() => f()[2]
 
 TEST_F(AnalysisTest, FunctionErrors) {
   CheckError("unbuilt_function", R"(
-def f(names: Array<xdm.HumanName>) => _ensured(names.front())
+def f(names: Array<{X}>) => _ensured(names.front())
 def g() => f().prefix.len()
 )",
-             "function of unresolved type");
+             "is unbound and not a function");
   CheckError("unbuilt_function2", R"(
-def f(names: Array<xdm.HumanName>) => _ensured(names.front())
-def g() => { z = f; z() }
+def g() => { z = (x => x + 1); z(3) }
 )",
              "when defining a variable typed as a Function, "
              "this type needs to be bound");
@@ -560,12 +559,6 @@ def g(a: Int) => f(a)
 def f() => (x: Int = 10, y: Int = 20) => x + y
 def g(a: Int) => f()(a)
 )");
-  CheckError("improper_function_type", R"(
-def f(x: {X}, val: Int) => x(val)
-def g(x: Int, y: Int = 1) => x + y
-def h(x: Int) => f(g, x)
-)",
-             "improper function type");
   CheckError("return_pass", R"(
 def f(x: Int) => pass;
 )",
@@ -575,13 +568,17 @@ def f() : Numeric => $$pyinline0$$end
 def g() => f()
 )",
              "is unbound and not a function");
-  /* This has some issues: should fix:
-  PrepareCode("general_test", "function_arg_rebind", R"(
-def f(x: Function<{X}, X>, val: {X}) => x(val)
-def g(x: Int, y: Int = 1) => x + y
-def h(x: Int) => f(g, x)
-)");
-  */
+  CheckError("too_many_binds", R"(
+def f(x: Numeric, y: Int) => x + y
+def f(x: Int, y: Numeric) => x + y
+z = f(1, 2)
+)", "Found too many functions");
+  CheckError("improper_function_type", R"(
+def f() => {
+  z: Nullable<Function> = null;
+  _ensured(z)(3)
+}
+)", "binding for improper function type");
 }
 
 TEST_F(AnalysisTest, JustPrepare) {

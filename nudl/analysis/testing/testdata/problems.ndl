@@ -1,7 +1,7 @@
 
-def f(x: Function<{X}, X>, val: {X}) => x(val)
-def g(x: Int, y: Int = 1) => x + y
-def h(x: Int) => f(g, x)
+def g() : Nullable<Function> => null;
+
+pragma log_type {g.g}
 
 /*
 def foo(x: Int) => {

@@ -137,7 +137,7 @@ absl::Status& MergeErrorStatus(const absl::Status& src, absl::Status& dest) {
   if (dest.ok()) {
     dest.Update(src);
   } else if (!src.ok()) {
-    size_t index = 1;
+    size_t index = status::GetNumPayloads(src);
     src.ForEachPayload(
         [&dest, &index](absl::string_view name, const absl::Cord& payload) {
           if (absl::StartsWith(name, grammar::kParseErrorUrl)) {

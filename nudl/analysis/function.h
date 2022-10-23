@@ -51,7 +51,9 @@ struct FunctionBinding {
 
   // If this binding is less specific than the provided binding.
   bool IsAncestorOf(const FunctionBinding& binding) const;
+  bool IsEqual(const FunctionBinding& binding) const;
   std::string FunctionNameForLog() const;
+  std::string full_name() const;
 
  private:
   FunctionBinding(const TypeFunction* fun_type, const PragmaHandler* pragmas);
@@ -90,7 +92,7 @@ class FunctionGroup : public Scope {
   const TypeSpec* type_spec() const override;
   const std::vector<Function*> functions() const;
 
-  absl::Status AddFunction(std::unique_ptr<Function> fun);
+  absl::Status AddFunction(Function* fun);
   absl::StatusOr<ScopeName> GetNextFunctionName();
 
   absl::StatusOr<std::unique_ptr<FunctionBinding>> FindSignature(
@@ -105,6 +107,12 @@ class FunctionGroup : public Scope {
   static bool IsFunctionGroup(const NamedObject& object);
 
  private:
+  absl::StatusOr<std::vector<std::unique_ptr<FunctionBinding>>>
+  TryBindFunction(
+      Function* function,
+      const std::vector<FunctionCallArgument>& arguments,
+      std::vector<std::unique_ptr<FunctionBinding>>* existing) const;
+
   std::vector<Function*> functions_;
   std::vector<std::unique_ptr<TypeSpec>> types_;
 };

@@ -176,8 +176,7 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
       auto scope_result = FindChildStore(scoped_name.scope_name());
       if (scope_result.ok()) {
         const bool is_function =
-            Function::IsFunctionKind(*scope_result.value()) ||
-            FunctionGroup::IsFunctionGroup(*scope_result.value());
+          Function::IsFunctionKind(*scope_result.value());
         if (scope_result.value()->HasName(scoped_name.name())) {
           if (!is_function || scope_result.value() == this) {
             return scope_result.value()->GetName(scoped_name.name());
@@ -219,8 +218,7 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
     const ScopeName crt_name(prefix_scope.Subscope(scoped_name.scope_name()));
     auto result = top_scope()->FindChildStore(crt_name);
     if (result.ok()) {
-      const bool is_function = Function::IsFunctionKind(*result.value()) ||
-                               FunctionGroup::IsFunctionGroup(*result.value());
+      const bool is_function = Function::IsFunctionKind(*result.value());
       if (result.value()->HasName(scoped_name.name())) {
         if (!is_function || result.value() == this) {
           return result.value()->GetName(scoped_name.name());
@@ -586,6 +584,8 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIdentifier(
           named_object);
     }  // TODO(catalin): add a case for `this` if present
   }
+  // TODO(catalin): Do I want to enable special treatment
+  //    if (FunctionGroup::IsFunctionGroup(*named_object)) {..}
   return {
       std::make_unique<Identifier>(this, std::move(scoped_name), named_object)};
 }

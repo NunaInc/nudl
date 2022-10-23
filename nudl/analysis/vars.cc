@@ -61,7 +61,8 @@ absl::StatusOr<std::unique_ptr<Expression>> VarBase::Assign(
   }
   // TODO(catalin): wrap this in type conversion or something.
   std::unique_ptr<Expression> converted_expression(std::move(expression));
-  if (!type_spec_->IsBound()) {
+  if (!type_spec_->IsBound() &&
+      (type_spec->type_id() != pb::NULL_ID)) {
     type_spec_ = type_spec;
   }
   assign_types_.push_back(type_spec);

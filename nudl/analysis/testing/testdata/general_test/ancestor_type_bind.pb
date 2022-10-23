@@ -54,60 +54,6 @@ expression {
         }
       }
     }
-    binding {
-      scope_name {
-        name: "ancestor_type_bind::f::f__bind_1"
-      }
-      kind: OBJ_FUNCTION
-      parameter {
-        name: "x"
-        type_spec {
-          name: "Int32"
-        }
-      }
-      result_type {
-        name: "Int"
-      }
-      function_name: "f"
-      qualified_name {
-        full_name: "ancestor_type_bind.f__bind_1"
-      }
-      body {
-        kind: EXPR_BLOCK
-        child {
-          kind: EXPR_FUNCTION_CALL
-          type_spec {
-            name: "Int32"
-          }
-          call_spec {
-            call_name {
-              full_name: "__sub__"
-            }
-            argument {
-              name: "x"
-              value {
-                kind: EXPR_IDENTIFIER
-                identifier {
-                  full_name: "x"
-                }
-              }
-            }
-            argument {
-              name: "y"
-              value {
-                kind: EXPR_LITERAL
-                literal {
-                  int_value: 1
-                }
-              }
-            }
-            binding_type {
-              name: "Function<Int32(x: Int32, y: Int32)>"
-            }
-          }
-        }
-      }
-    }
   }
 }
 expression {
@@ -181,7 +127,7 @@ expression {
   child {
     kind: EXPR_FUNCTION_CALL
     type_spec {
-      name: "Int"
+      name: "Int32"
     }
     call_spec {
       left_expression {
@@ -200,7 +146,7 @@ expression {
         }
       }
       binding_type {
-        name: "Function<Int(x: Int32)>"
+        name: "Function<Int32(x: Int32)>"
       }
     }
   }

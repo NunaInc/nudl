@@ -130,7 +130,6 @@ namespace status {
 template <>
 inline StatusWriter& StatusWriter::operator<<(
     const nudl::grammar::ErrorInfo& err) {
-  ++payload_id_;
   nudl::grammar::ErrorInfo composed_err(err);
   composed_err.message = absl::StrCat(err.message, ": ", status_.message());
   if (!message_.empty()) {
@@ -138,14 +137,14 @@ inline StatusWriter& StatusWriter::operator<<(
                     status_.message().empty() ? "" : "; ", message_);
   }
   status_.SetPayload(
-      absl::StrCat(nudl::grammar::kParseErrorUrl, "/", payload_id_),
+      absl::StrCat(nudl::grammar::kParseErrorUrl, "/",
+                   status::GetNumPayloads(status_)),
       absl::Cord(composed_err.ToProto().SerializeAsString()));
   return *this;
 }
 template <>
 inline StatusWriter& StatusWriter::operator<<(
     const nudl::pb::ErrorInfo& err) {
-  ++payload_id_;
   nudl::pb::ErrorInfo composed_err(err);
   std::string message =
       absl::StrCat(err.error_message(), ": ", status_.message());
@@ -154,7 +153,8 @@ inline StatusWriter& StatusWriter::operator<<(
   }
   composed_err.set_error_message(message);
   status_.SetPayload(
-      absl::StrCat(nudl::grammar::kParseErrorUrl, "/", payload_id_),
+      absl::StrCat(nudl::grammar::kParseErrorUrl, "/",
+                   status::GetNumPayloads(status_)),
       absl::Cord(composed_err.SerializeAsString()));
   return *this;
 }
@@ -162,7 +162,8 @@ template <>
 inline StatusWriter& StatusWriter::operator<<(
     const nudl::ParseFileInfo& info) {
   status_.SetPayload(
-      absl::StrCat(nudl::grammar::kParseFileUrl, "/", payload_id_),
+      absl::StrCat(nudl::grammar::kParseFileUrl, "/",
+                   status::GetNumPayloads(status_)),
       absl::Cord(info.filename));
   return *this;
 }
@@ -170,7 +171,8 @@ template <>
 inline StatusWriter& StatusWriter::operator<<(
     const nudl::ParseFileContent& info) {
   status_.SetPayload(
-      absl::StrCat(nudl::grammar::kParseCodeUrl, "/", payload_id_),
+      absl::StrCat(nudl::grammar::kParseCodeUrl, "/",
+                   status::GetNumPayloads(status_)),
       absl::Cord(info.code));
   return *this;
 }

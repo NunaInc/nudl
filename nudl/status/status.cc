@@ -41,5 +41,22 @@ absl::Status& UpdateOrAnnotate(absl::Status& status,
   return status;
 }
 
+absl::Status JoinStatus(const std::vector<absl::Status>& statuses) {
+  absl::Status status;
+  for (auto crt : statuses) {
+    UpdateOrAnnotate(status, crt);
+  }
+  return status;
+}
+
+size_t GetNumPayloads(const absl::Status& status) {
+  size_t num_payloads = 0;
+  status.ForEachPayload(
+      [&num_payloads](absl::string_view name, const absl::Cord& payload) {
+        ++num_payloads;
+      });
+  return num_payloads;
+}
+
 }  // namespace status
 }  // namespace nudl
