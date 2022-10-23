@@ -109,6 +109,16 @@ class TypeUtils {
   static bool IsIntType(pb::TypeId type_id);
   static bool IsUIntType(pb::TypeId type_id);
   static bool IsFloatType(pb::TypeId type_id);
+
+  // Builds and returns a union of int and uint.
+  // This expects the provided store to be fully built and initialized
+  // with the standard types, else check fails.
+  static std::unique_ptr<TypeSpec> IntIndexType(TypeStore* type_store);
+  // Builds and returns a nullable of provided type.
+  // This expects the provided store to be fully built and initialized
+  // with the standard types, else check fails.
+  static std::unique_ptr<TypeSpec> NullableType(TypeStore* type_store,
+                                                const TypeSpec* type_spec);
 };
 
 // Type that represents the type of a type named object.
@@ -303,8 +313,8 @@ class TypeArray : public StoredTypeSpec {
   std::unique_ptr<TypeSpec> Clone() const override;
 
  private:
-  const TypeSpec* const int_type_;
-  std::unique_ptr<TypeSpec> indexed_type_;
+  mutable std::unique_ptr<TypeSpec> index_type_;
+  mutable std::unique_ptr<TypeSpec> indexed_type_;
 };
 
 class TypeSet : public StoredTypeSpec {
@@ -329,7 +339,7 @@ class TypeTuple : public StoredTypeSpec {
   const TypeSpec* IndexType() const override;
 
  private:
-  const TypeSpec* const int_type_;
+  mutable std::unique_ptr<TypeSpec> index_type_;
 };
 
 class StructMemberStore;
@@ -402,7 +412,7 @@ class TypeMap : public StoredTypeSpec {
 
  protected:
   std::unique_ptr<TypeStruct> result_type_;
-  std::unique_ptr<TypeSpec> indexed_type_;
+  mutable std::unique_ptr<TypeSpec> indexed_type_;
 };
 
 class TypeFunction : public StoredTypeSpec {

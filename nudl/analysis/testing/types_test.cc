@@ -628,6 +628,8 @@ TEST(TypeNames, TypeNames) {
 TEST_F(TypesTest, Decimal) {
   ASSERT_OK_AND_ASSIGN(auto type_dec, FindType("Decimal"));
   EXPECT_EQ(type_dec->full_name(), "Decimal");
+  EXPECT_EQ(type_dec->type_spec()->type_id(), pb::TypeId::TYPE_ID);
+  EXPECT_EQ(type_dec->type_spec()->Clone()->type_id(), pb::TypeId::TYPE_ID);
   ASSERT_OK_AND_ASSIGN(auto td,
                        type_dec->Bind({TypeBindingArg{10}, TypeBindingArg{3}}));
   EXPECT_EQ(td->full_name(), "Decimal<10, 3>");
@@ -635,6 +637,8 @@ TEST_F(TypesTest, Decimal) {
                                               name: "Decimal"
                                               parameter_value: 10
                                               parameter_value: 3)pb"));
+  EXPECT_RAISES(td->Bind({TypeBindingArg{10}, TypeBindingArg{2}}).status(),
+                InvalidArgument);
   EXPECT_RAISES(
       type_dec->Bind({TypeBindingArg{10}, TypeBindingArg{11}}).status(),
       InvalidArgument);
@@ -664,6 +668,44 @@ TEST_F(TypesTest, Dataset) {
   EXPECT_EQ(td2->full_name(), "Dataset<Int>");
 }
 
+TEST_F(TypesTest, Struct) {
+  ASSERT_OK_AND_ASSIGN(auto type_struct, FindType("Struct"));
+  EXPECT_RAISES(type_struct->Bind({}).status(), InvalidArgument);
+  auto type_int = FindType("Int").value();
+  auto type_int8 = FindType("Int8").value();
+  ASSERT_OK_AND_ASSIGN(auto struct1,
+                       type_struct->Bind({TypeBindingArg{type_int}}));
+  EXPECT_THAT(struct1->ToProto(), EqualsProto(R"pb(
+                type_id: STRUCT_ID
+                name: "Struct"
+                parameter { type_id: INT_ID name: "Int" }
+                parameter_name: "field_0"
+              )pb"));
+  ASSERT_OK_AND_ASSIGN(auto struct2,
+                       struct1->Bind({TypeBindingArg{type_int8}}));
+  EXPECT_THAT(struct2->ToProto(), EqualsProto(R"pb(
+                type_id: STRUCT_ID
+                name: "Struct"
+                parameter { type_id: INT8_ID name: "Int8" }
+                parameter_name: "field_0"
+              )pb"));
+  StructMemberStore sm(type_struct, type_struct->type_member_store_ptr());
+  EXPECT_RAISES(sm.AddFields({TypeStruct::Field{"x-", type_int}}),
+                InvalidArgument);
+  EXPECT_RAISES(sm.AddFields({TypeStruct::Field{"x", type_int},
+                              TypeStruct::Field{"x", type_int}}),
+                AlreadyExists);
+  EXPECT_RAISES(sm.AddFields({}), FailedPrecondition);
+}
+
+TEST_F(TypesTest, StoredTypeSpec) {
+  auto type_int = FindType("Int").value();
+  StoredTypeSpec stored_type(&store_, pb::TypeId::BOOL_ID, "Foo", nullptr, true,
+                             type_int, {});
+  EXPECT_EQ(stored_type.type_spec()->type_id(), pb::TypeId::TYPE_ID);
+  EXPECT_EQ(stored_type.Clone()->type_id(), pb::TypeId::BOOL_ID);
+}
+
 TEST_F(TypesTest, Unknown) {
   EXPECT_EQ(TypeUnknown::Instance()->type_id(), pb::TypeId::UNKNOWN_ID);
   EXPECT_EQ(TypeUnknown::Instance()->type_spec(), TypeUnknown::Instance());
@@ -682,6 +724,7 @@ TEST_F(TypesTest, TypeStore) {
   EXPECT_EQ(store_.scope_name().name(), "");
   EXPECT_FALSE(store_.DebugNames().empty());
   EXPECT_FALSE(store_.mutable_base_store()->DebugNames().empty());
+  EXPECT_FALSE(store_.base_store().DebugNames().empty());
   ASSERT_OK_AND_ASSIGN(
       auto f1,
       FindType("Function<Array<{X : Union<String, Bytes, Numeric>}>, X>",
@@ -707,7 +750,42 @@ TEST_F(TypesTest, TypeStore) {
                     ->DeclareType(zoom_name, "Boom", type_int->Clone())
                     .status(),
                 AlreadyExists);
+  // Test creation w/ provided base types store:
+  GlobalTypeStore s2(std::make_unique<BaseTypesStore>(&store_));
+  // Test missing scope on local type:
+  ASSERT_OK_AND_ASSIGN(auto type_spec, grammar::ParseTypeSpec("{Foobar}"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(s2.FindType(scope_name, *type_spec).status(),
+                                  NotFound, testing::HasSubstr("not created"));
+  // Test dedup:
+  EXPECT_TRUE(TypeUtils::DedupTypes({}).empty());
+  std::vector<const TypeSpec*> types;
+  types.emplace_back(type_int);
+  types.emplace_back(FindType("Bool").value());
+  types.emplace_back(type_int);
+  EXPECT_EQ(TypeUtils::DedupTypes({&types[0], types.size()}).size(), 2);
 }
 
+TEST_F(TypesTest, TypesFromBindings) {
+  ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar"));
+  ASSERT_OK(store_.AddScope(std::make_shared<ScopeName>(scope_name)));
+  ASSERT_OK_AND_ASSIGN(
+      auto f, FindType("Function<Array<Int>, String, Int>", "foo.bar"));
+
+  auto type_int = FindType("Int").value();
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      type_int->TypesFromBindings({TypeBindingArg{type_int}}), InvalidArgument,
+      testing::HasSubstr("Expecting 0 arguments"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(f->TypesFromBindings({TypeBindingArg{20}}),
+                                  InvalidArgument,
+                                  testing::HasSubstr("Expecting only types"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      f->TypesFromBindings({TypeBindingArg{type_int}}), InvalidArgument,
+      testing::HasSubstr("Expecting an argument"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(f->TypesFromBindings({}, true, 1),
+                                  InvalidArgument,
+                                  testing::HasSubstr("Expecting at least 1"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(f->TypesFromBindings({}), InvalidArgument,
+                                  testing::HasSubstr("Expecting 3 arguments"));
+}
 }  // namespace analysis
 }  // namespace nudl

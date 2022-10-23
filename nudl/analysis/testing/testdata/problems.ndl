@@ -1,10 +1,7 @@
-import cdm
-def f(name: cdm.HumanName) => {
-  z = name;  // = is copy
-  z.given = "Jeff"
-  z
-}
 
+def f(x: Function<{X}, X>, val: {X}) => x(val)
+def g(x: Int, y: Int = 1) => x + y
+def h(x: Int) => f(g, x)
 
 /*
 def foo(x: Int) => {

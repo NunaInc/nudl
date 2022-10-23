@@ -25,15 +25,6 @@ absl::StatusOr<std::string> Converter::ConvertModule(Module* module) const {
   return FinishModule(module, std::move(state));
 }
 
-absl::Status Converter::ProcessModule(Module* module,
-                                      ConvertState* state) const {
-  for (const auto& expression : module->expressions()) {
-    RETURN_IF_ERROR(ConvertExpression(*expression.get(), state));
-    // TODO(catalin): add some context here in the status.
-  }
-  return absl::OkStatus();
-}
-
 absl::Status Converter::ConvertExpression(const Expression& expression,
                                           ConvertState* state) const {
   switch (expression.expr_kind()) {

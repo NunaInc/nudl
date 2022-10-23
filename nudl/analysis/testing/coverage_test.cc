@@ -35,6 +35,9 @@ param a: Int = 20;
   auto module = env()->module_store()->GetModule("vars_set");
   ASSERT_TRUE(module.has_value());
   EXPECT_TRUE(module.value()->is_module());
+  EXPECT_EQ(module.value()->type_spec()->type_id(), pb::TypeId::MODULE_ID);
+  EXPECT_EQ(module.value()->type_spec()->Clone()->type_id(),
+            pb::TypeId::MODULE_ID);
   EXPECT_EQ(module.value()->parent(), module.value()->top_scope());
   EXPECT_FALSE(module.value()->FindFunctionAncestor().has_value());
   ASSERT_OK_AND_ASSIGN(auto x, module.value()->GetName("x"));
@@ -66,7 +69,9 @@ param a: Int = 20;
             pb::ObjectKind::OBJ_PARAMETER);
   ASSERT_OK_AND_ASSIGN(auto g, module.value()->GetName("g"));
   EXPECT_EQ(g->kind(), pb::ObjectKind::OBJ_FUNCTION_GROUP);
-  ASSERT_OK_AND_ASSIGN(auto gf, static_cast<FunctionGroup*>(g)->GetName("g"));
+  auto gg = static_cast<FunctionGroup*>(g);
+  EXPECT_FALSE(gg->DebugString().empty());
+  ASSERT_OK_AND_ASSIGN(auto gf, gg->GetName("g"));
   EXPECT_EQ(gf->kind(), pb::ObjectKind::OBJ_FUNCTION);
   auto gfun = static_cast<Function*>(gf);
   ASSERT_OK_AND_ASSIGN(auto xarg, gfun->GetName("x"));
@@ -160,6 +165,9 @@ def f(x: Int) => {
   x + 10; x
 })",
              "Meaningful result of function");
+  CheckError("bad_method", "def method f() => 10", "at least a parameter");
+  CheckError("bad_pass", "def f() => {if (true) { pass } 10}",
+             "must explicitly `yield`");
 }
 
 TEST_F(AnalysisTest, ScopeBuild) {

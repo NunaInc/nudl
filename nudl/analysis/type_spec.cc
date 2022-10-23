@@ -314,7 +314,7 @@ absl::StatusOr<std::vector<const TypeSpec*>> TypeSpec::TypesFromBindings(
     if (check_params &&
         !parameters_[i]->IsAncestorOf(*CHECK_NOTNULL(types.back()))) {
       return status::InvalidArgumentErrorBuilder()
-             << "Expecting an ancestor of type: " << parameters_[i]->full_name()
+             << "Expecting an argument of type: " << parameters_[i]->full_name()
              << " for binding parameter " << i << " of type " << full_name()
              << ". Got: " << types.back()->full_name();
     }
@@ -537,8 +537,8 @@ LocalNamesRebinder::RebuildFunctionWithComponents(
       << "Invalid number of types: " << type_specs.size() << " vs. "
       << src_param->parameters().size();
   for (size_t i = 0; i < type_specs.size(); ++i) {
-    const TypeSpec* param_type = src_param->parameters()[i];
-    const TypeSpec* param_type_spec = type_specs[i];
+    const TypeSpec* param_type = CHECK_NOTNULL(src_param->parameters()[i]);
+    const TypeSpec* param_type_spec = CHECK_NOTNULL(type_specs[i]);
     ASSIGN_OR_RETURN(auto new_type, RebuildType(param_type, param_type_spec));
     if (new_type != param_type) {
       needs_rebinding = true;
@@ -553,11 +553,6 @@ LocalNamesRebinder::RebuildFunctionWithComponents(
                      << src_param->full_name());
   allocated_types.emplace_back(std::move(new_allocated_type));
   return allocated_types.back().get();
-}
-
-const absl::flat_hash_map<std::string, const TypeSpec*>&
-LocalNamesRebinder::local_types() const {
-  return local_types_;
 }
 }  // namespace analysis
 }  // namespace nudl

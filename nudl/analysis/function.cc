@@ -536,12 +536,7 @@ absl::StatusOr<VarBase*> Function::ValidateAssignment(
 }
 
 absl::Status Function::AddAsMethod(const TypeSpec* member_type) {
-  auto type_member_store = member_type->type_member_store();
-  if (type_member_store == nullptr) {
-    return status::InvalidArgumentErrorBuilder()
-           << "Type: " << member_type->full_name()
-           << " does not support additional methods.";
-  }
+  auto type_member_store = CHECK_NOTNULL(member_type->type_member_store());
   RETURN_IF_ERROR(type_member_store->AddName(function_name(), this))
       << "Adding defined function " << name()
       << " as a method of type: " << member_type->full_name();
@@ -692,8 +687,7 @@ absl::Status Function::RegisterResultExpression(
 
 absl::Status Function::UpdateFunctionTypeOnResults() {
   RET_CHECK(!result_type_negotiated_)
-      << "Cannot renegotiate the return type of a function "
-         "based on results.";
+      << "Cannot renegotiate the return type of a function";
   if (result_kind_ == pb::FunctionResultKind::RESULT_PASS) {
     return status::InvalidArgumentErrorBuilder()
            << "Function that uses `pass` needs to yield some values. "
@@ -710,15 +704,12 @@ absl::Status Function::UpdateFunctionTypeOnResults() {
     }
     // We should have caught this already.
     RET_CHECK(result_type->IsAncestorOf(*result.type_spec))
-        << "Invalid type of result expression: "
-        << result.type_spec->full_name() << " for function: " << name()
-        << " that expects a: " << result_type->full_name() << " result";
+        << "Invalid type of result expression in " << full_name();
     registered_result_types.emplace_back(result.type_spec);
   }
-  if (registered_result_types.empty()) {
-    return status::InvalidArgumentErrorBuilder()
-           << "Function does not return any result: " << full_name();
-  }
+  // We should have caught this already:
+  RET_CHECK(!registered_result_types.empty())
+      << "No results for function: " << full_name();
   if (result_type->IsBound() ||
       result_type->type_id() == pb::TypeId::FUNCTION_ID) {
     // If a bound result type or a function type was registered, we go with it:
@@ -824,7 +815,8 @@ absl::StatusOr<std::unique_ptr<FunctionBinding>> FunctionBinding::BindType(
       fun_type->parameters().empty()) {
     return status::InvalidArgumentErrorBuilder()
            << "Cannot build binding for improper function type: "
-           << fun_type->full_name();
+           << fun_type->full_name() << " - this means that you may need to "
+           << "provide some extra argument / type information";
   }
   auto result = absl::WrapUnique(new FunctionBinding(fun_type, pragmas));
   RETURN_IF_ERROR(result->BindImpl(arguments));
@@ -867,7 +859,7 @@ absl::Status FunctionBinding::BindImpl(
   for (const auto& binding : type_arguments) {
     fun_bind_types.emplace_back(std::get<const TypeSpec*>(binding));
   }
-  fun_bind_types.emplace_back(fun_type->ResultType());
+  fun_bind_types.emplace_back(CHECK_NOTNULL(fun_type->ResultType()));
   ASSIGN_OR_RETURN(
       type_spec,
       rebinder.RebuildFunctionWithComponents(fun_type, fun_bind_types),
@@ -915,12 +907,20 @@ absl::Status FunctionBinding::BindDefaultValue(absl::string_view arg_name,
           << " from: " << arg_type->full_name() << " to "
           << rebuilt_type->full_name();
       type_arguments.emplace_back(TypeBindingArg{rebuilt_type});
+      // TODO(catalin): autoconversion.
+      if (!rebuilt_type->IsAncestorOf(*default_type_spec)) {
+        return status::InvalidArgumentErrorBuilder()
+               << "Type of default value for argument: " << arg_name << ": "
+               << default_type_spec->full_name()
+               << " is not compatible with inferred type for the call: "
+               << rebuilt_type->full_name();
+      }
     } else {
       type_arguments.emplace_back(TypeBindingArg{default_type_spec});
     }
     call_expressions.emplace_back(default_value.value());
   } else {
-    type_arguments.emplace_back(TypeBindingArg{type_spec});
+    type_arguments.emplace_back(TypeBindingArg{arg_type});
     call_expressions.emplace_back(absl::optional<Expression*>{});
   }
   names.emplace_back(std::string(arg_name));
@@ -997,16 +997,11 @@ absl::StatusOr<const TypeSpec*> FunctionBinding::RebindFunctionArgument(
     ASSIGN_OR_RETURN(sub_binding, sub_function->BindArguments(subargs),
                      _ << "Binding sub-arguments in function argument: "
                        << arg_name << " in call to: " << FunctionNameForLog());
-  } else if (sub_group) {
+  } else {
+    CHECK(sub_group != nullptr);  // we check above that have one of them set.
     ASSIGN_OR_RETURN(sub_binding, sub_group->FindSignature(subargs),
                      _ << "Binding sub-arguments in function group argument: "
                        << arg_name << " in call to: " << FunctionNameForLog());
-  } else {
-    // return rebuilt_type;
-    // TODO(catalin): may be able to do something here at type level.
-    return status::FailedPreconditionErrorBuilder()
-           << "No function or group object to bind function argument "
-           << arg_name << " - should have failed before that with more details";
   }
   if (sub_binding->fun.has_value()) {
     LOG_IF(INFO, pragmas->log_bindings())
@@ -1334,7 +1329,7 @@ std::string Function::DebugString() const {
     case pb::ObjectKind::OBJ_FUNCTION:
       prefix = absl::StrCat("def ", call_name());
       break;
-    case pb::ObjectKind::OBJ_MODULE:
+    case pb::ObjectKind::OBJ_METHOD:
       prefix = absl::StrCat("def method ", call_name());
       break;
     case pb::ObjectKind::OBJ_LAMBDA:

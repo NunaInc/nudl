@@ -167,7 +167,7 @@ class Scope : public BaseNameStore {
   absl::StatusOr<std::unique_ptr<Expression>> BuildIdentifier(
       const pb::Identifier& element, const CodeContext& context);
   absl::StatusOr<std::unique_ptr<Expression>> BuildFunctionResult(
-      const pb::Expression* result_expression,
+      absl::optional<const pb::Expression*> result_expression,
       pb::FunctionResultKind result_kind, const CodeContext& context);
 
   absl::StatusOr<std::unique_ptr<Expression>> BuildOperator(
@@ -188,7 +188,7 @@ class Scope : public BaseNameStore {
       const pb::ArrayDefinition& array_def, const CodeContext& context);
   absl::StatusOr<std::unique_ptr<Expression>> BuildMapDefinition(
       const pb::MapDefinition& map_def, const CodeContext& context);
-  absl::StatusOr<std::unique_ptr<Expression>> BuildIfEspression(
+  absl::StatusOr<std::unique_ptr<Expression>> BuildIfExpression(
       const pb::IfExpression& if_expr, const CodeContext& context);
   absl::StatusOr<std::unique_ptr<Expression>> BuildIndexExpression(
       const pb::IndexExpression& expression, const CodeContext& context);

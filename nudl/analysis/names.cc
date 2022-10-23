@@ -56,10 +56,7 @@ absl::StatusOr<ScopeName> ScopeName::Parse(absl::string_view name) {
   }
   std::vector<std::string> pieces =
       absl::StrSplit(name, absl::MaxSplits("::", 1));
-  if (pieces.empty()) {
-    return status::InvalidArgumentErrorBuilder()
-           << "Invalid scope name: `" << name << "`";
-  }
+  RET_CHECK(!pieces.empty());
   std::vector<std::string> module_names, function_names;
   if (!pieces[0].empty()) {
     for (absl::string_view crt_name : absl::StrSplit(pieces[0], '.')) {

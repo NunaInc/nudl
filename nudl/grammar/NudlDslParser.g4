@@ -145,6 +145,12 @@ parenthesisedExpression
     : LPAREN computeExpression RPAREN
     ;
 
+// Note: in the way the grammar is built, at this point
+// we never hit functionCall unless using a template type
+// construct, instead we reach it through
+// composedIdentifier => postfixExpression => postfixValue ( args )
+// May want to make the type a regular primary expression and
+// just remove functionCall.
 primaryExpression
     : parenthesisedExpression
     | composedIdentifier

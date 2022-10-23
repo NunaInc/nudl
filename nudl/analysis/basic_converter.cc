@@ -343,7 +343,7 @@ absl::Status BasicConverter::ConvertDotAccessExpression(
   if (binding.has_value()) {
     bstate->out() << binding.value()->call_name();
   } else {
-    bstate->out() << expression.name();
+    bstate->out() << expression.name().name();
   }
   return absl::OkStatus();
 }
@@ -379,15 +379,17 @@ absl::Status BasicConverter::ConvertFunctionCallExpression(
   bstate->inc_indent();
   bstate->inc_indent();
   for (size_t i = 0; i < expression.function_binding()->names.size(); ++i) {
+    if (!expression.function_binding()->call_expressions[i].has_value()) {
+      continue;
+    }
     if (i > 0) {
       bstate->out() << "," << std::endl;
     }
     bstate->out() << bstate->indent() << expression.function_binding()->names[i]
                   << "=";
-    // TODO(catalin): note - this would convert the default expressions
-    // as well, which may not be valid in this scope
-    // - will want to massage this a bit..
-    RET_CHECK(expression.function_binding()->call_expressions[i].has_value());
+    // TODO(catalin): note - this may convert the default expressions
+    // as well, which may not be valid in this scope - will want to massage
+    // this a bit
     RETURN_IF_ERROR(ConvertExpression(
         *expression.function_binding()->call_expressions[i].value(), state));
   }

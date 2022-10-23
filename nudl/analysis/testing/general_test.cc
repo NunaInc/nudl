@@ -54,6 +54,16 @@ def MaxTermination(name: cdm.HumanName) => {
   maxlen([name.prefix, name.suffix])
 }
 )");
+  CheckCode("general_test", "function_member", R"(
+def f(name: cdm.HumanName) => name
+def g(name: cdm.HumanName) => f(name).family
+)");
+  CheckCode("general_test", "native_function", R"(
+def f(x: Int) : Int =>
+$$pyinline
+${x}
+$$end
+)");
 }
 
 TEST_F(AnalysisTest, BasicLiterals) {
@@ -90,6 +100,9 @@ def Access(l: Array<String>, n: Int) => l[n]
   CheckCode("general_test", "literal_index", R"(
 def Access(n: Int) => [1,2,3][n]
 )");
+  CheckCode("general_test", "literal_index_uint", R"(
+def Access(n: UInt) => [1,2,3][n]
+)");
   CheckCode("general_test", "set_index", R"(
 def Access(s: Set<String>, n: String) => {
   s[n]
@@ -113,6 +126,9 @@ def Access(n: String) => {
 )");
   CheckCode("general_test", "tuple_index", R"(
 def Access(s: Tuple<String, Int>) => s[1]
+)");
+  CheckCode("general_test", "tuple_index_uint", R"(
+def Access(s: Tuple<String, Int>) => s[1u]
 )");
   CheckCode("general_test", "empty_list", "x: Array<Int> = []");
   CheckCode("general_test", "empty_set", "x: Set<Int> = []");
@@ -225,6 +241,15 @@ def f(x: Int) => {
   }
 }
 )");
+  CheckError("non_bool_if", R"(
+def f(x: Int) => {
+  if (x % 2) {
+     return x + 1;
+  } else {
+     return x
+  }
+})",
+             "does not return a boolean value");
 }
 
 TEST_F(AnalysisTest, Pragmas) {
@@ -266,6 +291,8 @@ pragma log_type { my_const }
              "does not require an expression");
   CheckError("pragma_unknown_expression", "x = 10 pragma foobarsky",
              "Unknown pragma");
+  CheckError("pragma_no_return", "def f() => pragma log_scope_names",
+             "does not have any proper expressions defined");
 }
 
 TEST_F(AnalysisTest, DotAccess) {
@@ -381,7 +408,7 @@ def f() => {
              "Cannot coerce");
   CheckCode("general_test", "compatible_nullable_results1", R"(
 def foo(x: Int) => {
-  if (x % 2) {
+  if (x % 2 == 0) {
     return x
   }
   return null
@@ -389,7 +416,7 @@ def foo(x: Int) => {
 )");
   CheckCode("general_test", "compatible_nullable_results2", R"(
 def foo(x: Int) => {
-  if (x % 2) {
+  if (x % 2 == 0) {
     return null
   }
   return x
@@ -397,7 +424,7 @@ def foo(x: Int) => {
 )");
   CheckCode("general_test", "compatible_nullable_results3", R"(
 def foo(x: Int) => {
-  if (x % 2) {
+  if (x % 2 == 0) {
     yield null
   }
   yield x
@@ -405,7 +432,7 @@ def foo(x: Int) => {
 )");
   CheckCode("general_test", "compatible_nullable_results4", R"(
 def foo(x: Int) => {
-  if (x % 2) {
+  if (x % 2 == 0) {
     yield x
   }
   yield null
@@ -413,14 +440,14 @@ def foo(x: Int) => {
 )");
   CheckCode("general_test", "compatible_nullable_results5", R"(
 def foo(x: Int) => {
-  if (x % 2) {
+  if (x % 2 == 0) {
     yield null
   }
 }
 )");
   CheckError("incompatible_returns1", R"(
 def foo(x: Int) => {
-  if (x % 2) {
+  if (x % 2 == 0) {
     yield x
   }
   return x / 2
@@ -429,7 +456,7 @@ def foo(x: Int) => {
              "Cannot `return` in a function that uses `yield`");
   CheckError("incompatible_returns2", R"(
 def foo(x: Int) => {
-  if (x % 2) {
+  if (x % 2 == 0) {
     pass
   }
   return x / 2
@@ -438,7 +465,7 @@ def foo(x: Int) => {
              "Can only `yield` in a function");
   CheckError("incompatible_returns3", R"(
 def foo(x: Int) => {
-  if (x % 2) {
+  if (x % 2 == 0) {
     return x / 2
   }
   yield x
@@ -447,17 +474,114 @@ def foo(x: Int) => {
              "Cannot `yield` or `pass` in functions that use `return`");
   CheckError("incompatible_returns4", R"(
 def foo(x: Int) => {
-  if (x % 2) {
+  if (x % 2 == 0) {
     return x / 2
   }
   pass
 }
 )",
              "Cannot `yield` or `pass` in functions that use `return`");
+  CheckError("incompatible_returns5", R"(
+def foo(x: Int) => {
+  if (x % 2 == 0) {
+    return x / 2
+  }
+  return "Foo"
+}
+)",
+             "String is incompatible with previous");
   CheckError("no_body", R"(
 def f(x: Int) => pragma log_expression { x }
 )",
              "does not have any proper expressions defined");
+
+  CheckCode("general_test", "member_call", R"(
+def method inc(x: Int) => x + 1
+def f(x: Int) => {
+  x.inc()
+}
+)");
+  CheckCode("general_test", "dot_call", R"(
+def f() => (x: Int) : Int => x + 1
+def g(n: Int) => f()(n)
+)");
+  CheckError("bad_return_call", R"(
+def f() => 10
+def g(n: Int) => f()(n)
+)",
+             "Cannot call non-function expression type");
+  CheckError("no_function", R"(
+import cdm
+def f(name: cdm.HumanName) => {
+  name.family()
+})",
+             "non-function object");
+  CheckCode("general_test", "deep_call", R"(
+schema Bar = {
+  subname: String
+}
+schema Foo = {
+  name: Bar
+}
+def f(x: Foo) => x
+def g(x: Foo) => f(x).name.subname.len()
+)");
+  CheckCode("general_test", "deep_call_object", R"(
+schema Bar = {
+  subname: String
+}
+schema Foo = {
+  name: Bar
+}
+def g(x: Foo) => x.name.subname.len()
+)");
+  CheckError("not_yet_ready_constructor", R"(
+x = Array<Int>([1,2,3])
+)",
+             "Cannot find local name: `__init__` in Members of Array<Any>");
+  CheckCode("general_test", "late_default_bind", R"(
+def f(x: {X}, y: X = 20) => x + y
+def g(a: Int) => f(a)
+)");
+  CheckCode("general_test", "late_default_bind2", R"(
+def f(x: {X} = 20) => x + 10
+def g(a: Int) => f() + a
+)");
+  CheckCode("general_test", "late_default_bind3", R"(
+def f(x: {X} = 10, y: X = 20) => x + y
+def g(a: Int) => f(y=a)
+)");
+  CheckError("late_default_bind_error", R"(
+def f(x: {X} = 10, y: X = "Foo") => x + y
+def g(a: Int) => f(a)
+)",
+             "String is not compatible with inferred type");
+  CheckCode("general_test", "default_bind_on_funtype", R"(
+def f() => (x: Int = 10, y: Int = 20) => x + y
+def g(a: Int) => f()(a)
+)");
+  CheckError("improper_function_type", R"(
+def f(x: {X}, val: Int) => x(val)
+def g(x: Int, y: Int = 1) => x + y
+def h(x: Int) => f(g, x)
+)",
+             "improper function type");
+  CheckError("return_pass", R"(
+def f(x: Int) => pass;
+)",
+             "needs to yield some values");
+  CheckError("return_unbound", R"(
+def f() : Numeric => $$pyinline0$$end
+def g() => f()
+)",
+             "is unbound and not a function");
+  /* This has some issues: should fix:
+  PrepareCode("general_test", "function_arg_rebind", R"(
+def f(x: Function<{X}, X>, val: {X}) => x(val)
+def g(x: Int, y: Int = 1) => x + y
+def h(x: Int) => f(g, x)
+)");
+  */
 }
 
 TEST_F(AnalysisTest, JustPrepare) {

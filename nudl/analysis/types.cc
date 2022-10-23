@@ -88,6 +88,29 @@ bool TypeUtils::IsFloatType(pb::TypeId type_id) {
           type_id == pb::TypeId::FLOAT64_ID);
 }
 
+std::unique_ptr<TypeSpec> TypeUtils::IntIndexType(TypeStore* type_store) {
+  auto index_type =
+      TypeUtils::EnsureType(type_store, kTypeNameUnion)
+          ->Bind(
+              {TypeBindingArg{TypeUtils::EnsureType(type_store, kTypeNameInt)},
+               TypeBindingArg{
+                   TypeUtils::EnsureType(type_store, kTypeNameUInt)}});
+  CHECK_OK(index_type.status());
+  return std::move(index_type).value();
+}
+
+std::unique_ptr<TypeSpec> TypeUtils::NullableType(TypeStore* type_store,
+                                                  const TypeSpec* type_spec) {
+  if (type_spec->type_id() == pb::TypeId::NULLABLE_ID ||
+      type_spec->type_id() == pb::TypeId::NULL_ID) {
+    return type_spec->Clone();
+  }
+  auto nullable_type = TypeUtils::EnsureType(type_store, kTypeNameNullable)
+                           ->Bind({TypeBindingArg{type_spec}});
+  CHECK_OK(nullable_type.status());
+  return std::move(nullable_type).value();
+}
+
 std::vector<const TypeSpec*> TypeUtils::DedupTypes(
     absl::Span<const TypeSpec*> parameters) {
   std::vector<const TypeSpec*> results;
@@ -566,30 +589,21 @@ TypeArray::TypeArray(TypeStore* type_store,
     : StoredTypeSpec(type_store, pb::TypeId::ARRAY_ID, kTypeNameArray,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameIterable),
-                     {TypeUtils::EnsureType(type_store, kTypeNameAny, param)}),
-      // TODO(catalin): probably should convert to UInt when we have
-      // auto-conversion in place.
-      int_type_(TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
+                     {TypeUtils::EnsureType(type_store, kTypeNameAny, param)}) {
+}
 
-const TypeSpec* TypeArray::IndexType() const { return int_type_; }
+const TypeSpec* TypeArray::IndexType() const {
+  if (!index_type_) {
+    index_type_ = TypeUtils::IntIndexType(type_store_);
+  }
+  return index_type_.get();
+}
 
 const TypeSpec* TypeArray::IndexedType() const {
-  if (indexed_type_) {
-    return indexed_type_.get();
+  if (!indexed_type_) {
+    indexed_type_ = TypeUtils::NullableType(type_store_, parameters_.front());
   }
-  if (parameters_.front()->type_id() != pb::TypeId::NULLABLE_ID) {
-    const TypeSpec* nullable_type =
-        TypeUtils::EnsureType(type_store_, kTypeNameNullable);
-    auto bind_result =
-        nullable_type->Bind({TypeBindingArg(parameters_.front())});
-    CHECK_OK(bind_result.status());
-    // TODO(catalin): should be able to do this in the constructor, but
-    //   for whatever reson I get parameters_.front as Any there..
-    const_cast<TypeArray*>(this)->indexed_type_ =
-        std::move(bind_result).value();
-  }
-  CHECK(!parameters_.empty());
-  return parameters_.front();
+  return indexed_type_.get();
 }
 
 std::unique_ptr<TypeSpec> TypeArray::Clone() const {
@@ -775,21 +789,24 @@ StructMemberStore::~StructMemberStore() {
 
 absl::Status StructMemberStore::AddFields(
     const std::vector<TypeStruct::Field>& fields) {
-  CHECK(fields_.empty())
+  RET_CHECK(fields_.empty())
       << "Should not add twice the fields to a struct member store";
-  fields_ = fields;
   CHECK_NOTNULL(type_spec_);
+  fields_.reserve(fields.size());
+  field_vars_.reserve(fields.size());
   for (const auto& field : fields) {
     if (!NameUtil::IsValidName(field.name)) {
       return status::InvalidArgumentErrorBuilder()
              << "Invalid field name: " << field.name
              << " in type: " << type_spec_->full_name();
     }
-    field_vars_.emplace_back(std::make_unique<Field>(
-        field.name, CHECK_NOTNULL(field.type_spec), type_spec_, this));
-    RETURN_IF_ERROR(AddChildStore(field.name, field_vars_.back().get()))
+    auto field_var = std::make_unique<Field>(
+        field.name, CHECK_NOTNULL(field.type_spec), type_spec_, this);
+    RETURN_IF_ERROR(AddChildStore(field.name, field_var.get()))
         << "Adding field: " << field.name
         << " to type: " << type_spec_->full_name();
+    field_vars_.emplace_back(std::move(field_var));
+    fields_.emplace_back(field);
   }
   return absl::OkStatus();
 }
@@ -821,14 +838,6 @@ TypeMap::TypeMap(TypeStore* type_store,
                TypeStruct::Field{"value", parameters_.back()}}))) {
   CHECK_OK(
       result_type_->struct_member_store()->AddFields(result_type_->fields()));
-  if (parameters_.back()->type_id() != pb::TypeId::NULLABLE_ID) {
-    const TypeSpec* nullable_type =
-        TypeUtils::EnsureType(type_store, kTypeNameNullable);
-    auto bind_result =
-        nullable_type->Bind({TypeBindingArg(parameters_.back())});
-    CHECK_OK(bind_result.status());
-    indexed_type_ = std::move(bind_result).value();
-  }
 }
 
 const TypeSpec* TypeMap::IndexType() const {
@@ -838,10 +847,10 @@ const TypeSpec* TypeMap::IndexType() const {
 
 const TypeSpec* TypeMap::IndexedType() const {
   CHECK_EQ(parameters_.size(), 2ul);
-  if (indexed_type_) {
-    return indexed_type_.get();
+  if (!indexed_type_) {
+    indexed_type_ = TypeUtils::NullableType(type_store_, parameters_.back());
   }
-  return parameters_.back();
+  return indexed_type_.get();
 }
 
 std::unique_ptr<TypeSpec> TypeMap::Clone() const {
@@ -867,10 +876,14 @@ TypeTuple::TypeTuple(TypeStore* type_store,
     : StoredTypeSpec(type_store, pb::TypeId::TUPLE_ID, kTypeNameTuple,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameAny),
-                     std::move(parameters)),
-      int_type_(TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
+                     std::move(parameters)) {}
 
-const TypeSpec* TypeTuple::IndexType() const { return int_type_; }
+const TypeSpec* TypeTuple::IndexType() const {
+  if (!index_type_) {
+    index_type_ = TypeUtils::IntIndexType(type_store_);
+  }
+  return index_type_.get();
+}
 
 std::unique_ptr<TypeSpec> TypeTuple::Clone() const {
   return std::make_unique<TypeTuple>(type_store_, type_member_store_,

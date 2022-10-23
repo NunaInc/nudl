@@ -26,18 +26,44 @@ expression {
         child {
           kind: EXPR_FUNCTION_CALL
           type_spec {
-            name: "Int"
+            name: "Bool"
           }
           call_spec {
             call_name {
-              full_name: "__mod__"
+              full_name: "__eq__"
             }
             argument {
               name: "x"
               value {
-                kind: EXPR_IDENTIFIER
-                identifier {
-                  full_name: "x"
+                kind: EXPR_FUNCTION_CALL
+                type_spec {
+                  name: "Int"
+                }
+                call_spec {
+                  call_name {
+                    full_name: "__mod__"
+                  }
+                  argument {
+                    name: "x"
+                    value {
+                      kind: EXPR_IDENTIFIER
+                      identifier {
+                        full_name: "x"
+                      }
+                    }
+                  }
+                  argument {
+                    name: "y"
+                    value {
+                      kind: EXPR_LITERAL
+                      literal {
+                        int_value: 2
+                      }
+                    }
+                  }
+                  binding_type {
+                    name: "Function<Int(x: Int, y: Int)>"
+                  }
                 }
               }
             }
@@ -46,12 +72,12 @@ expression {
               value {
                 kind: EXPR_LITERAL
                 literal {
-                  int_value: 2
+                  int_value: 0
                 }
               }
             }
             binding_type {
-              name: "Function<Int(x: Int, y: Int)>"
+              name: "Function<Bool(x: Int, y: Int)>"
             }
           }
         }

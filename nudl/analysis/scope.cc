@@ -433,14 +433,11 @@ absl::StatusOr<std::tuple<VarBase*, bool>> Scope::ProcessVarFind(
     ASSIGN_OR_RETURN(type_spec, FindType(element.type_spec()),
                      _ << context.ToErrorInfo(absl::StrCat(
                          "Finding type for assignment of: ", name.name())));
-  } else if (assign_expression) {
+  } else {
     ASSIGN_OR_RETURN(
-        type_spec, assign_expression->type_spec(),
+        type_spec, CHECK_NOTNULL(assign_expression)->type_spec(),
         _ << context.ToErrorInfo(absl::StrCat(
             "Determining type of assing expression for: ", name.name())));
-
-  } else {
-    type_spec = FindTypeAny();
   }
   if (type_spec->type_id() == pb::TypeId::FUNCTION_ID &&
       !type_spec->IsBound()) {
@@ -498,7 +495,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpression(
   } else if (expression.has_lambda_def()) {
     return BuildLambdaExpression(expression.lambda_def(), context);
   } else if (expression.has_if_expr()) {
-    return BuildIfEspression(expression.if_expr(), context);
+    return BuildIfExpression(expression.if_expr(), context);
   } else if (expression.has_array_def()) {
     return BuildArrayDefinition(expression.array_def(), context);
   } else if (expression.has_map_def()) {
@@ -512,7 +509,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpression(
     return BuildFunctionResult(&expression.return_expr(),
                                pb::FunctionResultKind::RESULT_RETURN, context);
   } else if (expression.has_pass_expr()) {
-    return BuildFunctionResult(nullptr, pb::FunctionResultKind::RESULT_PASS,
+    return BuildFunctionResult({}, pb::FunctionResultKind::RESULT_PASS,
                                context);
   } else if (expression.has_empty_struct()) {
     return std::make_unique<EmptyStruct>(this);
@@ -594,8 +591,8 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIdentifier(
 }
 
 absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionResult(
-    const pb::Expression* result_expression, pb::FunctionResultKind result_kind,
-    const CodeContext& context) {
+    absl::optional<const pb::Expression*> result_expression,
+    pb::FunctionResultKind result_kind, const CodeContext& context) {
   auto parent_function = FindFunctionAncestor();
   if (!parent_function.has_value()) {
     return status::InvalidArgumentErrorBuilder()
@@ -603,9 +600,10 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionResult(
            << " outside of a function scope."
            << context.ToErrorInfo("In result passing expression");
   }
-  std::unique_ptr<Expression> inner_expression;
-  if (result_expression) {
-    ASSIGN_OR_RETURN(inner_expression, BuildExpression(*result_expression));
+  absl::optional<std::unique_ptr<Expression>> inner_expression;
+  if (result_expression.has_value()) {
+    ASSIGN_OR_RETURN(inner_expression,
+                     BuildExpression(*result_expression.value()));
     // TODO(catalin): Here may be time to massage the type of inner_expression
     //  to maybe convert to parent_function.value()->result_type().
   }
@@ -665,10 +663,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildUnaryOperator(
 
 absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildTernaryOperator(
     const pb::OperatorExpression& element, const CodeContext& context) {
-  RET_CHECK(element.op().size() == 1 && element.argument().size() == 3)
-      << "Badly built ternary operator expression: " << element.op().size()
-      << " operators " << element.argument().size() << " arguments "
-      << kBugNotice << context.ToErrorInfo("In ternary operator expression");
+  RET_CHECK(element.op().size() == 1 && element.argument().size() == 3);
   static const auto* const kTernaryOperators =
       new absl::flat_hash_map<std::string, std::string>({
           {"?", "__if__"},
@@ -911,7 +906,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpressionBlock(
   return {std::make_unique<ExpressionBlock>(this, std::move(expressions))};
 }
 
-absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIfEspression(
+absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIfExpression(
     const pb::IfExpression& if_expr, const CodeContext& context) {
   if (if_expr.condition().empty()) {
     return status::InvalidArgumentErrorBuilder()
@@ -937,7 +932,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIfEspression(
     // TODO(catalin): plug auto conversion here
     ASSIGN_OR_RETURN(auto condition_type, condition->type_spec(bool_type),
                      _ << "Determining type of if condition " << (i + 1));
-    if (!bool_type->IsEqual(*bool_type)) {
+    if (!bool_type->IsEqual(*condition_type)) {
       return status::InvalidArgumentErrorBuilder()
              << "If statement condition " << (i + 1)
              << " does not return a boolean value but: "
@@ -975,7 +970,9 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIndexExpression(
                      << context.ToErrorInfo("In indexed expression"));
   std::unique_ptr<Expression> result_expression;
   if (object_type->type_id() == pb::TypeId::TUPLE_ID) {
-    RETURN_IF_ERROR(index_expression->type_spec(FindTypeInt()).status())
+    RETURN_IF_ERROR(
+        index_expression->type_spec(CHECK_NOTNULL(object_type->IndexType()))
+            .status())
         << "Determining type of index expression"
         << context.ToErrorInfo("In indexed expression");
     auto index_value = index_expression->StaticValue();
@@ -1042,13 +1039,11 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildDotExpression(
     return std::make_unique<DotAccessExpression>(
         this, std::move(left_expression), expression.name(), object);
   }
-  RET_CHECK(expression.has_function_call())
-      << "Missing name or function call" << kBugNotice
-      << context.ToErrorInfo("In dot expression");
-  RET_CHECK(expression.function_call().has_expr_spec())
-      << "Should not have an expression set in the function call "
-      << "of a dot expression" << kBugNotice
-      << context.ToErrorInfo("In dot expression");
+  // The only way we hit here, in the way the grammar is built,
+  // is if we do a module-type construct like foo.X<Y>(3)
+  RET_CHECK(expression.has_function_call() &&
+            !expression.function_call().has_expr_spec())
+      << "Badly built dot expression" << kBugNotice;
   return BuildFunctionCall(expression.function_call(),
                            std::move(left_expression), context);
 }
@@ -1074,6 +1069,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
   NamedObject* call_object = nullptr;
   const TypeSpec* call_type_constructor = nullptr;
   std::optional<ScopedName> object_name;
+  Expression* method_source_expression = nullptr;
   if (expression.has_identifier()) {
     ASSIGN_OR_RETURN(object_name,
                      ScopedName::FromIdentifier(expression.identifier()),
@@ -1089,7 +1085,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
       pb::Identifier source_object_identifier(expression.identifier());
       source_object_identifier.mutable_name()->RemoveLast();
       ASSIGN_OR_RETURN(auto source_object_name,
-                       ScopedName::FromIdentifier(expression.identifier()),
+                       ScopedName::FromIdentifier(source_object_identifier),
                        _ << "Building source object name" << kBugNotice
                          << context.ToErrorInfo("In function call"));
       ASSIGN_OR_RETURN(
@@ -1100,7 +1096,17 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
       if (!left_expression) {
         left_expression = std::make_unique<Identifier>(this, source_object_name,
                                                        source_object);
+      } else {
+        ASSIGN_OR_RETURN(auto source_scope_name,
+                         source_object_name.scope_name().Submodule(
+                             source_object_name.name()));
+        left_expression = std::make_unique<DotAccessExpression>(
+            this, std::move(left_expression), std::move(source_scope_name),
+            source_object);
       }
+    }
+    if (left_expression) {
+      method_source_expression = left_expression.get();
       left_expression = std::make_unique<DotAccessExpression>(
           this, std::move(left_expression),
           *expression.identifier().name().rbegin(), call_object);
@@ -1122,13 +1128,15 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
     // left_expression returns a function directly, but we may need an object
     // to that.
     auto call_object_value = left_expression->named_object();
-    if (!call_object_value.has_value()) {
-      return status::InvalidArgumentErrorBuilder()
-             << "The expression left side of the function call is not "
-                "producing a callable object"
-             << context.ToErrorInfo("In function call");
+    if (call_object_value.has_value()) {
+      if (left_expression->expr_kind() == pb::ExpressionKind::EXPR_DOT_ACCESS &&
+          !left_expression->children().empty()) {
+        method_source_expression = left_expression->children().front().get();
+      }
+      call_object = call_object_value.value();
     }
-    call_object = call_object_value.value();
+  } else {
+    return absl::InvalidArgumentError("Badly built function call ");
   }
   if (call_object && call_object->kind() == pb::ObjectKind::OBJ_TYPE) {
     call_type_constructor = static_cast<const TypeSpec*>(call_object);
@@ -1138,18 +1146,12 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
   std::vector<FunctionCallArgument> arguments;
   bool is_method_call = false;
   if (call_object && call_object->kind() == pb::ObjectKind::OBJ_METHOD) {
-    if (left_expression->expr_kind() != pb::ExpressionKind::EXPR_DOT_ACCESS ||
-        left_expression->children().empty()) {
-      // TODO(catalin): work out this case if becomes a problem
-      //   - may require a bit of rework
-      return status::UnimplementedErrorBuilder()
-             << "Cannot determine the object for calling: "
-             << call_object->full_name() << " in function call left expression "
-             << context.ToErrorInfo("In function call");
+    // TODO(catalin): work out this case if becomes a problem
+    if (method_source_expression) {
+      arguments.emplace_back(
+          FunctionCallArgument{{}, method_source_expression, {}});
+      is_method_call = true;
     }
-    arguments.emplace_back(FunctionCallArgument{
-        {}, left_expression->children().front().get(), {}});
-    is_method_call = true;
   }
   for (const auto& arg : expression.argument()) {
     FunctionCallArgument farg;
@@ -1173,7 +1175,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
         FindFunctionInStore(call_type_constructor->type_member_store(),
                             scope_name(), ScopedName::Parse("__init__").value(),
                             arguments));
-  } else {
+  } else if (call_object) {
     RET_CHECK(call_object != nullptr)
         << "No call object was found" << kBugNotice
         << context.ToErrorInfo("In function call");
@@ -1202,13 +1204,33 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
           FunctionBinding::BindType(fun_type_spec, pragma_handler(), arguments),
           _ << "Binding call arguments to function type: "
             << fun_type_spec->full_name()
-            << " accessed through: " << call_object->full_name());
+            << " accessed through: " << call_object->full_name()
+            << context.ToErrorInfo("In function call"));
       if (!left_expression) {
         RET_CHECK(object_name.has_value());
         left_expression = std::make_unique<Identifier>(
             this, std::move(object_name).value(), call_object);
       }
     }
+  } else {
+    RET_CHECK(left_expression != nullptr) << "Got in a bad analysis state";
+    ASSIGN_OR_RETURN(
+        const TypeSpec* type_spec, left_expression->type_spec(),
+        _ << "Determining the type of function producing expression."
+          << context.ToErrorInfo("In function call"));
+    if (type_spec->type_id() != pb::TypeId::FUNCTION_ID) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Cannot call non-function expression type: "
+             << type_spec->full_name()
+             << context.ToErrorInfo("In function call");
+    }
+    const TypeFunction* fun_type_spec =
+        static_cast<const TypeFunction*>(type_spec);
+    ASSIGN_OR_RETURN(
+        function_binding,
+        FunctionBinding::BindType(fun_type_spec, pragma_handler(), arguments),
+        _ << "Binding call arguments to function type: "
+          << type_spec->full_name() << context.ToErrorInfo("In function call"));
   }
   return BuildFunctionApply(
       std::move(function_binding), std::move(left_expression),
