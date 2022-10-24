@@ -98,6 +98,10 @@ class Scope : public BaseNameStore {
   // be a prefix in the provided scope_name.
   absl::Status AddSubScope(std::unique_ptr<Scope> scope);
 
+  // Creates and adds a new local scope with a name rooted on
+  // provided local_name.
+  absl::StatusOr<Scope*> AddNewLocalScope(absl::string_view local_name);
+
   // Adds a variable based object defined in this scope.
   absl::Status AddDefinedVar(std::unique_ptr<VarBase> var_base);
 
@@ -205,6 +209,7 @@ class Scope : public BaseNameStore {
       std::unique_ptr<Expression> left_expression,
       std::vector<std::unique_ptr<Expression>> arguments, bool is_method_call,
       const CodeContext& context);
+  friend class FunctionCallHelper;
 
   std::shared_ptr<ScopeName> const scope_name_;
   Scope* const parent_;

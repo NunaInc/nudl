@@ -1,9 +1,2 @@
-/*
-def foo(x: Int) => {
-  if (x % 2) {
-    y = 10
-  }
-  // Need an error here - ie scopes per if expression.
-  y + x
-}
-*/
+
+// None on the slate for now..

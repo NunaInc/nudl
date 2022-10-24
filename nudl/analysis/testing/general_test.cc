@@ -419,13 +419,13 @@ def g(n: Int) => f()(n)
 def f() => 10
 def g(n: Int) => f()(n)
 )",
-             "Cannot call non-function expression type");
+             "Cannot call non-function type");
   CheckError("no_function", R"(
 import cdm
 def f(name: cdm.HumanName) => {
   name.family()
 })",
-             "non-function object");
+             "Cannot call non-function type");
   CheckCode("general_test", "deep_call", R"(
 schema Bar = {
   subname: String
@@ -618,6 +618,37 @@ def foo(x: Int) => {
   }
 })",
              "Meaningless expression after function return");
+}
+TEST_F(AnalysisTest, BadScopeAccess) {
+  CheckError("bad_if_access1", R"(
+def foo(x: Int) => {
+  if (x % 2 == 0) {
+    y = x + 10
+  }
+  y + x
+})",
+             "Cannot find name: `y`");
+
+  CheckError("bad_if_access2", R"(
+def foo(x: Int) => {
+  if (x % 2 == 0) {
+    x = x + 10
+  } else {
+    z = x + 1
+  }
+  z
+})",
+             "Cannot find name: `z`");
+  CheckError("bad_if_access3", R"(
+def foo(x: Int) => {
+  if (x % 2 == 0) {
+    y = x + 10
+  } else {
+    z = x + y
+  }
+  x
+})",
+             "Cannot find name: `y`");
 }
 
 TEST_F(AnalysisTest, JustPrepare) {

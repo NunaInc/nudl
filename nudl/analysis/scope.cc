@@ -159,10 +159,24 @@ absl::Status Scope::AddDefinedVar(std::unique_ptr<VarBase> var_base) {
   return absl::OkStatus();
 }
 
+absl::StatusOr<Scope*> Scope::AddNewLocalScope(absl::string_view local_name) {
+  ASSIGN_OR_RETURN(auto local_scope_name,
+                   scope_name().Subname(NextLocalName(local_name)),
+                   _ << "Adding local scope name: " << local_name);
+  auto local_scope = std::make_unique<Scope>(
+      std::make_shared<ScopeName>(std::move(local_scope_name)), this, false);
+  auto local_scope_ptr = local_scope.get();
+  RETURN_IF_ERROR(AddSubScope(std::move(local_scope)))
+      << "Adding local scope: " << local_name;
+  return local_scope_ptr;
+}
+
 absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
                                              const ScopedName& scoped_name) {
   absl::Status find_status;
+  absl::optional<Function*> local_function;
   if (lookup_scope.name() == name()) {
+    local_function = FindFunctionAncestor();
     if (scoped_name.scope_name().empty()) {
       if (HasName(scoped_name.name())) {
         return GetName(scoped_name.name());
@@ -175,10 +189,12 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
       // Finally search it here:
       auto scope_result = FindChildStore(scoped_name.scope_name());
       if (scope_result.ok()) {
-        const bool is_function =
-            Function::IsFunctionKind(*scope_result.value());
+        const bool is_unaccessible_function =
+            (Function::IsFunctionKind(*scope_result.value()) &&
+             (!local_function.has_value() ||
+              local_function.value() != scope_result.value()));
         if (scope_result.value()->HasName(scoped_name.name())) {
-          if (!is_function || scope_result.value() == this) {
+          if (!is_unaccessible_function || scope_result.value() == this) {
             return scope_result.value()->GetName(scoped_name.name());
           } else {
             status::UpdateOrAnnotate(
@@ -189,7 +205,7 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
                     " cannot be accessed from scope: ", lookup_scope.name())));
           }
         }
-        if (!is_function) {
+        if (!is_unaccessible_function) {
           // TODO(catalin): Here find closest names, 'Did you mean ...'
           status::UpdateOrAnnotate(
               find_status,
@@ -218,9 +234,12 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
     const ScopeName crt_name(prefix_scope.Subscope(scoped_name.scope_name()));
     auto result = top_scope()->FindChildStore(crt_name);
     if (result.ok()) {
-      const bool is_function = Function::IsFunctionKind(*result.value());
+      const bool is_unaccessible_function =
+          (Function::IsFunctionKind(*result.value()) &&
+           (!local_function.has_value() ||
+            local_function.value() != result.value()));
       if (result.value()->HasName(scoped_name.name())) {
-        if (!is_function || result.value() == this) {
+        if (!is_unaccessible_function || result.value() == this) {
           return result.value()->GetName(scoped_name.name());
         } else {
           status::UpdateOrAnnotate(
@@ -231,7 +250,7 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
                   " cannot be accessed from scope: ", lookup_scope.name())));
         }
       } else if (!result.value()->name().empty() &&
-                 (!is_function || result.value() == this)) {
+                 (!is_unaccessible_function || result.value() == this)) {
         // TODO(catalin): Here find closest names, 'Did you mean ...'
         status::UpdateOrAnnotate(
             find_status,
@@ -953,19 +972,21 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIfExpression(
              << condition_type->full_name()
              << context.ToErrorInfo("In if expression");
     }
-    // TODO(catalin): should we create a scope per if expression ?
-    //  may make sense, as they can create variables that are not visible
-    //  in other branches.
-    ASSIGN_OR_RETURN(auto expression,
-                     BuildExpressionBlock(if_expr.expression_block(i)),
-                     _ << "In if expression branch expression " << (i + 1));
+    ASSIGN_OR_RETURN(auto if_scope, AddNewLocalScope("ifexpr"),
+                     _ << context.ToErrorInfo("In if expression"));
+    ASSIGN_OR_RETURN(
+        auto expression,
+        if_scope->BuildExpressionBlock(if_expr.expression_block(i)),
+        _ << "In if expression branch expression " << (i + 1));
     conditions.emplace_back(std::move(condition));
     expressions.emplace_back(std::move(expression));
   }
   // Leftover else - maybe
   if (if_expr.condition().size() < if_expr.expression_block().size()) {
+    ASSIGN_OR_RETURN(auto if_scope, AddNewLocalScope("ifexpr"),
+                     _ << context.ToErrorInfo("In if expression"));
     ASSIGN_OR_RETURN(auto expression,
-                     BuildExpressionBlock(
+                     if_scope->BuildExpressionBlock(
                          if_expr.expression_block(if_expr.condition().size())),
                      _ << "In else expression branch expression");
     expressions.emplace_back(std::move(expression));
@@ -1062,193 +1083,230 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildDotExpression(
                            std::move(left_expression), context);
 }
 
-absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
-    const pb::FunctionCall& expression,
-    std::unique_ptr<Expression> left_expression, const CodeContext& context) {
-  if (expression.has_expr_spec()) {
-    RET_CHECK(left_expression == nullptr)
-        << "Cannot provide a built left expression in a function call where "
-           "expression is provided in call";
-    ASSIGN_OR_RETURN(left_expression, BuildExpression(expression.expr_spec()));
+// Helper class for preparing a function call expression.
+class FunctionCallHelper {
+ public:
+  FunctionCallHelper(Scope* scope, const pb::FunctionCall& expression,
+                     std::unique_ptr<Expression> left_expression,
+                     const CodeContext& context)
+      : scope_(scope),
+        expression_(expression),
+        left_expression_(std::move(left_expression)),
+        context_(context),
+        function_name_store_(scope) {}
+  absl::StatusOr<std::unique_ptr<Expression>> PrepareCall() {
+    RETURN_IF_ERROR(PrepareLeftExpression());
+    if (expression_.has_identifier()) {
+      RETURN_IF_ERROR(PrepareIdentifier());
+    } else if (expression_.has_type_spec()) {
+      RETURN_IF_ERROR(PrepareTypeConstruct());
+    } else if (left_expression_) {
+      PrepapareObjectFromLeftExpression();
+    } else {
+      return absl::InvalidArgumentError("Badly built function call ");
+    }
+    RETURN_IF_ERROR(PrepareArguments());
+    std::unique_ptr<FunctionBinding> function_binding;
+    if (call_type_constructor_) {
+      ASSIGN_OR_RETURN(
+          function_binding,
+          FindFunctionInStore(
+              call_type_constructor_->type_member_store(), scope_->scope_name(),
+              ScopedName::Parse("__init__").value(), arguments_));
+    } else if (call_object_) {
+      ASSIGN_OR_RETURN(
+          function_binding, BindingFromCallObject(),
+          _ << "Preparing call from object: " << call_object_->full_name());
+    } else {
+      RET_CHECK(left_expression_ != nullptr) << "Got in a bad analysis state";
+      ASSIGN_OR_RETURN(
+          const TypeSpec* type_spec, left_expression_->type_spec(),
+          _ << "Determining the type of function producing expression.");
+      ASSIGN_OR_RETURN(function_binding, BindingFromType(type_spec));
+    }
+    return scope_->BuildFunctionApply(
+        std::move(function_binding), std::move(left_expression_),
+        std::move(argument_expressions_), is_method_call_, context_);
   }
-  NameStore* function_name_store = this;
-  if (left_expression) {
-    ASSIGN_OR_RETURN(const TypeSpec* left_type, left_expression->type_spec(),
-                     _ << "Determining type of the left part of call expression"
-                       << context.ToErrorInfo("In function call"));
-    RET_CHECK(left_type->type_member_store() != nullptr)
-        << "For type: " << left_type->full_name() << kBugNotice;
-    function_name_store = left_type->type_member_store();
+
+ private:
+  absl::Status PrepareLeftExpression() {
+    if (expression_.has_expr_spec()) {
+      RET_CHECK(left_expression_ == nullptr)
+          << "Cannot provide a built left expression in a function call where "
+             "expression is provided in call";
+      ASSIGN_OR_RETURN(left_expression_,
+                       scope_->BuildExpression(expression_.expr_spec()));
+    }
+    if (left_expression_) {
+      ASSIGN_OR_RETURN(
+          const TypeSpec* left_type, left_expression_->type_spec(),
+          _ << "Determining type of the left part of call expression");
+      RET_CHECK(left_type->type_member_store() != nullptr)
+          << "For type: " << left_type->full_name() << kBugNotice;
+      function_name_store_ = left_type->type_member_store();
+    }
+    return absl::OkStatus();
   }
-  NamedObject* call_object = nullptr;
-  const TypeSpec* call_type_constructor = nullptr;
-  std::optional<ScopedName> object_name;
-  Expression* method_source_expression = nullptr;
-  if (expression.has_identifier()) {
-    ASSIGN_OR_RETURN(object_name,
-                     ScopedName::FromIdentifier(expression.identifier()),
-                     _ << "In function name identifier"
-                       << context.ToErrorInfo("In function call"));
-    ASSIGN_OR_RETURN(
-        call_object,
-        function_name_store->FindName(scope_name(), object_name.value()),
-        _ << "Finding function name"
-          << context.ToErrorInfo("In function call"));
-    if (expression.identifier().name().size() > 1) {
+
+  absl::Status PrepareIdentifier() {
+    RET_CHECK(expression_.has_identifier());
+    ASSIGN_OR_RETURN(object_name_,
+                     ScopedName::FromIdentifier(expression_.identifier()),
+                     _ << "In function name identifier");
+    ASSIGN_OR_RETURN(call_object_,
+                     function_name_store_->FindName(scope_->scope_name(),
+                                                    object_name_.value()),
+                     _ << "Finding function name");
+    if (expression_.identifier().name().size() > 1) {
       // for x().y.z() need to get a handle of x().y directly:
-      pb::Identifier source_object_identifier(expression.identifier());
+      pb::Identifier source_object_identifier(expression_.identifier());
       source_object_identifier.mutable_name()->RemoveLast();
       ASSIGN_OR_RETURN(auto source_object_name,
                        ScopedName::FromIdentifier(source_object_identifier),
-                       _ << "Building source object name" << kBugNotice
-                         << context.ToErrorInfo("In function call"));
-      ASSIGN_OR_RETURN(
-          auto source_object,
-          function_name_store->FindName(scope_name(), source_object_name),
-          _ << "Finding function source object" << kBugNotice
-            << context.ToErrorInfo("In function call"));
-      if (!left_expression) {
-        left_expression = std::make_unique<Identifier>(this, source_object_name,
-                                                       source_object);
+                       _ << "Building source object name" << kBugNotice);
+      ASSIGN_OR_RETURN(auto source_object,
+                       function_name_store_->FindName(scope_->scope_name(),
+                                                      source_object_name),
+                       _ << "Finding function source object" << kBugNotice);
+      if (!left_expression_) {
+        left_expression_ = std::make_unique<Identifier>(
+            scope_, source_object_name, source_object);
       } else {
-        ASSIGN_OR_RETURN(auto source_scope_name,
-                         source_object_name.scope_name().Submodule(
-                             source_object_name.name()));
-        left_expression = std::make_unique<DotAccessExpression>(
-            this, std::move(left_expression), std::move(source_scope_name),
+        ASSIGN_OR_RETURN(
+            auto source_scope_name,
+            source_object_name.scope_name().Subname(source_object_name.name()));
+        left_expression_ = std::make_unique<DotAccessExpression>(
+            scope_, std::move(left_expression_), std::move(source_scope_name),
             source_object);
       }
     }
-    if (left_expression) {
-      method_source_expression = left_expression.get();
-      left_expression = std::make_unique<DotAccessExpression>(
-          this, std::move(left_expression),
-          *expression.identifier().name().rbegin(), call_object);
+    if (left_expression_) {
+      method_source_expression_ = left_expression_.get();
+      left_expression_ = std::make_unique<DotAccessExpression>(
+          scope_, std::move(left_expression_),
+          *expression_.identifier().name().rbegin(), call_object_);
     }
-  } else if (expression.has_type_spec()) {
+    return absl::OkStatus();
+  }
+  absl::Status PrepareTypeConstruct() {
     // this is probably a templated build.
-    Scope* type_lookup_scope = this;
-    if (left_expression) {
-      auto named_object = left_expression->named_object();
-      if (named_object.has_value() && IsScopeKind(*named_object.value())) {
+    Scope* type_lookup_scope = scope_;
+    if (left_expression_) {
+      auto named_object = left_expression_->named_object();
+      if (named_object.has_value() &&
+          Scope::IsScopeKind(*named_object.value())) {
         type_lookup_scope = static_cast<Scope*>(named_object.value());
       }
     }
-    ASSIGN_OR_RETURN(call_type_constructor,
-                     type_lookup_scope->FindType(expression.type_spec()),
-                     _ << "Finding type to construct"
-                       << context.ToErrorInfo("In function call"));
-  } else if (left_expression) {
+    ASSIGN_OR_RETURN(call_type_constructor_,
+                     type_lookup_scope->FindType(expression_.type_spec()),
+                     _ << "Finding type to construct");
+    return absl::OkStatus();
+  }
+  void PrepapareObjectFromLeftExpression() {
     // left_expression returns a function directly, but we may need an object
     // to that.
-    auto call_object_value = left_expression->named_object();
+    auto call_object_value = CHECK_NOTNULL(left_expression_)->named_object();
     if (call_object_value.has_value()) {
-      if (left_expression->expr_kind() == pb::ExpressionKind::EXPR_DOT_ACCESS &&
-          !left_expression->children().empty()) {
-        method_source_expression = left_expression->children().front().get();
+      if (left_expression_->expr_kind() ==
+              pb::ExpressionKind::EXPR_DOT_ACCESS &&
+          !left_expression_->children().empty()) {
+        method_source_expression_ = left_expression_->children().front().get();
       }
-      call_object = call_object_value.value();
-    }
-  } else {
-    return absl::InvalidArgumentError("Badly built function call ");
-  }
-  if (call_object && call_object->kind() == pb::ObjectKind::OBJ_TYPE) {
-    call_type_constructor = static_cast<const TypeSpec*>(call_object);
-    call_object = nullptr;
-  }
-  std::vector<std::unique_ptr<Expression>> argument_expressions;
-  std::vector<FunctionCallArgument> arguments;
-  bool is_method_call = false;
-  if (call_object && call_object->kind() == pb::ObjectKind::OBJ_METHOD) {
-    // TODO(catalin): work out this case if becomes a problem
-    if (method_source_expression) {
-      arguments.emplace_back(
-          FunctionCallArgument{{}, method_source_expression, {}});
-      is_method_call = true;
+      call_object_ = call_object_value.value();
     }
   }
-  for (const auto& arg : expression.argument()) {
-    FunctionCallArgument farg;
-    if (arg.has_name()) {
-      farg.name = arg.name();
+  absl::Status PrepareArguments() {
+    if (call_object_ && call_object_->kind() == pb::ObjectKind::OBJ_TYPE) {
+      call_type_constructor_ = static_cast<const TypeSpec*>(call_object_);
+      call_object_ = nullptr;
     }
-    if (!arg.has_value()) {
-      return status::InvalidArgumentErrorBuilder()
-             << "No value provided for function call argument " << kBugNotice
-             << context.ToErrorInfo("In function call");
+    if (call_object_ && call_object_->kind() == pb::ObjectKind::OBJ_METHOD) {
+      // TODO(catalin): work out this case if becomes a problem
+      if (method_source_expression_) {
+        arguments_.emplace_back(
+            FunctionCallArgument{{}, method_source_expression_, {}});
+        is_method_call_ = true;
+      }
     }
-    ASSIGN_OR_RETURN(auto expression, BuildExpression(arg.value()));
-    farg.value = expression.get();
-    arguments.emplace_back(std::move(farg));
-    argument_expressions.emplace_back(std::move(expression));
-  }
-  std::unique_ptr<FunctionBinding> function_binding;
-  if (call_type_constructor) {
-    ASSIGN_OR_RETURN(
-        function_binding,
-        FindFunctionInStore(call_type_constructor->type_member_store(),
-                            scope_name(), ScopedName::Parse("__init__").value(),
-                            arguments));
-  } else if (call_object) {
-    RET_CHECK(call_object != nullptr)
-        << "No call object was found" << kBugNotice
-        << context.ToErrorInfo("In function call");
-    if (Function::IsFunctionKind(*call_object)) {
-      ASSIGN_OR_RETURN(
-          function_binding,
-          static_cast<Function*>(call_object)->BindArguments(arguments),
-          _ << "Binding call arguments to: " << call_object->full_name()
-            << context.ToErrorInfo("In function call"));
-    } else if (FunctionGroup::IsFunctionGroup(*call_object)) {
-      ASSIGN_OR_RETURN(
-          function_binding,
-          static_cast<FunctionGroup*>(call_object)->FindSignature(arguments),
-          _ << "Finding signature to bind function " << call_object->name()
-            << context.ToErrorInfo("In function call"));
-    } else {
-      if (call_object->type_spec()->type_id() != pb::TypeId::FUNCTION_ID) {
+    for (const auto& arg : expression_.argument()) {
+      FunctionCallArgument farg;
+      if (arg.has_name()) {
+        farg.name = arg.name();
+      }
+      if (!arg.has_value()) {
         return status::InvalidArgumentErrorBuilder()
-               << "Cannot call non-function object: " << call_object->name()
-               << context.ToErrorInfo("In function call");
+               << "No value provided for function call argument " << kBugNotice;
       }
-      const TypeFunction* fun_type_spec =
-          static_cast<const TypeFunction*>(call_object->type_spec());
-      ASSIGN_OR_RETURN(
-          function_binding,
-          FunctionBinding::BindType(fun_type_spec, pragma_handler(), arguments),
-          _ << "Binding call arguments to function type: "
-            << fun_type_spec->full_name()
-            << " accessed through: " << call_object->full_name()
-            << context.ToErrorInfo("In function call"));
-      if (!left_expression) {
-        RET_CHECK(object_name.has_value());
-        left_expression = std::make_unique<Identifier>(
-            this, std::move(object_name).value(), call_object);
-      }
+      ASSIGN_OR_RETURN(auto expression, scope_->BuildExpression(arg.value()));
+      farg.value = expression.get();
+      arguments_.emplace_back(std::move(farg));
+      argument_expressions_.emplace_back(std::move(expression));
     }
-  } else {
-    RET_CHECK(left_expression != nullptr) << "Got in a bad analysis state";
-    ASSIGN_OR_RETURN(
-        const TypeSpec* type_spec, left_expression->type_spec(),
-        _ << "Determining the type of function producing expression."
-          << context.ToErrorInfo("In function call"));
+    return absl::OkStatus();
+  }
+  absl::StatusOr<std::unique_ptr<FunctionBinding>> BindingFromCallObject() {
+    RET_CHECK(call_object_ != nullptr) << "No call object";
+    if (Function::IsFunctionKind(*call_object_)) {
+      return static_cast<Function*>(call_object_)->BindArguments(arguments_);
+    }
+    if (FunctionGroup::IsFunctionGroup(*call_object_)) {
+      return static_cast<FunctionGroup*>(call_object_)
+          ->FindSignature(arguments_);
+    }
+    return BindingFromType(call_object_->type_spec());
+  }
+  absl::StatusOr<std::unique_ptr<FunctionBinding>> BindingFromType(
+      const TypeSpec* type_spec) {
     if (type_spec->type_id() != pb::TypeId::FUNCTION_ID) {
       return status::InvalidArgumentErrorBuilder()
-             << "Cannot call non-function expression type: "
-             << type_spec->full_name()
-             << context.ToErrorInfo("In function call");
+             << "Cannot call non-function type: " << type_spec->full_name();
     }
     const TypeFunction* fun_type_spec =
         static_cast<const TypeFunction*>(type_spec);
-    ASSIGN_OR_RETURN(
-        function_binding,
-        FunctionBinding::BindType(fun_type_spec, pragma_handler(), arguments),
-        _ << "Binding call arguments to function type: "
-          << type_spec->full_name() << context.ToErrorInfo("In function call"));
+    ASSIGN_OR_RETURN(auto function_binding,
+                     FunctionBinding::BindType(
+                         fun_type_spec, scope_->pragma_handler(), arguments_),
+                     _ << "Binding call arguments to function type: "
+                       << type_spec->full_name());
+    if (!left_expression_ && call_object_) {
+      RET_CHECK(object_name_.has_value());
+      left_expression_ = std::make_unique<Identifier>(
+          scope_, std::move(object_name_).value(), call_object_);
+    }
+    return {std::move(function_binding)};
   }
-  return BuildFunctionApply(
-      std::move(function_binding), std::move(left_expression),
-      std::move(argument_expressions), is_method_call, context);
+
+  // These are given:
+  Scope* const scope_;
+  const pb::FunctionCall& expression_;
+  std::unique_ptr<Expression> left_expression_;
+  const CodeContext& context_;
+  // Where to find the function to call:
+  NameStore* function_name_store_;
+  // The object representing the function call: a Function or a FunctionGroup
+  NamedObject* call_object_ = nullptr;
+  // If this is a type construction call, this points to the constructed type.
+  const TypeSpec* call_type_constructor_ = nullptr;
+  // In case the expression_ names the call object directly, this is how:
+  std::optional<ScopedName> object_name_;
+  // If this is a method call, this points to the object / first argument.
+  Expression* method_source_expression_ = nullptr;
+  // Prepared arguments for the call:
+  std::vector<std::unique_ptr<Expression>> argument_expressions_;
+  std::vector<FunctionCallArgument> arguments_;
+  bool is_method_call_ = false;
+};
+
+absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
+    const pb::FunctionCall& expression,
+    std::unique_ptr<Expression> left_expression, const CodeContext& context) {
+  FunctionCallHelper call_helper(this, expression, std::move(left_expression),
+                                 context);
+  ASSIGN_OR_RETURN(auto call_expression, call_helper.PrepareCall(),
+                   _ << context.ToErrorInfo("In function call"));
+  return {std::move(call_expression)};
 }
 
 absl::StatusOr<const TypeSpec*> FunctionCallArgument::ArgType(

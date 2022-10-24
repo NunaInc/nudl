@@ -112,8 +112,11 @@ TEST(ScopeName, ParseFull) {
   EXPECT_EQ(subname.name(), "foo.bar.extra::baz::qux");
   ASSERT_OK_AND_ASSIGN(subname, name.Subfunction("extra"));
   EXPECT_EQ(subname.name(), "foo.bar::baz::qux::extra");
+  ASSERT_OK_AND_ASSIGN(subname, name.Subname("extra"));
+  EXPECT_EQ(subname.name(), "foo.bar::baz::qux::extra");
   EXPECT_RAISES(name.Submodule("1extra").status(), InvalidArgument);
   EXPECT_RAISES(name.Subfunction("1extra").status(), InvalidArgument);
+  EXPECT_RAISES(name.Subname("1extra").status(), InvalidArgument);
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), name.function_names()),
             name.name());
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), {}), name.module_name());
@@ -146,8 +149,11 @@ TEST(ScopeName, ParseModule) {
   EXPECT_EQ(subname.name(), "foo.bar.baz.extra");
   ASSERT_OK_AND_ASSIGN(subname, name.Subfunction("extra"));
   EXPECT_EQ(subname.name(), "foo.bar.baz::extra");
+  ASSERT_OK_AND_ASSIGN(subname, name.Subname("extra"));
+  EXPECT_EQ(subname.name(), "foo.bar.baz.extra");
   EXPECT_RAISES(name.Submodule("1extra").status(), InvalidArgument);
   EXPECT_RAISES(name.Subfunction("1extra").status(), InvalidArgument);
+  EXPECT_RAISES(name.Subname("1extra").status(), InvalidArgument);
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), name.function_names()),
             name.name());
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), {}), name.module_name());
@@ -171,7 +177,10 @@ TEST(ScopeName, ParseFunction) {
   EXPECT_EQ(subname.name(), "extra::foo::bar::baz");
   ASSERT_OK_AND_ASSIGN(subname, name.Subfunction("extra"));
   EXPECT_EQ(subname.name(), "::foo::bar::baz::extra");
+  ASSERT_OK_AND_ASSIGN(subname, name.Subname("extra"));
+  EXPECT_EQ(subname.name(), "::foo::bar::baz::extra");
   EXPECT_RAISES(name.Submodule("1extra").status(), InvalidArgument);
+  EXPECT_RAISES(name.Subname("1extra").status(), InvalidArgument);
   EXPECT_RAISES(name.Subfunction("1extra").status(), InvalidArgument);
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), name.function_names()),
             name.name());

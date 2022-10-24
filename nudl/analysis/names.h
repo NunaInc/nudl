@@ -77,6 +77,8 @@ class ScopeName {
   // Builds a module that appends on a function.
   // E.g. foo.bar::baz + qux => foo.bar::baz::qux
   absl::StatusOr<ScopeName> Subfunction(absl::string_view name) const;
+  // Appends the name to either module or function
+  absl::StatusOr<ScopeName> Subname(absl::string_view name) const;
 
   // Returns a subscope of this scope name
   ScopeName Subscope(const ScopeName& scope_name) const;
