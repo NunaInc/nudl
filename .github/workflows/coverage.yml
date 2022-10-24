@@ -11,12 +11,14 @@ jobs:
           path: ${{ runner.tool_cache }}/nudl
           key: nudl-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/BUILD.bazel') }}
           restore-keys: nudl-${{ runner.os }}-${{ runner.arch }}
-      - name: Setup Cpp
-        uses: aminya/setup-cpp@v1
-        with:
-          compiler: gcc
+      - name: Install gcc
+        run: sudo apt-get install -y gcc
       - name: Install lcov
         run: sudo apt-get install -y lcov
+      - name: Version checking
+        run: gcc --version
+        run: gcov --version
+        run: lcov --version
       - uses: bazelbuild/setup-bazelisk@v1
       - name: Run coverage
         run: bazel coverage --combined_report=lcov //...
