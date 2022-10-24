@@ -27,3 +27,5 @@ was not able to get meaningful results on oxs.
  * Run coverage: `bazel coverage --combined_report=lcov //...`
  * Build the report `genhtml --output genhtml "$(bazel info output_path)/_coverage/_coverage_report.dat"`
  * Open `genhtml/index.html` for the report
+
+Coverage report: https://nunainc.github.io/nudl/

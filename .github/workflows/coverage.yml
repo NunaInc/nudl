@@ -1,5 +1,5 @@
 name: bazel_coverage
-on: [push, pull_request]
+on: [push]
 jobs:
   bazel-coverage:
     runs-on: ubuntu-latest
@@ -15,7 +15,7 @@ jobs:
         run: sudo apt-get install -y gcc
       - name: Install lcov
         run: sudo apt-get install -y lcov
-      - name: Version checking 
+      - name: Version checking
         run: |
           gcc --version
           gcov --version
