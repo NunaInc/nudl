@@ -48,15 +48,18 @@ void AnalysisTest::CheckCode(absl::string_view test_name,
   infile.read(&proto_text[0], size);
   infile.close();
   EXPECT_THAT(proto, EqualsProto(std::string(proto_text)));
+  // This just exercises the basic converter, don't want to check
+  // pseudocode against anything:
+  ASSERT_OK_AND_ASSIGN(auto pseudocode, BasicConverter().ConvertModule(module));
+  EXPECT_FALSE(pseudocode.empty());
+  EXPECT_FALSE(module->DebugString().empty());
 }
 
 void AnalysisTest::PrepareCode(absl::string_view test_name,
                                absl::string_view module_name,
-                               absl::string_view code) const {
+                               absl::string_view code, bool skip_write) const {
   auto module_result = ImportCode(module_name, code);
-  CHECK_OK(module_result.status()) << "For code:" << std::endl
-                                   << code << std::endl
-                                   << "---" << std::endl;
+  CHECK_OK(module_result.status()) << "For code:\n" << code;
   auto module = std::move(module_result).value();
   auto proto = module->ToProto();
   ASSERT_OK_AND_ASSIGN(auto pseudocode, BasicConverter().ConvertModule(module));
@@ -72,8 +75,10 @@ void AnalysisTest::PrepareCode(absl::string_view test_name,
   const std::string proto_file(
       absl::StrCat(search_path_, "/", test_name, "/", module_name, ".pb"));
   std::cout << "Writing to: " << proto_file << std::endl << "Confirm [Y/n]: ";
-  std::string confirm;
-  std::getline(std::cin, confirm);
+  std::string confirm("N");
+  if (!skip_write) {
+    std::getline(std::cin, confirm);
+  }
   if (confirm.empty() || absl::StartsWith(confirm, "Y") ||
       absl::StartsWith(confirm, "y")) {
     std::ofstream ofile(proto_file, std::ios::out | std::ios::trunc);
@@ -92,12 +97,13 @@ void AnalysisTest::CheckError(absl::string_view module_name,
                               absl::string_view expected_error) const {
   auto module_result = ImportCode(module_name, code);
   ASSERT_FALSE(module_result.ok()) << "For: " << std::endl << code << std::endl;
-  EXPECT_THAT(absl::StrJoin(nudl::analysis::ExtractErrorLines(
-                                module_result.status()),
-                            "\n"),
-              ::testing::HasSubstr(expected_error))
+  EXPECT_THAT(
+      absl::StrJoin(nudl::analysis::ExtractErrorLines(module_result.status()),
+                    "\n"),
+      ::testing::HasSubstr(expected_error))
       << "For: " << std::endl
-      << code << std::endl;
+      << code << std::endl
+      << module_result.status();
 }
 
 }  // namespace analysis

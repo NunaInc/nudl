@@ -241,11 +241,6 @@ std::string WrappedNameStore::DebugNames() const {
 
 absl::StatusOr<NamedObject*> WrappedNameStore::FindName(
     const ScopeName& lookup_scope, const ScopedName& scoped_name) {
-  if (!wrapped_store_) {
-    return status::NotFoundErrorBuilder()
-           << "Cannot find: " << scoped_name.full_name()
-           << " in unbound: " << full_name();
-  }
   ASSIGN_OR_RETURN(auto object,
                    wrapped_store_->FindName(lookup_scope, scoped_name),
                    _ << "Finding in: " << full_name());
@@ -254,30 +249,17 @@ absl::StatusOr<NamedObject*> WrappedNameStore::FindName(
 
 absl::Status WrappedNameStore::AddName(absl::string_view local_name,
                                        NamedObject* object) {
-  if (!wrapped_store_) {
-    return status::UnimplementedErrorBuilder()
-           << "Cannot add name: " << local_name
-           << " to unbound: " << full_name();
-  }
   RETURN_IF_ERROR(wrapped_store_->AddName(local_name, object))
       << "Adding name to: " << full_name();
   return absl::OkStatus();
 }
 
 bool WrappedNameStore::HasName(absl::string_view local_name) const {
-  if (!wrapped_store_) {
-    return false;
-  }
   return wrapped_store_->HasName(local_name);
 }
 
 absl::StatusOr<NamedObject*> WrappedNameStore::GetName(
     absl::string_view local_name) {
-  if (!wrapped_store_) {
-    return status::NotFoundErrorBuilder()
-           << "Cannot find local name: " << local_name
-           << " in unbound: " << full_name();
-  }
   ASSIGN_OR_RETURN(auto object, wrapped_store_->GetName(local_name),
                    _ << "Finding in: " << full_name());
   return object;
@@ -285,11 +267,6 @@ absl::StatusOr<NamedObject*> WrappedNameStore::GetName(
 
 absl::Status WrappedNameStore::AddChildStore(absl::string_view local_name,
                                              NameStore* store) {
-  if (!wrapped_store_) {
-    return status::UnimplementedErrorBuilder()
-           << "Cannot add child store: " << local_name
-           << " to unbound: " << full_name();
-  }
   RETURN_IF_ERROR(wrapped_store_->AddChildStore(local_name, store))
       << "Adding child to: " << full_name();
   return absl::OkStatus();
@@ -297,13 +274,11 @@ absl::Status WrappedNameStore::AddChildStore(absl::string_view local_name,
 
 absl::StatusOr<NameStore*> WrappedNameStore::FindChildStore(
     const ScopeName& lookup_scope) {
-  if (!wrapped_store_) {
-    return status::NotFoundErrorBuilder()
-           << "Cannot find lookup name: " << lookup_scope.name()
-           << " in unbound wrapped store: " << full_name();
-  }
   ASSIGN_OR_RETURN(auto store, wrapped_store_->FindChildStore(lookup_scope),
                    _ << "Finding child in: " << full_name());
+  if (store == wrapped_store_) {
+    return this;
+  }
   return store;
 }
 

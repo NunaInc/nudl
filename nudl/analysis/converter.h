@@ -33,7 +33,8 @@ class Converter {
  protected:
   virtual absl::StatusOr<std::unique_ptr<ConvertState>> BeginModule(
       Module* module) const = 0;
-  virtual absl::Status ProcessModule(Module* module, ConvertState* state) const;
+  virtual absl::Status ProcessModule(Module* module,
+                                     ConvertState* state) const = 0;
   virtual absl::StatusOr<std::string> FinishModule(
       Module* module, std::unique_ptr<ConvertState> state) const = 0;
 

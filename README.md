@@ -18,3 +18,12 @@ as a test step (follow examples)
 https://formulae.brew.sh/formula/clang-format
   - Note: use `// clang-format off` and `// clang-format on`
   to disable `clang-format` in a section of a file.
+
+## Code coverage:
+This runs ok on linux (ie. start a docker container or such),
+was not able to get meaningful results on oxs.
+
+ * Install tool: `brew install lcov` / `apt-get install lcov`
+ * Run coverage: `bazel coverage --combined_report=lcov //...`
+ * Build the report `genhtml --output genhtml "$(bazel info output_path)/_coverage/_coverage_report.dat"`
+ * Open `genhtml/index.html` for the report

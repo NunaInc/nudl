@@ -3,6 +3,7 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "absl/base/attributes.h"
 #include "absl/status/status.h"
@@ -17,6 +18,8 @@ absl::Status Annotate(const absl::Status& status, absl::string_view message);
 
 absl::Status& UpdateOrAnnotate(absl::Status& status,
                                const absl::Status& annotation);
+absl::Status JoinStatus(const std::vector<absl::Status>& statuses);
+size_t GetNumPayloads(const absl::Status& status);
 
 class StatusWriter {
  public:
@@ -37,7 +40,6 @@ class StatusWriter {
  protected:
   mutable absl::Status status_;
   std::string message_;
-  size_t payload_id_ = 0;
 };
 // Logs the status built so far to the error log.
 class LogToError {};

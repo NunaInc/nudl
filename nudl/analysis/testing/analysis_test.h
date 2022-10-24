@@ -73,7 +73,7 @@ class AnalysisTest : public ::testing::Test {
   // Development mode: used to visually check the conversion
   // of a piece of code and preparing a proto file for it.
   void PrepareCode(absl::string_view test_name, absl::string_view module_name,
-                   absl::string_view code) const;
+                   absl::string_view code, bool skip_write = false) const;
 
   // Checks that the provided code raises an error.
   void CheckError(absl::string_view module_name, absl::string_view code,

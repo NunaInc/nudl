@@ -77,6 +77,8 @@ class TypeSpec : public NamedObject {
   std::shared_ptr<NameStore> type_member_store_ptr() const;
   // Local name of the type in the store.
   const std::string& local_name() const;
+  // The scope in which the type is defined:
+  virtual const ScopeName& scope_name() const = 0;
 
   // Converts this type to a proto representation.
   virtual pb::ExpressionTypeSpec ToProto() const;
@@ -130,10 +132,12 @@ class TypeSpec : public NamedObject {
   // Sets the name of a type - this can be done only onece.
   absl::Status set_name(absl::string_view name);
 
- protected:
+  // Utility for bindings conversion - public for testing.
   absl::StatusOr<std::vector<const TypeSpec*>> TypesFromBindings(
       const std::vector<TypeBindingArg>& bindings, bool check_params = true,
       absl::optional<size_t> minimum_parameters = {}) const;
+
+ protected:
   // Checks parameters of this and type_spec for ancestry.
   bool HasAncestorParameters(const TypeSpec& type_spec) const;
   // Checks parameters of this and type_spec for convertible.
@@ -180,8 +184,6 @@ class LocalNamesRebinder {
   absl::StatusOr<const TypeSpec*> RebuildFunctionWithComponents(
       const TypeSpec* src_param,
       const std::vector<const TypeSpec*>& type_specs);
-
-  const absl::flat_hash_map<std::string, const TypeSpec*>& local_types() const;
 
   std::vector<std::unique_ptr<TypeSpec>> allocated_types;
 

@@ -11,6 +11,7 @@ literal
     | LITERAL_HEXADECIMAL
     | LITERAL_UNSIGNED_HEXADECIMAL
     | LITERAL_FLOAT
+    | LITERAL_DOUBLE
     | LITERAL_STRING
     | LITERAL_BYTES
     | LITERAL_TIMERANGE+
@@ -144,6 +145,12 @@ parenthesisedExpression
     : LPAREN computeExpression RPAREN
     ;
 
+// Note: in the way the grammar is built, at this point
+// we never hit functionCall unless using a template type
+// construct, instead we reach it through
+// composedIdentifier => postfixExpression => postfixValue ( args )
+// May want to make the type a regular primary expression and
+// just remove functionCall.
 primaryExpression
     : parenthesisedExpression
     | composedIdentifier
@@ -267,7 +274,7 @@ blockBody
     ;
 
 pragmaExpression
-    : KW_PRAGMA IDENTIFIER computeExpression?
+    : KW_PRAGMA IDENTIFIER (LBRACE computeExpression RBRACE)?
     ;
 
 blockElement

@@ -73,6 +73,44 @@ absl::string_view TypeUtils::BaseTypeName(pb::TypeId type_id) {
   return it->second;
 }
 
+bool TypeUtils::IsUIntType(pb::TypeId type_id) {
+  return (type_id == pb::TypeId::UINT_ID || type_id == pb::TypeId::UINT8_ID ||
+          type_id == pb::TypeId::UINT16_ID || type_id == pb::TypeId::UINT32_ID);
+}
+
+bool TypeUtils::IsIntType(pb::TypeId type_id) {
+  return (type_id == pb::TypeId::INT_ID || type_id == pb::TypeId::INT8_ID ||
+          type_id == pb::TypeId::INT16_ID || type_id == pb::TypeId::INT32_ID);
+}
+
+bool TypeUtils::IsFloatType(pb::TypeId type_id) {
+  return (type_id == pb::TypeId::FLOAT32_ID ||
+          type_id == pb::TypeId::FLOAT64_ID);
+}
+
+std::unique_ptr<TypeSpec> TypeUtils::IntIndexType(TypeStore* type_store) {
+  auto index_type =
+      TypeUtils::EnsureType(type_store, kTypeNameUnion)
+          ->Bind(
+              {TypeBindingArg{TypeUtils::EnsureType(type_store, kTypeNameInt)},
+               TypeBindingArg{
+                   TypeUtils::EnsureType(type_store, kTypeNameUInt)}});
+  CHECK_OK(index_type.status());
+  return std::move(index_type).value();
+}
+
+std::unique_ptr<TypeSpec> TypeUtils::NullableType(TypeStore* type_store,
+                                                  const TypeSpec* type_spec) {
+  if (type_spec->type_id() == pb::TypeId::NULLABLE_ID ||
+      type_spec->type_id() == pb::TypeId::NULL_ID) {
+    return type_spec->Clone();
+  }
+  auto nullable_type = TypeUtils::EnsureType(type_store, kTypeNameNullable)
+                           ->Bind({TypeBindingArg{type_spec}});
+  CHECK_OK(nullable_type.status());
+  return std::move(nullable_type).value();
+}
+
 std::vector<const TypeSpec*> TypeUtils::DedupTypes(
     absl::Span<const TypeSpec*> parameters) {
   std::vector<const TypeSpec*> results;
@@ -228,6 +266,17 @@ std::unique_ptr<TypeSpec> StoredTypeSpec::Clone() const {
 
 const TypeSpec* StoredTypeSpec::type_spec() const { return object_type_spec_; }
 
+const ScopeName& StoredTypeSpec::scope_name() const {
+  if (scope_name_.has_value()) {
+    return scope_name_.value();
+  }
+  return type_store_->scope_name();
+}
+
+void StoredTypeSpec::set_scope_name(ScopeName scope_name) {
+  scope_name_ = std::move(scope_name);
+}
+
 TypeType::TypeType(TypeStore* type_store,
                    std::shared_ptr<NameStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::TYPE_ID, kTypeNameType,
@@ -280,6 +329,9 @@ TypeInt::TypeInt(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeInt::Clone() const {
   return CloneType<TypeInt>();
 }
+bool TypeInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsIntType(type_spec.type_id());
+}
 
 TypeInt8::TypeInt8(TypeStore* type_store,
                    std::shared_ptr<NameStore> type_member_store)
@@ -288,6 +340,9 @@ TypeInt8::TypeInt8(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
 std::unique_ptr<TypeSpec> TypeInt8::Clone() const {
   return CloneType<TypeInt8>();
+}
+bool TypeInt8::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsIntType(type_spec.type_id());
 }
 
 TypeInt16::TypeInt16(TypeStore* type_store,
@@ -298,6 +353,9 @@ TypeInt16::TypeInt16(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeInt16::Clone() const {
   return CloneType<TypeInt16>();
 }
+bool TypeInt16::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsIntType(type_spec.type_id());
+}
 
 TypeInt32::TypeInt32(TypeStore* type_store,
                      std::shared_ptr<NameStore> type_member_store)
@@ -306,6 +364,9 @@ TypeInt32::TypeInt32(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
 std::unique_ptr<TypeSpec> TypeInt32::Clone() const {
   return CloneType<TypeInt32>();
+}
+bool TypeInt32::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsIntType(type_spec.type_id());
 }
 
 TypeUInt::TypeUInt(TypeStore* type_store,
@@ -316,6 +377,9 @@ TypeUInt::TypeUInt(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeUInt::Clone() const {
   return CloneType<TypeUInt>();
 }
+bool TypeUInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsUIntType(type_spec.type_id());
+}
 
 TypeUInt8::TypeUInt8(TypeStore* type_store,
                      std::shared_ptr<NameStore> type_member_store)
@@ -324,6 +388,9 @@ TypeUInt8::TypeUInt8(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameUInt)) {}
 std::unique_ptr<TypeSpec> TypeUInt8::Clone() const {
   return CloneType<TypeUInt8>();
+}
+bool TypeUInt8::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsUIntType(type_spec.type_id());
 }
 
 TypeUInt16::TypeUInt16(TypeStore* type_store,
@@ -334,6 +401,9 @@ TypeUInt16::TypeUInt16(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeUInt16::Clone() const {
   return CloneType<TypeUInt16>();
 }
+bool TypeUInt16::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsUIntType(type_spec.type_id());
+}
 
 TypeUInt32::TypeUInt32(TypeStore* type_store,
                        std::shared_ptr<NameStore> type_member_store)
@@ -342,6 +412,9 @@ TypeUInt32::TypeUInt32(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameUInt)) {}
 std::unique_ptr<TypeSpec> TypeUInt32::Clone() const {
   return CloneType<TypeUInt32>();
+}
+bool TypeUInt32::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return TypeUtils::IsUIntType(type_spec.type_id());
 }
 
 TypeFloat64::TypeFloat64(TypeStore* type_store,
@@ -352,6 +425,11 @@ TypeFloat64::TypeFloat64(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeFloat64::Clone() const {
   return CloneType<TypeFloat64>();
 }
+bool TypeFloat64::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return (TypeUtils::IsFloatType(type_spec.type_id()) ||
+          TypeUtils::IsIntType(type_spec.type_id()) ||
+          TypeUtils::IsUIntType(type_spec.type_id()));
+}
 
 TypeFloat32::TypeFloat32(TypeStore* type_store,
                          std::shared_ptr<NameStore> type_member_store)
@@ -360,6 +438,11 @@ TypeFloat32::TypeFloat32(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameFloat64)) {}
 std::unique_ptr<TypeSpec> TypeFloat32::Clone() const {
   return CloneType<TypeFloat32>();
+}
+bool TypeFloat32::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  return (TypeUtils::IsFloatType(type_spec.type_id()) ||
+          TypeUtils::IsIntType(type_spec.type_id()) ||
+          TypeUtils::IsUIntType(type_spec.type_id()));
 }
 
 TypeString::TypeString(TypeStore* type_store,
@@ -430,7 +513,10 @@ TypeDecimal::TypeDecimal(TypeStore* type_store,
                          int precision, int scale)
     : StoredTypeSpec(type_store, pb::TypeId::DECIMAL_ID, kTypeNameDecimal,
                      std::move(type_member_store), precision > 0 && scale >= 0,
-                     TypeUtils::EnsureType(type_store, kTypeNameNumeric)) {}
+                     TypeUtils::EnsureType(type_store, kTypeNameNumeric)),
+      precision_(precision),
+      scale_(scale) {}
+
 std::unique_ptr<TypeSpec> TypeDecimal::Clone() const {
   return std::make_unique<TypeDecimal>(type_store_, type_member_store_,
                                        precision_, scale_);
@@ -503,30 +589,21 @@ TypeArray::TypeArray(TypeStore* type_store,
     : StoredTypeSpec(type_store, pb::TypeId::ARRAY_ID, kTypeNameArray,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameIterable),
-                     {TypeUtils::EnsureType(type_store, kTypeNameAny, param)}),
-      // TODO(catalin): probably should convert to UInt when we have
-      // auto-conversion in place.
-      int_type_(TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
+                     {TypeUtils::EnsureType(type_store, kTypeNameAny, param)}) {
+}
 
-const TypeSpec* TypeArray::IndexType() const { return int_type_; }
+const TypeSpec* TypeArray::IndexType() const {
+  if (!index_type_) {
+    index_type_ = TypeUtils::IntIndexType(type_store_);
+  }
+  return index_type_.get();
+}
 
 const TypeSpec* TypeArray::IndexedType() const {
-  if (indexed_type_) {
-    return indexed_type_.get();
+  if (!indexed_type_) {
+    indexed_type_ = TypeUtils::NullableType(type_store_, parameters_.front());
   }
-  if (parameters_.front()->type_id() != pb::TypeId::NULLABLE_ID) {
-    const TypeSpec* nullable_type =
-        TypeUtils::EnsureType(type_store_, kTypeNameNullable);
-    auto bind_result =
-        nullable_type->Bind({TypeBindingArg(parameters_.front())});
-    CHECK_OK(bind_result.status());
-    // TODO(catalin): should be able to do this in the constructor, but
-    //   for whatever reson I get parameters_.front as Any there..
-    const_cast<TypeArray*>(this)->indexed_type_ =
-        std::move(bind_result).value();
-  }
-  CHECK(!parameters_.empty());
-  return parameters_.front();
+  return indexed_type_.get();
 }
 
 std::unique_ptr<TypeSpec> TypeArray::Clone() const {
@@ -596,6 +673,7 @@ absl::StatusOr<TypeStruct*> TypeStruct::AddTypeStruct(
       struct_type->struct_member_store()->AddFields(struct_type->fields()))
       << "Adding fields to: " << struct_type->full_name();
   TypeStruct* ret_type = struct_type.get();
+  struct_type->set_scope_name(scope_name);
   RETURN_IF_ERROR(
       type_store->DeclareType(scope_name, name, std::move(struct_type))
           .status());
@@ -711,21 +789,24 @@ StructMemberStore::~StructMemberStore() {
 
 absl::Status StructMemberStore::AddFields(
     const std::vector<TypeStruct::Field>& fields) {
-  CHECK(fields_.empty())
+  RET_CHECK(fields_.empty())
       << "Should not add twice the fields to a struct member store";
-  fields_ = fields;
   CHECK_NOTNULL(type_spec_);
+  fields_.reserve(fields.size());
+  field_vars_.reserve(fields.size());
   for (const auto& field : fields) {
     if (!NameUtil::IsValidName(field.name)) {
       return status::InvalidArgumentErrorBuilder()
              << "Invalid field name: " << field.name
              << " in type: " << type_spec_->full_name();
     }
-    field_vars_.emplace_back(std::make_unique<Field>(
-        field.name, CHECK_NOTNULL(field.type_spec), type_spec_));
-    RETURN_IF_ERROR(AddChildStore(field.name, field_vars_.back().get()))
+    auto field_var = std::make_unique<Field>(
+        field.name, CHECK_NOTNULL(field.type_spec), type_spec_, this);
+    RETURN_IF_ERROR(AddChildStore(field.name, field_var.get()))
         << "Adding field: " << field.name
         << " to type: " << type_spec_->full_name();
+    field_vars_.emplace_back(std::move(field_var));
+    fields_.emplace_back(field);
   }
   return absl::OkStatus();
 }
@@ -757,14 +838,6 @@ TypeMap::TypeMap(TypeStore* type_store,
                TypeStruct::Field{"value", parameters_.back()}}))) {
   CHECK_OK(
       result_type_->struct_member_store()->AddFields(result_type_->fields()));
-  if (parameters_.back()->type_id() != pb::TypeId::NULLABLE_ID) {
-    const TypeSpec* nullable_type =
-        TypeUtils::EnsureType(type_store, kTypeNameNullable);
-    auto bind_result =
-        nullable_type->Bind({TypeBindingArg(parameters_.back())});
-    CHECK_OK(bind_result.status());
-    indexed_type_ = std::move(bind_result).value();
-  }
 }
 
 const TypeSpec* TypeMap::IndexType() const {
@@ -774,10 +847,10 @@ const TypeSpec* TypeMap::IndexType() const {
 
 const TypeSpec* TypeMap::IndexedType() const {
   CHECK_EQ(parameters_.size(), 2ul);
-  if (indexed_type_) {
-    return indexed_type_.get();
+  if (!indexed_type_) {
+    indexed_type_ = TypeUtils::NullableType(type_store_, parameters_.back());
   }
-  return parameters_.back();
+  return indexed_type_.get();
 }
 
 std::unique_ptr<TypeSpec> TypeMap::Clone() const {
@@ -803,10 +876,14 @@ TypeTuple::TypeTuple(TypeStore* type_store,
     : StoredTypeSpec(type_store, pb::TypeId::TUPLE_ID, kTypeNameTuple,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameAny),
-                     std::move(parameters)),
-      int_type_(TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
+                     std::move(parameters)) {}
 
-const TypeSpec* TypeTuple::IndexType() const { return int_type_; }
+const TypeSpec* TypeTuple::IndexType() const {
+  if (!index_type_) {
+    index_type_ = TypeUtils::IntIndexType(type_store_);
+  }
+  return index_type_.get();
+}
 
 std::unique_ptr<TypeSpec> TypeTuple::Clone() const {
   return std::make_unique<TypeTuple>(type_store_, type_member_store_,
@@ -1021,7 +1098,8 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeFunction::BindWithComponents(
 
 std::unique_ptr<TypeSpec> TypeFunction::Clone() const {
   return std::make_unique<TypeFunction>(type_store_, type_member_store_, name_,
-                                        arguments_, result_);
+                                        arguments_, result_,
+                                        first_default_value_index_);
 }
 
 absl::optional<size_t> TypeFunction::first_default_value_index() const {
@@ -1274,6 +1352,11 @@ const TypeUnknown* TypeUnknown::Instance() {
 }
 
 const TypeSpec* TypeUnknown::type_spec() const { return this; }
+
+const ScopeName& TypeUnknown::scope_name() const {
+  static const auto kEmptyScope = new ScopeName();
+  return *kEmptyScope;
+}
 
 }  // namespace analysis
 }  // namespace nudl

@@ -27,6 +27,7 @@ class VarBase : public WrappedNameStore {
   const TypeSpec* type_spec() const override;
   absl::optional<NameStore*> parent_store() const override;
   const std::vector<Expression*> assignments() const;
+  const std::vector<const TypeSpec*> assign_types() const;
   const TypeSpec* original_type() const;
 
   // Marks the assignment of a variable / field with an expression
@@ -52,7 +53,7 @@ class VarBase : public WrappedNameStore {
   VarBase* GetRootVar();
 
   // Clones this var (mostly fields).
-  virtual std::unique_ptr<NamedObject> Clone(
+  virtual std::unique_ptr<VarBase> Clone(
       absl::optional<NameStore*> parent_store) const = 0;
 
   // If provided named object is a variable kind (var, field, parma):
@@ -65,6 +66,7 @@ class VarBase : public WrappedNameStore {
   absl::flat_hash_map<std::string, NamedObject*> local_fields_map_;
   std::vector<std::unique_ptr<NamedObject>> local_fields_;
   std::vector<Expression*> assignments_;
+  std::vector<const TypeSpec*> assign_types_;
 };
 
 // A field in structure based VarBase.
@@ -76,7 +78,7 @@ class Field : public VarBase {
 
   pb::ObjectKind kind() const override;
   std::string full_name() const override;
-  std::unique_ptr<NamedObject> Clone(
+  std::unique_ptr<VarBase> Clone(
       absl::optional<NameStore*> parent_store) const override;
 
  private:
@@ -89,7 +91,7 @@ class Var : public VarBase {
   Var(absl::string_view name, const TypeSpec* type_spec,
       absl::optional<NameStore*> parent_store);
   pb::ObjectKind kind() const override;
-  std::unique_ptr<NamedObject> Clone(
+  std::unique_ptr<VarBase> Clone(
       absl::optional<NameStore*> parent_store) const override;
 };
 
@@ -99,7 +101,7 @@ class Parameter : public Var {
   Parameter(absl::string_view name, const TypeSpec* type_spec,
             absl::optional<NameStore*> parent_store);
   pb::ObjectKind kind() const override;
-  std::unique_ptr<NamedObject> Clone(
+  std::unique_ptr<VarBase> Clone(
       absl::optional<NameStore*> parent_store) const override;
 };
 
@@ -112,7 +114,7 @@ class Argument : public Var {
   Argument(absl::string_view name, const TypeSpec* type_spec,
            absl::optional<NameStore*> parent_store);
   pb::ObjectKind kind() const override;
-  std::unique_ptr<NamedObject> Clone(
+  std::unique_ptr<VarBase> Clone(
       absl::optional<NameStore*> parent_store) const override;
 };
 

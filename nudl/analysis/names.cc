@@ -56,10 +56,7 @@ absl::StatusOr<ScopeName> ScopeName::Parse(absl::string_view name) {
   }
   std::vector<std::string> pieces =
       absl::StrSplit(name, absl::MaxSplits("::", 1));
-  if (pieces.empty()) {
-    return status::InvalidArgumentErrorBuilder()
-           << "Invalid scope name: `" << name << "`";
-  }
+  RET_CHECK(!pieces.empty());
   std::vector<std::string> module_names, function_names;
   if (!pieces[0].empty()) {
     for (absl::string_view crt_name : absl::StrSplit(pieces[0], '.')) {
@@ -151,6 +148,25 @@ absl::StatusOr<ScopeName> ScopeName::Subfunction(absl::string_view name) const {
   std::string full_name(Recompose(module_names_, function_names));
   return ScopeName(std::move(full_name), module_names_,
                    std::move(function_names));
+}
+
+absl::StatusOr<ScopeName> ScopeName::Subname(absl::string_view name) const {
+  if (!NameUtil::IsValidName(name)) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Invalid name: `" << name << "` to append to: `" << name_ << "`";
+  }
+  if (function_names_.empty()) {
+    std::vector<std::string> module_names(module_names_);
+    module_names.emplace_back(std::string(name));
+    std::string full_name(Recompose(module_names, {}));
+    return ScopeName(std::move(full_name), std::move(module_names), {});
+  } else {
+    std::vector<std::string> function_names(function_names_);
+    function_names.emplace_back(std::string(name));
+    std::string full_name(Recompose(module_names_, function_names));
+    return ScopeName(std::move(full_name), module_names_,
+                     std::move(function_names));
+  }
 }
 
 std::string ScopeName::Recompose(

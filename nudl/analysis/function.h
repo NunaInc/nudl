@@ -51,7 +51,9 @@ struct FunctionBinding {
 
   // If this binding is less specific than the provided binding.
   bool IsAncestorOf(const FunctionBinding& binding) const;
+  bool IsEqual(const FunctionBinding& binding) const;
   std::string FunctionNameForLog() const;
+  std::string full_name() const;
 
  private:
   FunctionBinding(const TypeFunction* fun_type, const PragmaHandler* pragmas);
@@ -90,7 +92,7 @@ class FunctionGroup : public Scope {
   const TypeSpec* type_spec() const override;
   const std::vector<Function*> functions() const;
 
-  absl::Status AddFunction(std::unique_ptr<Function> fun);
+  absl::Status AddFunction(Function* fun);
   absl::StatusOr<ScopeName> GetNextFunctionName();
 
   absl::StatusOr<std::unique_ptr<FunctionBinding>> FindSignature(
@@ -105,6 +107,10 @@ class FunctionGroup : public Scope {
   static bool IsFunctionGroup(const NamedObject& object);
 
  private:
+  absl::StatusOr<std::vector<std::unique_ptr<FunctionBinding>>> TryBindFunction(
+      Function* function, const std::vector<FunctionCallArgument>& arguments,
+      std::vector<std::unique_ptr<FunctionBinding>>* existing) const;
+
   std::vector<Function*> functions_;
   std::vector<std::unique_ptr<TypeSpec>> types_;
 };
@@ -187,18 +193,24 @@ class Function : public Scope {
 
   // Registers a result generating expression with the function.
   absl::Status RegisterResultExpression(pb::FunctionResultKind result_kind,
-                                        Expression* expression);
+                                        Expression* expression,
+                                        bool accept_unknown_type);
 
   pb::FunctionDefinitionSpec ToProto() const;
   std::string DebugString() const override;
+
+  // Next functions are public for testing only:
+
+  absl::StatusOr<VarBase*> ValidateAssignment(
+      const ScopedName& name, NamedObject* object) const override;
+
+  // Adds this function as a member method of provided type.
+  absl::Status AddAsMethod(const TypeSpec* member_type);
 
  protected:
   Function(std::shared_ptr<ScopeName> scope_name,
            absl::string_view function_name, pb::ObjectKind object_kind,
            Scope* parent, Scope* definition_scope);
-
-  absl::StatusOr<VarBase*> ValidateAssignment(
-      const ScopedName& name, NamedObject* object) const override;
 
   // Next functions are used during initialization.
 

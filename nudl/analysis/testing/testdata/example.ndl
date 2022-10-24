@@ -50,3 +50,11 @@ def FilterName(names: Array<String>, extra: String) => {
   filtered = names.filter((name, arg=extra) => { len(name) > len(arg) });
   return not filtered.empty();
 }
+
+import submodule
+
+z = submodule.area(10)
+
+import submodule.compute
+
+z2 = submodule.compute.sqare_circle_area(10)

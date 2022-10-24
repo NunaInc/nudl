@@ -48,14 +48,12 @@ absl::StatusOr<std::unique_ptr<Expression>> PragmaHandler::HandlePragma(
     if (!child.has_value()) {
       return status::InvalidArgumentErrorBuilder()
              << "Pragma " << expression.name()
-             << " requires an expression "
-                "to be specified as argument.";
+             << " requires an expression to be specified as argument.";
     }
   } else if (child.has_value()) {
     return status::InvalidArgumentErrorBuilder()
            << "Pragma " << expression.name()
-           << " is either unknown, or does "
-              "not requires an expression";
+           << " is either unknown, or does not require an expression";
   }
   if (expression.name() == kPragmaLogBindingsOn) {
     absl::SetFlag(&FLAGS_analyze_log_bindings, true);

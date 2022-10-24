@@ -75,12 +75,17 @@ class Scope : public BaseNameStore {
   std::shared_ptr<ScopeName> scope_name_ptr() const;
   // Expressions defined within this scope.
   const std::vector<std::unique_ptr<Expression>>& expressions() const;
+  // Adds an expression into the scope - mainly for testing.
+  void add_expression(std::unique_ptr<Expression> expression);
 
   // The type of name object we are: kScope
   pb::ObjectKind kind() const override;
 
   // We add a little more details here:
   std::string full_name() const override;
+
+  // Normally returning the type of last expression.
+  const TypeSpec* type_spec() const override;
 
   // This returns the parent_ scope.
   absl::optional<NameStore*> parent_store() const override;
@@ -92,6 +97,10 @@ class Scope : public BaseNameStore {
   // Adds a child scope to this one. We expect our scope name to
   // be a prefix in the provided scope_name.
   absl::Status AddSubScope(std::unique_ptr<Scope> scope);
+
+  // Creates and adds a new local scope with a name rooted on
+  // provided local_name.
+  absl::StatusOr<Scope*> AddNewLocalScope(absl::string_view local_name);
 
   // Adds a variable based object defined in this scope.
   absl::Status AddDefinedVar(std::unique_ptr<VarBase> var_base);
@@ -111,7 +120,6 @@ class Scope : public BaseNameStore {
 
   // Builds an expression object from the provided proto.
   absl::StatusOr<std::unique_ptr<Expression>> BuildExpression(
-      // TODO(catalin): may need more args here.
       const pb::Expression& expression);
 
   // Builds all expressions from the provided expression block, and
@@ -163,7 +171,7 @@ class Scope : public BaseNameStore {
   absl::StatusOr<std::unique_ptr<Expression>> BuildIdentifier(
       const pb::Identifier& element, const CodeContext& context);
   absl::StatusOr<std::unique_ptr<Expression>> BuildFunctionResult(
-      const pb::Expression* result_expression,
+      absl::optional<const pb::Expression*> result_expression,
       pb::FunctionResultKind result_kind, const CodeContext& context);
 
   absl::StatusOr<std::unique_ptr<Expression>> BuildOperator(
@@ -184,7 +192,7 @@ class Scope : public BaseNameStore {
       const pb::ArrayDefinition& array_def, const CodeContext& context);
   absl::StatusOr<std::unique_ptr<Expression>> BuildMapDefinition(
       const pb::MapDefinition& map_def, const CodeContext& context);
-  absl::StatusOr<std::unique_ptr<Expression>> BuildIfEspression(
+  absl::StatusOr<std::unique_ptr<Expression>> BuildIfExpression(
       const pb::IfExpression& if_expr, const CodeContext& context);
   absl::StatusOr<std::unique_ptr<Expression>> BuildIndexExpression(
       const pb::IndexExpression& expression, const CodeContext& context);
@@ -201,6 +209,7 @@ class Scope : public BaseNameStore {
       std::unique_ptr<Expression> left_expression,
       std::vector<std::unique_ptr<Expression>> arguments, bool is_method_call,
       const CodeContext& context);
+  friend class FunctionCallHelper;
 
   std::shared_ptr<ScopeName> const scope_name_;
   Scope* const parent_;

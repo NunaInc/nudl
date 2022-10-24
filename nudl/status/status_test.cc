@@ -78,6 +78,19 @@ TEST(Status, Annotate) {
     EXPECT_EQ(annotated.ToString(), "NOT_FOUND: A; B [Z='X_Z']");
     EXPECT_EQ(status.ToString(), "NOT_FOUND: A; B [Z='X_Z']");
   }
+  {
+    std::vector<absl::Status> statuses;
+    statuses.emplace_back(absl::NotFoundError("A"));
+    absl::Status annotation = absl::InternalError("B");
+    annotation.SetPayload("Z", absl::Cord("X_Z"));
+    statuses.emplace_back(std::move(annotation));
+    absl::Status annotated = JoinStatus(statuses);
+    EXPECT_EQ(annotated.ToString(), "NOT_FOUND: A; B [Z='X_Z']");
+  }
+  {
+    std::vector<absl::Status> statuses;
+    EXPECT_OK(JoinStatus(statuses));
+  }
 }
 
 }  // namespace status

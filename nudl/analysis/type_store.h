@@ -35,6 +35,9 @@ class TypeStore {
       const ScopeName& scope_name, absl::string_view name,
       std::unique_ptr<TypeSpec> type_spec) = 0;
 
+  // The scope of this type store:
+  virtual const ScopeName& scope_name() const = 0;
+
   // Dumps the type names in the store.
   virtual std::string DebugNames() const = 0;
 };
@@ -54,15 +57,19 @@ class GlobalTypeStore : public TypeStore {
       std::unique_ptr<TypeSpec> type_spec) override;
 
   absl::Status AddScope(std::shared_ptr<ScopeName> scope_name);
+  absl::Status AddAlias(const ScopeName& scope_name,
+                        const ScopeName& alias_name);
   absl::optional<ScopeTypeStore*> FindStore(absl::string_view name) const;
   const TypeStore& base_store() const;
   TypeStore* mutable_base_store();
 
   std::string DebugNames() const override;
+  const ScopeName& scope_name() const override;
 
  protected:
   std::unique_ptr<TypeStore> base_store_;
-  absl::flat_hash_map<std::string, std::unique_ptr<ScopeTypeStore>> scopes_;
+  std::vector<std::unique_ptr<ScopeTypeStore>> scopes_store_;
+  absl::flat_hash_map<std::string, ScopeTypeStore*> scopes_;
 };
 
 class ScopeTypeStore : public TypeStore {
@@ -78,6 +85,7 @@ class ScopeTypeStore : public TypeStore {
       const ScopeName& scope_name, absl::string_view name,
       std::unique_ptr<TypeSpec> type_spec) override;
   bool HasType(absl::string_view type_name) const;
+  const ScopeName& scope_name() const override;
 
   std::string DebugNames() const override;
 

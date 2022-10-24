@@ -12,6 +12,14 @@ namespace status {
 namespace internal {
 inline absl::Status AnyToStatus(const absl::Status& st) { return st; }
 inline absl::Status AnyToStatus(absl::Status&& st) { return std::move(st); }
+template <typename T>
+absl::Status AnyToStatus(const absl::StatusOr<T>& st) {
+  return st.status();
+}
+template <typename T>
+absl::Status AnyToStatus(absl::StatusOr<T>&& st) {
+  return std::move(st).status();
+}
 }  // namespace internal
 }  // namespace status
 }  // namespace nudl

@@ -4,6 +4,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "nudl/status/testing.h"
+#include "nudl/testing/protobuf_matchers.h"
 
 namespace nudl {
 namespace analysis {
@@ -111,8 +112,11 @@ TEST(ScopeName, ParseFull) {
   EXPECT_EQ(subname.name(), "foo.bar.extra::baz::qux");
   ASSERT_OK_AND_ASSIGN(subname, name.Subfunction("extra"));
   EXPECT_EQ(subname.name(), "foo.bar::baz::qux::extra");
+  ASSERT_OK_AND_ASSIGN(subname, name.Subname("extra"));
+  EXPECT_EQ(subname.name(), "foo.bar::baz::qux::extra");
   EXPECT_RAISES(name.Submodule("1extra").status(), InvalidArgument);
   EXPECT_RAISES(name.Subfunction("1extra").status(), InvalidArgument);
+  EXPECT_RAISES(name.Subname("1extra").status(), InvalidArgument);
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), name.function_names()),
             name.name());
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), {}), name.module_name());
@@ -145,8 +149,11 @@ TEST(ScopeName, ParseModule) {
   EXPECT_EQ(subname.name(), "foo.bar.baz.extra");
   ASSERT_OK_AND_ASSIGN(subname, name.Subfunction("extra"));
   EXPECT_EQ(subname.name(), "foo.bar.baz::extra");
+  ASSERT_OK_AND_ASSIGN(subname, name.Subname("extra"));
+  EXPECT_EQ(subname.name(), "foo.bar.baz.extra");
   EXPECT_RAISES(name.Submodule("1extra").status(), InvalidArgument);
   EXPECT_RAISES(name.Subfunction("1extra").status(), InvalidArgument);
+  EXPECT_RAISES(name.Subname("1extra").status(), InvalidArgument);
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), name.function_names()),
             name.name());
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), {}), name.module_name());
@@ -170,7 +177,10 @@ TEST(ScopeName, ParseFunction) {
   EXPECT_EQ(subname.name(), "extra::foo::bar::baz");
   ASSERT_OK_AND_ASSIGN(subname, name.Subfunction("extra"));
   EXPECT_EQ(subname.name(), "::foo::bar::baz::extra");
+  ASSERT_OK_AND_ASSIGN(subname, name.Subname("extra"));
+  EXPECT_EQ(subname.name(), "::foo::bar::baz::extra");
   EXPECT_RAISES(name.Submodule("1extra").status(), InvalidArgument);
+  EXPECT_RAISES(name.Subname("1extra").status(), InvalidArgument);
   EXPECT_RAISES(name.Subfunction("1extra").status(), InvalidArgument);
   EXPECT_EQ(ScopeName::Recompose(name.module_names(), name.function_names()),
             name.name());
@@ -236,6 +246,42 @@ TEST(ScopeName, IsPrefix) {
           << "For: " << i << " / " << j;
     }
   }
+}
+
+TEST(SopeName, Protos) {
+  ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar::baz::qux"));
+  auto proto = scope_name.ToProto();
+  EXPECT_THAT(proto, EqualsProto(R"pb(
+                module_name: "foo"
+                module_name: "bar"
+                function_name: "baz"
+                function_name: "qux"
+              )pb"));
+  ASSERT_OK_AND_ASSIGN(auto scope_name2, ScopeName::FromProto(proto));
+  EXPECT_EQ(scope_name.name(), scope_name2.name());
+  pb::ScopeName p;
+  ASSERT_OK_AND_ASSIGN(auto s, ScopeName::FromProto(p));
+  EXPECT_TRUE(s.empty());
+  p.add_module_name("x-");
+  EXPECT_RAISES(ScopeName::FromProto(p), InvalidArgument);
+  p.clear_module_name();
+  p.add_function_name("x-");
+  EXPECT_RAISES(ScopeName::FromProto(p), InvalidArgument);
+
+  pb::ScopedName sproto;
+  *sproto.mutable_scope_name() = p;
+  EXPECT_RAISES(ScopedName::FromProto(sproto), InvalidArgument);
+  *sproto.mutable_scope_name() = proto;
+  EXPECT_RAISES(ScopedName::FromProto(sproto), InvalidArgument);
+  sproto.set_name("some");
+  ASSERT_OK_AND_ASSIGN(auto name, ScopedName::FromProto(sproto));
+  EXPECT_EQ(name.name(), "some");
+  EXPECT_EQ(name.full_name(), "foo.bar::baz::qux.some");
+  EXPECT_THAT(name.ToProto(), EqualsProto(sproto));
+
+  ScopedName sempty(
+      std::make_shared<ScopeName>(ScopeName::Parse("foo.bar").value()), "");
+  EXPECT_EQ(sempty.full_name(), "foo.bar");
 }
 
 }  // namespace analysis

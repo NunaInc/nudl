@@ -61,6 +61,8 @@ void Expression::set_named_object(NamedObject* object) {
   named_object_ = CHECK_NOTNULL(object);
 }
 
+bool Expression::ContainsFunctionExit() const { return false; }
+
 pb::ExpressionSpec Expression::ToProto() const {
   pb::ExpressionSpec expression;
   expression.set_kind(expr_kind());
@@ -166,6 +168,9 @@ std::string EmptyStruct::DebugString() const { return "[]"; }
 absl::StatusOr<const TypeSpec*> EmptyStruct::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   if (!type_hint.has_value()) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Empty iterable [] expression needs to have a type "
+              "specification associated";
     ASSIGN_OR_RETURN(auto type_spec, scope_->FindTypeByName("Iterable<Any>"),
                      _ << "Finding standard type" << kBugNotice);
     return type_spec;
@@ -242,32 +247,14 @@ std::string Literal::DebugString() const { return str_value_; }
 
 pb::ExpressionSpec Literal::ToProto() const {
   auto proto = Expression::ToProto();
-  switch (type_spec_.value()->type_id()) {
+  switch (build_type_spec_->type_id()) {
     case pb::TypeId::NULL_ID:
       proto.mutable_literal()->set_null_value(pb::NullType::NULL_VALUE);
       break;
     case pb::TypeId::INT_ID:
       proto.mutable_literal()->set_int_value(std::any_cast<int64_t>(value_));
       break;
-    case pb::TypeId::INT8_ID:
-      proto.mutable_literal()->set_int_value(std::any_cast<int64_t>(value_));
-      break;
-    case pb::TypeId::INT16_ID:
-      proto.mutable_literal()->set_int_value(std::any_cast<int64_t>(value_));
-      break;
-    case pb::TypeId::INT32_ID:
-      proto.mutable_literal()->set_int_value(std::any_cast<int64_t>(value_));
-      break;
     case pb::TypeId::UINT_ID:
-      proto.mutable_literal()->set_uint_value(std::any_cast<uint64_t>(value_));
-      break;
-    case pb::TypeId::UINT8_ID:
-      proto.mutable_literal()->set_uint_value(std::any_cast<uint64_t>(value_));
-      break;
-    case pb::TypeId::UINT16_ID:
-      proto.mutable_literal()->set_uint_value(std::any_cast<uint64_t>(value_));
-      break;
-    case pb::TypeId::UINT32_ID:
       proto.mutable_literal()->set_uint_value(std::any_cast<uint64_t>(value_));
       break;
     case pb::TypeId::STRING_ID:
@@ -380,14 +367,7 @@ pb::ExpressionKind Identifier::expr_kind() const {
 
 absl::StatusOr<const TypeSpec*> Identifier::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
-  const TypeSpec* object_type_spec = object_->type_spec();
-  if (object_type_spec) {
-    return object_type_spec;
-  }
-  if (type_hint.has_value()) {
-    return CHECK_NOTNULL(type_hint.value());
-  }
-  return scope_->FindTypeAny();
+  return CHECK_NOTNULL(object_->type_spec());
 }
 
 const ScopedName& Identifier::scoped_name() const { return scoped_name_; }
@@ -411,12 +391,12 @@ pb::ExpressionSpec Identifier::ToProto() const {
 
 FunctionResultExpression::FunctionResultExpression(
     Scope* scope, Function* parent_function, pb::FunctionResultKind result_kind,
-    std::unique_ptr<Expression> expression)
+    absl::optional<std::unique_ptr<Expression>> expression)
     : Expression(scope),
       result_kind_(result_kind),
       parent_function_(parent_function) {
-  if (expression) {
-    children_.emplace_back(CHECK_NOTNULL(std::move(expression)));
+  if (expression.has_value()) {
+    children_.emplace_back(CHECK_NOTNULL(std::move(expression).value()));
   }
 }
 
@@ -441,6 +421,8 @@ pb::FunctionResultKind FunctionResultExpression::result_kind() const {
 Function* FunctionResultExpression::parent_function() const {
   return parent_function_;
 }
+
+bool FunctionResultExpression::ContainsFunctionExit() const { return true; }
 
 std::string FunctionResultExpression::DebugString() const {
   switch (result_kind_) {
@@ -679,6 +661,19 @@ pb::ExpressionKind IfExpression::expr_kind() const {
   return pb::ExpressionKind::EXPR_IF;
 }
 
+bool IfExpression::ContainsFunctionExit() const {
+  if (expression_.size() == condition_.size()) {
+    // Else not covered - cannot return on all paths.
+    return false;
+  }
+  for (Expression* expression : expression_) {
+    if (!expression->ContainsFunctionExit()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 absl::StatusOr<const TypeSpec*> IfExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   return TypeUnknown::Instance();
@@ -700,6 +695,15 @@ absl::optional<NamedObject*> ExpressionBlock::named_object() const {
     return named_object_;
   }
   return children_.back()->named_object();
+}
+
+bool ExpressionBlock::ContainsFunctionExit() const {
+  for (const auto& child : children_) {
+    if (child->ContainsFunctionExit()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::string ExpressionBlock::DebugString() const {
@@ -734,16 +738,14 @@ std::string IndexExpression::DebugString() const {
 
 absl::StatusOr<const TypeSpec*> IndexExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
-  RET_CHECK(children_.size() == 2)
-      << "Expecting two children in index expression. Got: "
-      << children_.size();
+  RET_CHECK(children_.size() == 2) << "Got: " << children_.size();
   ASSIGN_OR_RETURN(const TypeSpec* object_type, children_.front()->type_spec(),
                    _ << "Obtaining indexed object type");
   const TypeSpec* index_type = object_type->IndexType();
   if (!index_type) {
     return status::InvalidArgumentErrorBuilder()
            << "Objects of type: " << object_type->full_name()
-           << " do not support indexed access";
+           << " does not support indexed access";
   }
   ASSIGN_OR_RETURN(const TypeSpec* index_expr_kind,
                    children_.back()->type_spec(index_type),
@@ -781,7 +783,7 @@ pb::ExpressionKind TupleIndexExpression::expr_kind() const {
 
 absl::StatusOr<const TypeSpec*> TupleIndexExpression::GetIndexedType(
     const TypeSpec* object_type) const {
-  if (index_ > object_type->parameters().size()) {
+  if (index_ >= object_type->parameters().size()) {
     return status::InvalidArgumentErrorBuilder()
            << "Tuples index: " << index_
            << " outside the range of tuple type: " << object_type->full_name();
@@ -825,9 +827,17 @@ absl::StatusOr<const TypeSpec*> LambdaExpression::NegotiateType(
 }
 
 DotAccessExpression::DotAccessExpression(
+    Scope* scope, std::unique_ptr<Expression> left_expression, ScopeName name,
+    NamedObject* object)
+    : Expression(scope), name_(name), object_(object) {
+  children_.emplace_back(std::move(left_expression));
+}
+DotAccessExpression::DotAccessExpression(
     Scope* scope, std::unique_ptr<Expression> left_expression,
     absl::string_view name, NamedObject* object)
-    : Expression(scope), name_(name), object_(object) {
+    : Expression(scope),
+      name_(std::string(name), {std::string(name)}, {}),
+      object_(object) {
   children_.emplace_back(std::move(left_expression));
 }
 
@@ -842,12 +852,12 @@ absl::optional<NamedObject*> DotAccessExpression::named_object() const {
   return object_;
 }
 
-const std::string& DotAccessExpression::name() const { return name_; }
+const ScopeName& DotAccessExpression::name() const { return name_; }
 
 NamedObject* DotAccessExpression::object() const { return object_; }
 
 std::string DotAccessExpression::DebugString() const {
-  return absl::StrCat(children_.front()->DebugString(), ".", name_);
+  return absl::StrCat(children_.front()->DebugString(), ".", name_.name());
 }
 
 absl::StatusOr<const TypeSpec*> DotAccessExpression::NegotiateType(

@@ -34,9 +34,12 @@ class Expression {
   virtual absl::optional<NamedObject*> named_object() const;
   // Switches the name object on rebinding.
   virtual void set_named_object(NamedObject* object);
+  // If the expression performs a function performs a return/yield etc.
+  virtual bool ContainsFunctionExit() const;
 
   // The scope in which the expression was built.
   Scope* scope() const;
+
   // Accesses the underlying expressions.
   const std::vector<std::unique_ptr<Expression>>& children() const;
 
@@ -178,15 +181,17 @@ class Identifier : public Expression {
 // A function that returns from a function: pass, yield, return.
 class FunctionResultExpression : public Expression {
  public:
-  FunctionResultExpression(Scope* scope, Function* parent_function,
-                           pb::FunctionResultKind result_kind,
-                           std::unique_ptr<Expression> expression);
+  FunctionResultExpression(
+      Scope* scope, Function* parent_function,
+      pb::FunctionResultKind result_kind,
+      absl::optional<std::unique_ptr<Expression>> expression);
 
   absl::optional<NamedObject*> named_object() const override;
   pb::ExpressionKind expr_kind() const override;
   pb::FunctionResultKind result_kind() const;
   Function* parent_function() const;
   std::string DebugString() const override;
+  bool ContainsFunctionExit() const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -245,6 +250,8 @@ class IfExpression : public Expression {
   const std::vector<Expression*>& condition() const;
   const std::vector<Expression*>& expression() const;
   std::string DebugString() const override;
+  // This returns true if we return on all paths.
+  bool ContainsFunctionExit() const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -261,6 +268,7 @@ class ExpressionBlock : public Expression {
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
   std::string DebugString() const override;
+  bool ContainsFunctionExit() const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -276,11 +284,12 @@ class IndexExpression : public Expression {
   pb::ExpressionKind expr_kind() const override;
   std::string DebugString() const override;
 
+  virtual absl::StatusOr<const TypeSpec*> GetIndexedType(
+      const TypeSpec* object_type) const;  // public for testing
+
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
       absl::optional<const TypeSpec*> type_hint) override;
-  virtual absl::StatusOr<const TypeSpec*> GetIndexedType(
-      const TypeSpec* object_type) const;
 };
 
 // An expression that returns a static index from a tuple.
@@ -293,10 +302,10 @@ class TupleIndexExpression : public IndexExpression {
 
   pb::ExpressionKind expr_kind() const override;
 
- protected:
   absl::StatusOr<const TypeSpec*> GetIndexedType(
       const TypeSpec* object_type) const override;
 
+ protected:
   const size_t index_;
 };
 
@@ -322,18 +331,20 @@ class LambdaExpression : public Expression {
 class DotAccessExpression : public Expression {
  public:
   DotAccessExpression(Scope* scope, std::unique_ptr<Expression> left_expression,
+                      ScopeName name, NamedObject* object);
+  DotAccessExpression(Scope* scope, std::unique_ptr<Expression> left_expression,
                       absl::string_view name, NamedObject* object);
 
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
-  const std::string& name() const;
+  const ScopeName& name() const;
   NamedObject* object() const;
   std::string DebugString() const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
       absl::optional<const TypeSpec*> type_hint) override;
-  const std::string name_;
+  const ScopeName name_;
   NamedObject* const object_;
 };
 

@@ -22,7 +22,7 @@ bool TreeUtil::HasGrandchildren(const antlr4::tree::ParseTree& pt) {
 }
 
 // If pt is a terminal node, return the corresponding token, else null.
-const antlr4::Token* GetToken(const antlr4::tree::ParseTree& pt) {
+const antlr4::Token* TreeUtil::GetToken(const antlr4::tree::ParseTree& pt) {
   if (antlr4::tree::TerminalNode::is(&pt)) {
     return static_cast<const antlr4::tree::TerminalNode&>(pt).getSymbol();
   }
@@ -139,7 +139,7 @@ std::string ToShortStringImpl(antlr4::tree::ParseTree* pt,
   if (!pt) {
     return "";
   }
-  auto token = GetToken(*pt);
+  auto token = TreeUtil::GetToken(*pt);
   if (token) {
     if (token->getText() == "<EOF>") {
       return "";
@@ -478,16 +478,6 @@ pb::ParseErrors ErrorInfo::ToParseErrors(
     *pb_errors.add_error() = error.ToProto();
   }
   return pb_errors;
-}
-
-std::vector<ErrorInfo> ErrorInfo::FromParseErrors(
-    const pb::ParseErrors& errors) {
-  std::vector<ErrorInfo> infos;
-  infos.reserve(errors.error().size());
-  for (const auto& error : errors.error()) {
-    infos.emplace_back(ErrorInfo::FromProto(error));
-  }
-  return infos;
 }
 
 ErrorInfo ErrorInfo::FromProto(const pb::ErrorInfo& info) {

@@ -1,0 +1,6 @@
+
+import submodule
+
+def square_circle_area(radius: Float64) => {
+  submodule.area(radius) + radius * radius
+}

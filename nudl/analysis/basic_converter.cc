@@ -99,11 +99,18 @@ absl::Status BasicConverter::ProcessModule(Module* module,
 
 std::string BasicConverter::GetTypeString(const TypeSpec* type_spec,
                                           BasicConvertState* state) const {
+  std::string prefix;
+  if (!type_spec->scope_name().empty() &&
+      type_spec->scope_name().name() != state->module()->name()) {
+    // TODO(catalin): treat for alias imports
+    // i.e. type_spec->scope_name().name() refers to original name
+    prefix = absl::StrCat(type_spec->scope_name().name(), ".");
+  }
   if (type_spec->type_id() == pb::TypeId::STRUCT_ID) {
-    return type_spec->name();
+    return absl::StrCat(prefix, type_spec->name());
   }
   // May want something deeper, but for now:
-  return type_spec->full_name();
+  return absl::StrCat(prefix, type_spec->full_name());
 }
 
 absl::Status BasicConverter::ConvertAssignment(const Assignment& expression,
@@ -336,7 +343,7 @@ absl::Status BasicConverter::ConvertDotAccessExpression(
   if (binding.has_value()) {
     bstate->out() << binding.value()->call_name();
   } else {
-    bstate->out() << expression.name();
+    bstate->out() << expression.name().name();
   }
   return absl::OkStatus();
 }
@@ -372,15 +379,17 @@ absl::Status BasicConverter::ConvertFunctionCallExpression(
   bstate->inc_indent();
   bstate->inc_indent();
   for (size_t i = 0; i < expression.function_binding()->names.size(); ++i) {
+    if (!expression.function_binding()->call_expressions[i].has_value()) {
+      continue;
+    }
     if (i > 0) {
       bstate->out() << "," << std::endl;
     }
     bstate->out() << bstate->indent() << expression.function_binding()->names[i]
                   << "=";
-    // TODO(catalin): note - this would convert the default expressions
-    // as well, which may not be valid in this scope
-    // - will want to massage this a bit..
-    RET_CHECK(expression.function_binding()->call_expressions[i].has_value());
+    // TODO(catalin): note - this may convert the default expressions
+    // as well, which may not be valid in this scope - will want to massage
+    // this a bit
     RETURN_IF_ERROR(ConvertExpression(
         *expression.function_binding()->call_expressions[i].value(), state));
   }

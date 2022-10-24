@@ -1,9 +1,14 @@
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "nudl/analysis/testing/analysis_test.h"
+
+ABSL_DECLARE_FLAG(bool, analyze_log_bindings);
 
 namespace nudl {
 namespace analysis {
 
 TEST_F(AnalysisTest, SimpleLambdas) {
+  // absl::SetFlag(&FLAGS_analyze_log_bindings, true);
   // Fully bound types:
   CheckCode("lambda_test", "lambda_simple", R"(
 // Types fully specified:
@@ -55,6 +60,7 @@ def ProcessNames(names: Array<String>, min_len: UInt) => {
 }
 
 TEST_F(AnalysisTest, LambdaReturns) {
+  absl::SetFlag(&FLAGS_analyze_log_bindings, true);
   // Function returning a lambda:
   CheckCode("lambda_test", "return_lambda", R"(
 def get_fun() => s : Int => s + 10
@@ -66,6 +72,7 @@ def get_fun() => { s => s + 10 }
 }
 
 TEST_F(AnalysisTest, LambdaVars) {
+  absl::SetFlag(&FLAGS_analyze_log_bindings, true);
   CheckCode("lambda_test", "call_lambda", R"(
 def add(x: Int) => {
   adder = (s: Int) : Int => s + 10;
@@ -77,6 +84,40 @@ def add(x: Int) => {
   adder(x)
 })",
              "Please add non-abstract type specifications");
+}
+
+TEST_F(AnalysisTest, FunctionParameters) {
+  absl::SetFlag(&FLAGS_analyze_log_bindings, false);
+  CheckCode("lambda_test", "arg_passed", R"(
+def f(x: Function<{X}, X>, val: {X}) => x(val)
+def g(x: Int, y: Int = 1) => x + y
+def h(x: Int) => f(g, x)
+)");
+  CheckCode("lambda_test", "multiple_choices", R"(
+def f(x: Function<{X}, X>, val: {X}) => x(val)
+def g(x: Int, y: Int = 1) => x + y
+def g(x: Float64, y: Float64 = 1.2) => x + y
+def h(x: Int) => f(g.g, x)
+)");
+  CheckCode("lambda_test", "full_any", R"(
+def f(x: {X}, val: Int) => x(val)
+def g(x: Int, y: Int = 1) => x + y
+def h(x: Int) => f(g, x)
+)");
+  CheckError("unknown_choice", R"(
+def f(x: Function<{X}, X>, val: {X}) => x(val)
+def g(x: Int, y: Int = 1) => x + y
+def g(x: Float64, y: Float64 = 1.2) => x + y
+def h(x: Int) => f(g, x)
+)",
+             "is incompatible with declared type of argument");
+  CheckError("signature_redefined", R"(
+def f(x: Function<{X}, X>, val: {X}) => x(val)
+def g(x: Int, y: Int = 1) => x + y
+def g(x: Int, y: Int = 1) => 2 * x + y
+def h(x: Int) => f(g, x)
+)",
+             "function with the same name and signature");
 }
 
 }  // namespace analysis
