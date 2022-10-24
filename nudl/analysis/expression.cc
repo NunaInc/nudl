@@ -61,6 +61,8 @@ void Expression::set_named_object(NamedObject* object) {
   named_object_ = CHECK_NOTNULL(object);
 }
 
+bool Expression::ContainsFunctionExit() const { return false; }
+
 pb::ExpressionSpec Expression::ToProto() const {
   pb::ExpressionSpec expression;
   expression.set_kind(expr_kind());
@@ -420,6 +422,8 @@ Function* FunctionResultExpression::parent_function() const {
   return parent_function_;
 }
 
+bool FunctionResultExpression::ContainsFunctionExit() const { return true; }
+
 std::string FunctionResultExpression::DebugString() const {
   switch (result_kind_) {
     case pb::FunctionResultKind::RESULT_NONE:
@@ -657,6 +661,19 @@ pb::ExpressionKind IfExpression::expr_kind() const {
   return pb::ExpressionKind::EXPR_IF;
 }
 
+bool IfExpression::ContainsFunctionExit() const {
+  if (expression_.size() == condition_.size()) {
+    // Else not covered - cannot return on all paths.
+    return false;
+  }
+  for (Expression* expression : expression_) {
+    if (!expression->ContainsFunctionExit()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 absl::StatusOr<const TypeSpec*> IfExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   return TypeUnknown::Instance();
@@ -678,6 +695,15 @@ absl::optional<NamedObject*> ExpressionBlock::named_object() const {
     return named_object_;
   }
   return children_.back()->named_object();
+}
+
+bool ExpressionBlock::ContainsFunctionExit() const {
+  for (const auto& child : children_) {
+    if (child->ContainsFunctionExit()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::string ExpressionBlock::DebugString() const {

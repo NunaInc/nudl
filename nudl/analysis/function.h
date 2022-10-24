@@ -107,10 +107,8 @@ class FunctionGroup : public Scope {
   static bool IsFunctionGroup(const NamedObject& object);
 
  private:
-  absl::StatusOr<std::vector<std::unique_ptr<FunctionBinding>>>
-  TryBindFunction(
-      Function* function,
-      const std::vector<FunctionCallArgument>& arguments,
+  absl::StatusOr<std::vector<std::unique_ptr<FunctionBinding>>> TryBindFunction(
+      Function* function, const std::vector<FunctionCallArgument>& arguments,
       std::vector<std::unique_ptr<FunctionBinding>>* existing) const;
 
   std::vector<Function*> functions_;
@@ -195,7 +193,8 @@ class Function : public Scope {
 
   // Registers a result generating expression with the function.
   absl::Status RegisterResultExpression(pb::FunctionResultKind result_kind,
-                                        Expression* expression);
+                                        Expression* expression,
+                                        bool accept_unknown_type);
 
   pb::FunctionDefinitionSpec ToProto() const;
   std::string DebugString() const override;

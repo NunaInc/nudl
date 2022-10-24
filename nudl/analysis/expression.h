@@ -34,9 +34,12 @@ class Expression {
   virtual absl::optional<NamedObject*> named_object() const;
   // Switches the name object on rebinding.
   virtual void set_named_object(NamedObject* object);
+  // If the expression performs a function performs a return/yield etc.
+  virtual bool ContainsFunctionExit() const;
 
   // The scope in which the expression was built.
   Scope* scope() const;
+
   // Accesses the underlying expressions.
   const std::vector<std::unique_ptr<Expression>>& children() const;
 
@@ -188,6 +191,7 @@ class FunctionResultExpression : public Expression {
   pb::FunctionResultKind result_kind() const;
   Function* parent_function() const;
   std::string DebugString() const override;
+  bool ContainsFunctionExit() const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -246,6 +250,8 @@ class IfExpression : public Expression {
   const std::vector<Expression*>& condition() const;
   const std::vector<Expression*>& expression() const;
   std::string DebugString() const override;
+  // This returns true if we return on all paths.
+  bool ContainsFunctionExit() const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -262,6 +268,7 @@ class ExpressionBlock : public Expression {
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
   std::string DebugString() const override;
+  bool ContainsFunctionExit() const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(

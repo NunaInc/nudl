@@ -1097,9 +1097,9 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeFunction::BindWithComponents(
 }
 
 std::unique_ptr<TypeSpec> TypeFunction::Clone() const {
-  return std::make_unique<TypeFunction>(
-      type_store_, type_member_store_, name_,
-      arguments_, result_, first_default_value_index_);
+  return std::make_unique<TypeFunction>(type_store_, type_member_store_, name_,
+                                        arguments_, result_,
+                                        first_default_value_index_);
 }
 
 absl::optional<size_t> TypeFunction::first_default_value_index() const {

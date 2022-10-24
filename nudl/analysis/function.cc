@@ -56,8 +56,8 @@ absl::Status FunctionGroup::AddFunction(Function* fun) {
       return status::AlreadyExistsErrorBuilder()
              << "A function with the same name and signature "
                 "already exists in "
-             << parent()->full_name() << " adding: " << fun->full_name()
-             << ": " << child_fun->type_spec()->full_name()
+             << parent()->full_name() << " adding: " << fun->full_name() << ": "
+             << child_fun->type_spec()->full_name()
              << " while adding: " << fun->type_spec()->full_name();
     }
     function_types.emplace_back(child_fun->type_spec());
@@ -99,12 +99,10 @@ absl::StatusOr<ScopeName> FunctionGroup::GetNextFunctionName() {
 
 absl::StatusOr<std::vector<std::unique_ptr<FunctionBinding>>>
 FunctionGroup::TryBindFunction(
-    Function* function,
-    const std::vector<FunctionCallArgument>& arguments,
+    Function* function, const std::vector<FunctionCallArgument>& arguments,
     std::vector<std::unique_ptr<FunctionBinding>>* existing) const {
-  ASSIGN_OR_RETURN(
-      auto binding, function->BindArguments(arguments),
-      _ << "Binding arguments to: " << function->full_name());
+  ASSIGN_OR_RETURN(auto binding, function->BindArguments(arguments),
+                   _ << "Binding arguments to: " << function->full_name());
   RET_CHECK(binding->fun.has_value());
   std::vector<std::unique_ptr<FunctionBinding>> new_bindings;
   FunctionBinding* add_current = nullptr;
@@ -129,13 +127,13 @@ FunctionGroup::TryBindFunction(
     // It is quite hard to envision how this would be reached in normal
     // run mode, unless we are crafting a bad `existing` vector.
     return status::InvalidArgumentErrorBuilder()
-      << "Conflicting signatures were bound to possible bindings, inspecting: "
-      << binding->full_name() << " / " << skip_current->full_name()
-      << " / " << add_current->full_name() << kBugNotice;
+           << "Conflicting signatures were bound to possible bindings, "
+              "inspecting: "
+           << binding->full_name() << " / " << skip_current->full_name()
+           << " / " << add_current->full_name() << kBugNotice;
   }
   return {std::move(new_bindings)};
 }
-
 
 absl::StatusOr<std::unique_ptr<FunctionBinding>> FunctionGroup::FindSignature(
     const std::vector<FunctionCallArgument>& arguments) {
@@ -354,10 +352,10 @@ absl::StatusOr<Function*> Function::BuildInScope(
   auto fun_ptr = fun.get();
   // Need to first add to parent, so we get the names
   RETURN_IF_ERROR(function_group->AddSubScope(std::move(fun)))
-    << context.ToErrorInfo("Registering function definition");
+      << context.ToErrorInfo("Registering function definition");
   RETURN_IF_ERROR(fun_ptr->InitializeDefinition(element, context));
   RETURN_IF_ERROR(function_group->AddFunction(fun_ptr))
-    << context.ToErrorInfo("Registering function definition");
+      << context.ToErrorInfo("Registering function definition");
 
   return fun_ptr;
 }
@@ -634,7 +632,8 @@ bool AreCompatibleResultTypes(const TypeSpec* type_a, const TypeSpec* type_b) {
 }  // namespace
 
 absl::Status Function::RegisterResultExpression(
-    pb::FunctionResultKind result_kind, Expression* expression) {
+    pb::FunctionResultKind result_kind, Expression* expression,
+    bool accept_unknown_type) {
   ASSIGN_OR_RETURN(auto coerced_result_kind, RegisterResultKind(result_kind),
                    _ << "Checking result expression for: " << full_name());
   if (coerced_result_kind == pb::FunctionResultKind::RESULT_PASS) {
@@ -653,12 +652,13 @@ absl::Status Function::RegisterResultExpression(
     // As we may have an if statement w/ no returns on one path, but is
     // fine for now.
     if (!result_expressions_.empty() &&
-        result_kind == pb::FunctionResultKind::RESULT_NONE) {
+        result_kind == pb::FunctionResultKind::RESULT_NONE &&
+        accept_unknown_type) {
       return absl::OkStatus();
     }
     return status::InvalidArgumentErrorBuilder()
            << "The result expression of function " << full_name()
-           << " does not have a type associated with it. "
+           << " does not have a type associated with it on all paths. "
            << "Please explicitly return or yield value for expression";
   }
   if (!result_type->IsAncestorOf(*type_spec)) {
@@ -811,7 +811,7 @@ absl::StatusOr<std::unique_ptr<FunctionBinding>> FunctionBinding::Bind(
     Function* fun, const std::vector<FunctionCallArgument>& arguments) {
   RET_CHECK(fun->type_spec()->type_id() == pb::TypeId::FUNCTION_ID &&
             !fun->type_spec()->parameters().empty())
-    << "Improperly built function: " << fun->full_name();
+      << "Improperly built function: " << fun->full_name();
   auto result = absl::WrapUnique(new FunctionBinding(fun));
   RETURN_IF_ERROR(result->BindImpl(arguments));
   return {std::move(result)};
@@ -947,16 +947,13 @@ std::string FunctionBinding::FunctionNameForLog() const {
 
 std::string FunctionBinding::full_name() const {
   if (fun.has_value()) {
-    return absl::StrCat(
-        "Function binding of ", fun.value()->full_name(),
-        " as ", type_spec->full_name());
+    return absl::StrCat("Function binding of ", fun.value()->full_name(),
+                        " as ", type_spec->full_name());
   } else {
-    return absl::StrCat(
-        "Function type binding of ", fun_type->full_name(),
-        " as ", type_spec->full_name());
+    return absl::StrCat("Function type binding of ", fun_type->full_name(),
+                        " as ", type_spec->full_name());
   }
 }
-
 
 absl::StatusOr<const TypeSpec*> FunctionBinding::RebindFunctionArgument(
     absl::string_view arg_name, const FunctionCallArgument& call_arg,
@@ -1106,10 +1103,10 @@ absl::Status FunctionBinding::BindArgument(absl::string_view arg_name,
     ASSIGN_OR_RETURN(
         auto rebuilt_call_type,
         RebindFunctionArgument(arg_name, call_arg, rebuilt_arg_type),
-        _ << "Rebinding function argument: " << arg_name
-          << " from: `" << arg_type->full_name()
-          << "`, rebuilt as type: `" << rebuilt_arg_type->full_name()
-          << "` and called with type: `" << call_type->full_name() << "`");
+        _ << "Rebinding function argument: " << arg_name << " from: `"
+          << arg_type->full_name() << "`, rebuilt as type: `"
+          << rebuilt_arg_type->full_name() << "` and called with type: `"
+          << call_type->full_name() << "`");
     RET_CHECK(CHECK_NOTNULL(rebuilt_call_type)->type_id() ==
               pb::TypeId::FUNCTION_ID);
     auto fun_arg_type = static_cast<const TypeFunction*>(rebuilt_arg_type);
@@ -1117,22 +1114,21 @@ absl::Status FunctionBinding::BindArgument(absl::string_view arg_name,
     ASSIGN_OR_RETURN(
         auto new_call_type, fun_arg_type->BindWithFunction(*call_arg_type),
         _ << "Binding function parameter: " << arg_name << " of type `"
-        << arg_type->full_name()
-        << "` to call argument of type: `" << call_type->full_name() << "`");
-
+          << arg_type->full_name() << "` to call argument of type: `"
+          << call_type->full_name() << "`");
 
     // Reassign the unknown types in original arg type to the final
     // deduced call type.
     RETURN_IF_ERROR(rebinder->ProcessType(arg_type, new_call_type.get()))
         << "Processing rebound function type for: " << arg_name
-        << " from declared type: `" << arg_type->full_name()
-        << "` to type: `" << new_call_type->full_name() << "`";
+        << " from declared type: `" << arg_type->full_name() << "` to type: `"
+        << new_call_type->full_name() << "`";
     RETURN_IF_ERROR(rebinder->ProcessType(rebuilt_arg_type->ResultType(),
                                           new_call_type->ResultType()))
         << "Processing rebound function result type for: " << arg_name
         << " from declared type: `" << arg_type->ResultType()->full_name()
-        << "` to call value type: `"
-        << new_call_type->ResultType()->full_name() << "`";
+        << "` to call value type: `" << new_call_type->ResultType()->full_name()
+        << "`";
     LOG_IF(INFO, pragmas->log_bindings())
         << "BIND LOG: " << FunctionNameForLog()
         << " Arg Rebinding: " << arg_name << std::endl

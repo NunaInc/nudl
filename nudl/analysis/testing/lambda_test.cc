@@ -109,13 +109,15 @@ def f(x: Function<{X}, X>, val: {X}) => x(val)
 def g(x: Int, y: Int = 1) => x + y
 def g(x: Float64, y: Float64 = 1.2) => x + y
 def h(x: Int) => f(g, x)
-)", "is incompatible with declared type of argument");
+)",
+             "is incompatible with declared type of argument");
   CheckError("signature_redefined", R"(
 def f(x: Function<{X}, X>, val: {X}) => x(val)
 def g(x: Int, y: Int = 1) => x + y
 def g(x: Int, y: Int = 1) => 2 * x + y
 def h(x: Int) => f(g, x)
-)", "function with the same name and signature");
+)",
+             "function with the same name and signature");
 }
 
 }  // namespace analysis

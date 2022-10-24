@@ -405,6 +405,96 @@ def f() => {
 }
 )",
              "Cannot coerce");
+  CheckCode("general_test", "member_call", R"(
+def method inc(x: Int) => x + 1
+def f(x: Int) => {
+  x.inc()
+}
+)");
+  CheckCode("general_test", "dot_call", R"(
+def f() => (x: Int) : Int => x + 1
+def g(n: Int) => f()(n)
+)");
+  CheckError("bad_return_call", R"(
+def f() => 10
+def g(n: Int) => f()(n)
+)",
+             "Cannot call non-function expression type");
+  CheckError("no_function", R"(
+import cdm
+def f(name: cdm.HumanName) => {
+  name.family()
+})",
+             "non-function object");
+  CheckCode("general_test", "deep_call", R"(
+schema Bar = {
+  subname: String
+}
+schema Foo = {
+  name: Bar
+}
+def f(x: Foo) => x
+def g(x: Foo) => f(x).name.subname.len()
+)");
+  CheckCode("general_test", "deep_call_object", R"(
+schema Bar = {
+  subname: String
+}
+schema Foo = {
+  name: Bar
+}
+def g(x: Foo) => x.name.subname.len()
+)");
+  CheckError("not_yet_ready_constructor", R"(
+x = Array<Int>([1,2,3])
+)",
+             "Cannot find local name: `__init__` in Members of Array<Any>");
+  CheckCode("general_test", "late_default_bind", R"(
+def f(x: {X}, y: X = 20) => x + y
+def g(a: Int) => f(a)
+)");
+  CheckCode("general_test", "late_default_bind2", R"(
+def f(x: {X} = 20) => x + 10
+def g(a: Int) => f() + a
+)");
+  CheckCode("general_test", "late_default_bind3", R"(
+def f(x: {X} = 10, y: X = 20) => x + y
+def g(a: Int) => f(y=a)
+)");
+  CheckError("late_default_bind_error", R"(
+def f(x: {X} = 10, y: X = "Foo") => x + y
+def g(a: Int) => f(a)
+)",
+             "String is not compatible with inferred type");
+  CheckCode("general_test", "default_bind_on_funtype", R"(
+def f() => (x: Int = 10, y: Int = 20) => x + y
+def g(a: Int) => f()(a)
+)");
+  CheckError("return_pass", R"(
+def f(x: Int) => pass;
+)",
+             "needs to yield some values");
+  CheckError("return_unbound", R"(
+def f() : Numeric => $$pyinline0$$end
+def g() => f()
+)",
+             "is unbound and not a function");
+  CheckError("too_many_binds", R"(
+def f(x: Numeric, y: Int) => x + y
+def f(x: Int, y: Numeric) => x + y
+z = f(1, 2)
+)",
+             "Found too many functions");
+  CheckError("improper_function_type", R"(
+def f() => {
+  z: Nullable<Function> = null;
+  _ensured(z)(3)
+}
+)",
+             "binding for improper function type");
+}
+
+TEST_F(AnalysisTest, ReturnValues) {
   CheckCode("general_test", "compatible_nullable_results1", R"(
 def foo(x: Int) => {
   if (x % 2 == 0) {
@@ -493,92 +583,41 @@ def foo(x: Int) => {
 def f(x: Int) => pragma log_expression { x }
 )",
              "does not have any proper expressions defined");
-
-  CheckCode("general_test", "member_call", R"(
-def method inc(x: Int) => x + 1
-def f(x: Int) => {
-  x.inc()
-}
-)");
-  CheckCode("general_test", "dot_call", R"(
-def f() => (x: Int) : Int => x + 1
-def g(n: Int) => f()(n)
-)");
-  CheckError("bad_return_call", R"(
-def f() => 10
-def g(n: Int) => f()(n)
-)",
-             "Cannot call non-function expression type");
-  CheckError("no_function", R"(
-import cdm
-def f(name: cdm.HumanName) => {
-  name.family()
+  CheckError("missing_return1", R"(
+def foo(x: Int) => {
+  if (x % 2 == 0) {
+    return x / 2
+  }
+  // Need an error here
 })",
-             "non-function object");
-  CheckCode("general_test", "deep_call", R"(
-schema Bar = {
-  subname: String
-}
-schema Foo = {
-  name: Bar
-}
-def f(x: Foo) => x
-def g(x: Foo) => f(x).name.subname.len()
-)");
-  CheckCode("general_test", "deep_call_object", R"(
-schema Bar = {
-  subname: String
-}
-schema Foo = {
-  name: Bar
-}
-def g(x: Foo) => x.name.subname.len()
-)");
-  CheckError("not_yet_ready_constructor", R"(
-x = Array<Int>([1,2,3])
-)",
-             "Cannot find local name: `__init__` in Members of Array<Any>");
-  CheckCode("general_test", "late_default_bind", R"(
-def f(x: {X}, y: X = 20) => x + y
-def g(a: Int) => f(a)
-)");
-  CheckCode("general_test", "late_default_bind2", R"(
-def f(x: {X} = 20) => x + 10
-def g(a: Int) => f() + a
-)");
-  CheckCode("general_test", "late_default_bind3", R"(
-def f(x: {X} = 10, y: X = 20) => x + y
-def g(a: Int) => f(y=a)
-)");
-  CheckError("late_default_bind_error", R"(
-def f(x: {X} = 10, y: X = "Foo") => x + y
-def g(a: Int) => f(a)
-)",
-             "String is not compatible with inferred type");
-  CheckCode("general_test", "default_bind_on_funtype", R"(
-def f() => (x: Int = 10, y: Int = 20) => x + y
-def g(a: Int) => f()(a)
-)");
-  CheckError("return_pass", R"(
-def f(x: Int) => pass;
-)",
-             "needs to yield some values");
-  CheckError("return_unbound", R"(
-def f() : Numeric => $$pyinline0$$end
-def g() => f()
-)",
-             "is unbound and not a function");
-  CheckError("too_many_binds", R"(
-def f(x: Numeric, y: Int) => x + y
-def f(x: Int, y: Numeric) => x + y
-z = f(1, 2)
-)", "Found too many functions");
-  CheckError("improper_function_type", R"(
-def f() => {
-  z: Nullable<Function> = null;
-  _ensured(z)(3)
-}
-)", "binding for improper function type");
+             "Please explicitly return or yield");
+  CheckError("missing_return2", R"(
+def foo(x: Int) => {
+  if (x % 2 == 0) {
+    x = x + 1
+  } else {
+    return x
+  }
+  // Need an error here
+})",
+             "Please explicitly return or yield");
+  CheckError("after_return1", R"(
+def foo(x: Int) => {
+  return x / 2
+  // Need an error here:
+  x = x + 1
+})",
+             "Meaningless expression after function return");
+  CheckError("after_return2", R"(
+def foo(x: Int) => {
+  if (x % 2 == 0) {
+    x = x + 1
+  } else {
+    return x
+    x = x + 2
+  }
+})",
+             "Meaningless expression after function return");
 }
 
 TEST_F(AnalysisTest, JustPrepare) {

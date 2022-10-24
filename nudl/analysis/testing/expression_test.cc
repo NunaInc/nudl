@@ -485,7 +485,9 @@ TEST_F(AnalysisTest, BadReturns) {
     fdef.set_name("g");
     fdef.add_param()->set_name("x-");
     fdef.mutable_expression_block()
-      ->add_expression()->mutable_literal()->set_int_value(0);
+        ->add_expression()
+        ->mutable_literal()
+        ->set_int_value(0);
     EXPECT_RAISES_WITH_MESSAGE_THAT(
         Function::BuildInScope(module.get(), fdef, "", context).status(),
         InvalidArgument, testing::HasSubstr("Invalid parameter name"));

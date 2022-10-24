@@ -124,27 +124,32 @@ struct ParseFileContent {
 
 // Merges the error payloads from src into dest.
 absl::Status& MergeErrorStatus(const absl::Status& src, absl::Status& dest);
+bool HasParseErrorInfo(const absl::Status& src);
 
 namespace status {
 
 template <>
 inline StatusWriter& StatusWriter::operator<<(
     const nudl::grammar::ErrorInfo& err) {
+  if (HasParseErrorInfo(status_)) {
+    return *this;
+  }
   nudl::grammar::ErrorInfo composed_err(err);
   composed_err.message = absl::StrCat(err.message, ": ", status_.message());
   if (!message_.empty()) {
     absl::StrAppend(&composed_err.message,
                     status_.message().empty() ? "" : "; ", message_);
   }
-  status_.SetPayload(
-      absl::StrCat(nudl::grammar::kParseErrorUrl, "/",
-                   status::GetNumPayloads(status_)),
-      absl::Cord(composed_err.ToProto().SerializeAsString()));
+  status_.SetPayload(absl::StrCat(nudl::grammar::kParseErrorUrl, "/",
+                                  status::GetNumPayloads(status_)),
+                     absl::Cord(composed_err.ToProto().SerializeAsString()));
   return *this;
 }
 template <>
-inline StatusWriter& StatusWriter::operator<<(
-    const nudl::pb::ErrorInfo& err) {
+inline StatusWriter& StatusWriter::operator<<(const nudl::pb::ErrorInfo& err) {
+  if (HasParseErrorInfo(status_)) {
+    return *this;
+  }
   nudl::pb::ErrorInfo composed_err(err);
   std::string message =
       absl::StrCat(err.error_message(), ": ", status_.message());
@@ -152,28 +157,25 @@ inline StatusWriter& StatusWriter::operator<<(
     absl::StrAppend(&message, status_.message().empty() ? "" : "; ", message_);
   }
   composed_err.set_error_message(message);
-  status_.SetPayload(
-      absl::StrCat(nudl::grammar::kParseErrorUrl, "/",
-                   status::GetNumPayloads(status_)),
-      absl::Cord(composed_err.SerializeAsString()));
+  status_.SetPayload(absl::StrCat(nudl::grammar::kParseErrorUrl, "/",
+                                  status::GetNumPayloads(status_)),
+                     absl::Cord(composed_err.SerializeAsString()));
   return *this;
 }
 template <>
 inline StatusWriter& StatusWriter::operator<<(
     const nudl::ParseFileInfo& info) {
-  status_.SetPayload(
-      absl::StrCat(nudl::grammar::kParseFileUrl, "/",
-                   status::GetNumPayloads(status_)),
-      absl::Cord(info.filename));
+  status_.SetPayload(absl::StrCat(nudl::grammar::kParseFileUrl, "/",
+                                  status::GetNumPayloads(status_)),
+                     absl::Cord(info.filename));
   return *this;
 }
 template <>
 inline StatusWriter& StatusWriter::operator<<(
     const nudl::ParseFileContent& info) {
-  status_.SetPayload(
-      absl::StrCat(nudl::grammar::kParseCodeUrl, "/",
-                   status::GetNumPayloads(status_)),
-      absl::Cord(info.code));
+  status_.SetPayload(absl::StrCat(nudl::grammar::kParseCodeUrl, "/",
+                                  status::GetNumPayloads(status_)),
+                     absl::Cord(info.code));
   return *this;
 }
 

@@ -150,4 +150,15 @@ absl::Status& MergeErrorStatus(const absl::Status& src, absl::Status& dest) {
   return dest;
 }
 
+bool HasParseErrorInfo(const absl::Status& src) {
+  bool has_parse_url = false;
+  src.ForEachPayload(
+      [&has_parse_url](absl::string_view name, const absl::Cord& payload) {
+        if (absl::StartsWith(name, grammar::kParseErrorUrl)) {
+          has_parse_url = true;
+        }
+      });
+  return has_parse_url;
+}
+
 }  // namespace nudl

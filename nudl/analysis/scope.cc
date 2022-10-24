@@ -176,7 +176,7 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
       auto scope_result = FindChildStore(scoped_name.scope_name());
       if (scope_result.ok()) {
         const bool is_function =
-          Function::IsFunctionKind(*scope_result.value());
+            Function::IsFunctionKind(*scope_result.value());
         if (scope_result.value()->HasName(scoped_name.name())) {
           if (!is_function || scope_result.value() == this) {
             return scope_result.value()->GetName(scoped_name.name());
@@ -610,7 +610,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionResult(
   auto expression = std::make_unique<FunctionResultExpression>(
       this, parent_function.value(), result_kind, std::move(inner_expression));
   RETURN_IF_ERROR(parent_function.value()->RegisterResultExpression(
-      result_kind, expression.get()))
+      result_kind, expression.get(), false))
       << "Registering " << Function::ResultKindName(result_kind)
       << " expression "
          " with function: "
@@ -853,25 +853,39 @@ bool MustUseFunctionCallResultType(const TypeSpec* type_spec) {
 absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpressionBlock(
     const pb::ExpressionBlock& expression_block, bool register_return) {
   RET_CHECK(!expression_block.expression().empty());
-
-  absl::Status status;
+  absl::Status build_status;
   std::vector<std::unique_ptr<Expression>> expressions;
   bool last_is_result = false;
   Expression* last_expression = nullptr;
-  for (const auto& expression : expression_block.expression()) {
+  int last_expression_index = 0;
+  bool contains_return = false;
+  for (int i = 0; i < expression_block.expression_size(); ++i) {
+    const auto& expression = expression_block.expression(i);
+    if (contains_return) {
+      CodeContext context = CodeContext::FromProto(expression);
+      MergeErrorStatus(status::InvalidArgumentErrorBuilder()
+                           << "Meaningless expression after function return"
+                           << context.ToErrorInfo("In expression block"),
+                       build_status);
+    }
     auto expression_result = BuildExpression(expression);
-    MergeErrorStatus(expression_result.status(), status);
+    MergeErrorStatus(expression_result.status(), build_status);
     if (expression_result.ok()) {
       if (expression_result.value()->expr_kind() !=
           pb::ExpressionKind::EXPR_NOP) {
         last_expression = expression_result.value().get();
+        last_expression_index = i;
+      }
+      if (expression_result.value()->ContainsFunctionExit()) {
+        contains_return = true;
       }
       // TODO(catalin): maybe negotiate types here..
       expressions.emplace_back(std::move(expression_result).value());
       last_is_result = IsResultReturnExpression(expression);
     }
   }
-  RETURN_IF_ERROR(status);
+  RETURN_IF_ERROR(build_status);
+  RET_CHECK(!expressions.empty());
   const size_t max_size =
       register_return ? expressions.size() - 1ul : expressions.size();
   CHECK_LE(max_size, expressions.size());
@@ -888,7 +902,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpressionBlock(
              << context.ToErrorInfo("In function call expression");
     }
   }
-  if (register_return && !last_is_result) {
+  if (register_return && !last_is_result && !contains_return) {
     if (last_expression == nullptr) {
       return status::InvalidArgumentErrorBuilder()
              << "Expression block that needs to produce something, does "
@@ -897,10 +911,10 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpressionBlock(
     auto parent_function = FindFunctionAncestor();
     RET_CHECK(parent_function.has_value())
         << "Expecting to be inside a function " << kBugNotice;
-    CodeContext context =
-        CodeContext::FromProto(*expression_block.expression().rbegin());
+    CodeContext context = CodeContext::FromProto(
+        expression_block.expression(last_expression_index));
     RETURN_IF_ERROR(parent_function.value()->RegisterResultExpression(
-        pb::FunctionResultKind::RESULT_NONE, last_expression))
+        pb::FunctionResultKind::RESULT_NONE, last_expression, contains_return))
         << context.ToErrorInfo("Registering default function return");
   }
   return {std::make_unique<ExpressionBlock>(this, std::move(expressions))};
