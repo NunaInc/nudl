@@ -31,18 +31,18 @@
             <td class="headerValue">_coverage_report.dat</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">5</td>
-            <td class="headerCovTableEntry">52</td>
-            <td class="headerCovTableEntryLo">9.6 %</td>
+            <td class="headerCovTableEntry">45</td>
+            <td class="headerCovTableEntry">49</td>
+            <td class="headerCovTableEntryHi">91.8 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-24 19:16:22</td>
+            <td class="headerValue">2022-10-24 19:34:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">13</td>
             <td class="headerCovTableEntry">15</td>
-            <td class="headerCovTableEntryLo">26.7 %</td>
+            <td class="headerCovTableEntryMed">86.7 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -108,7 +108,7 @@
 <a name="46"><span class="lineNum">      46 </span>            :   // Errors found while parsing (if any).</a>
 <a name="47"><span class="lineNum">      47 </span>            :   std::vector&lt;ErrorInfo&gt; errors;</a>
 <a name="48"><span class="lineNum">      48 </span>            : </a>
-<a name="49"><span class="lineNum">      49 </span><span class="lineNoCov">          0 :   virtual ~ParseDataBase() {}</span></a>
+<a name="49"><span class="lineNum">      49 </span><span class="lineCov">       6054 :   virtual ~ParseDataBase() {}</span></a>
 <a name="50"><span class="lineNum">      50 </span>            : </a>
 <a name="51"><span class="lineNum">      51 </span>            :  protected:</a>
 <a name="52"><span class="lineNum">      52 </span>            :   absl::Status ParseInternal(absl::string_view code_arg, ParseOptions options);</a>
@@ -124,28 +124,28 @@
 <a name="62"><span class="lineNum">      62 </span>            : </a>
 <a name="63"><span class="lineNum">      63 </span>            :   static absl::StatusOr&lt;</a>
 <a name="64"><span class="lineNum">      64 </span>            :       std::unique_ptr&lt;ConfigurableParseData&lt;Proto, TreeSelector&gt;&gt;&gt;</a>
-<a name="65"><span class="lineNum">      65 </span><span class="lineNoCov">          0 :   Parse(absl::string_view code_arg, ParseOptions options = {}) {</span></a>
-<a name="66"><span class="lineNum">      66 </span><span class="lineNoCov">          0 :     auto data = std::make_unique&lt;ConfigurableParseData&lt;Proto, TreeSelector&gt;&gt;();</span></a>
-<a name="67"><span class="lineNum">      67 </span><span class="lineNoCov">          0 :     RETURN_IF_ERROR(data-&gt;ParseInternal(code_arg, options));</span></a>
-<a name="68"><span class="lineNum">      68 </span><span class="lineNoCov">          0 :     return {std::move(data)};</span></a>
-<a name="69"><span class="lineNum">      69 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">       6054 :   Parse(absl::string_view code_arg, ParseOptions options = {}) {</span></a>
+<a name="66"><span class="lineNum">      66 </span><span class="lineCov">      12108 :     auto data = std::make_unique&lt;ConfigurableParseData&lt;Proto, TreeSelector&gt;&gt;();</span></a>
+<a name="67"><span class="lineNum">      67 </span><span class="lineCov">      12108 :     RETURN_IF_ERROR(data-&gt;ParseInternal(code_arg, options));</span></a>
+<a name="68"><span class="lineNum">      68 </span><span class="lineCov">       6054 :     return {std::move(data)};</span></a>
+<a name="69"><span class="lineNum">      69 </span>            :   }</a>
 <a name="70"><span class="lineNum">      70 </span>            : </a>
 <a name="71"><span class="lineNum">      71 </span>            :  protected:</a>
-<a name="72"><span class="lineNum">      72 </span><span class="lineCov">       5438 :   antlr4::tree::ParseTree* CreateTree() override {</span></a>
-<a name="73"><span class="lineNum">      73 </span><span class="lineCov">       5438 :     return TreeSelector(parser.get());</span></a>
+<a name="72"><span class="lineNum">      72 </span><span class="lineCov">       6054 :   antlr4::tree::ParseTree* CreateTree() override {</span></a>
+<a name="73"><span class="lineNum">      73 </span><span class="lineCov">       6054 :     return TreeSelector(parser.get());</span></a>
 <a name="74"><span class="lineNum">      74 </span>            :   }</a>
-<a name="75"><span class="lineNum">      75 </span><span class="lineCov">       5430 :   void Visit(NudlDslParserVisitor* visitor) override {</span></a>
-<a name="76"><span class="lineNum">      76 </span><span class="lineCov">       5430 :     proto = std::make_unique&lt;Proto&gt;(std::any_cast&lt;Proto&gt;(visitor-&gt;visit(tree)));</span></a>
-<a name="77"><span class="lineNum">      77 </span><span class="lineCov">       5430 :   }</span></a>
+<a name="75"><span class="lineNum">      75 </span><span class="lineCov">       6046 :   void Visit(NudlDslParserVisitor* visitor) override {</span></a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">       6046 :     proto = std::make_unique&lt;Proto&gt;(std::any_cast&lt;Proto&gt;(visitor-&gt;visit(tree)));</span></a>
+<a name="77"><span class="lineNum">      77 </span><span class="lineCov">       6046 :   }</span></a>
 <a name="78"><span class="lineNum">      78 </span>            : };</a>
 <a name="79"><span class="lineNum">      79 </span>            : </a>
-<a name="80"><span class="lineNum">      80 </span><span class="lineNoCov">          0 : inline antlr4::tree::ParseTree* ExtractModule(NudlDslParser* parser) {</span></a>
-<a name="81"><span class="lineNum">      81 </span><span class="lineNoCov">          0 :   return parser-&gt;module();</span></a>
+<a name="80"><span class="lineNum">      80 </span><span class="lineCov">        297 : inline antlr4::tree::ParseTree* ExtractModule(NudlDslParser* parser) {</span></a>
+<a name="81"><span class="lineNum">      81 </span><span class="lineCov">        297 :   return parser-&gt;module();</span></a>
 <a name="82"><span class="lineNum">      82 </span>            : }</a>
 <a name="83"><span class="lineNum">      83 </span>            : using ModuleParseData = ConfigurableParseData&lt;pb::Module, ExtractModule&gt;;</a>
 <a name="84"><span class="lineNum">      84 </span>            : </a>
-<a name="85"><span class="lineNum">      85 </span><span class="lineNoCov">          0 : inline antlr4::tree::ParseTree* ExtractTypeExpression(NudlDslParser* parser) {</span></a>
-<a name="86"><span class="lineNum">      86 </span><span class="lineNoCov">          0 :   return parser-&gt;typeExpression();</span></a>
+<a name="85"><span class="lineNum">      85 </span><span class="lineCov">       5757 : inline antlr4::tree::ParseTree* ExtractTypeExpression(NudlDslParser* parser) {</span></a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineCov">       5757 :   return parser-&gt;typeExpression();</span></a>
 <a name="87"><span class="lineNum">      87 </span>            : }</a>
 <a name="88"><span class="lineNum">      88 </span>            : using TypeSpecParseData =</a>
 <a name="89"><span class="lineNum">      89 </span>            :     ConfigurableParseData&lt;pb::TypeSpec, ExtractTypeExpression&gt;;</a>
@@ -191,54 +191,54 @@
 <a name="129"><span class="lineNum">     129 </span>            : namespace status {</a>
 <a name="130"><span class="lineNum">     130 </span>            : </a>
 <a name="131"><span class="lineNum">     131 </span>            : template &lt;&gt;</a>
-<a name="132"><span class="lineNum">     132 </span><span class="lineNoCov">          0 : inline StatusWriter&amp; StatusWriter::operator&lt;&lt;(</span></a>
+<a name="132"><span class="lineNum">     132 </span><span class="lineCov">          4 : inline StatusWriter&amp; StatusWriter::operator&lt;&lt;(</span></a>
 <a name="133"><span class="lineNum">     133 </span>            :     const nudl::grammar::ErrorInfo&amp; err) {</a>
-<a name="134"><span class="lineNum">     134 </span><span class="lineNoCov">          0 :   if (HasParseErrorInfo(status_)) {</span></a>
-<a name="135"><span class="lineNum">     135 </span><span class="lineNoCov">          0 :     return *this;</span></a>
+<a name="134"><span class="lineNum">     134 </span><span class="lineCov">          4 :   if (HasParseErrorInfo(status_)) {</span></a>
+<a name="135"><span class="lineNum">     135 </span><span class="lineCov">          3 :     return *this;</span></a>
 <a name="136"><span class="lineNum">     136 </span>            :   }</a>
-<a name="137"><span class="lineNum">     137 </span><span class="lineNoCov">          0 :   nudl::grammar::ErrorInfo composed_err(err);</span></a>
-<a name="138"><span class="lineNum">     138 </span><span class="lineNoCov">          0 :   composed_err.message = absl::StrCat(err.message, &quot;: &quot;, status_.message());</span></a>
-<a name="139"><span class="lineNum">     139 </span><span class="lineNoCov">          0 :   if (!message_.empty()) {</span></a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineCov">          1 :   nudl::grammar::ErrorInfo composed_err(err);</span></a>
+<a name="138"><span class="lineNum">     138 </span><span class="lineCov">          1 :   composed_err.message = absl::StrCat(err.message, &quot;: &quot;, status_.message());</span></a>
+<a name="139"><span class="lineNum">     139 </span><span class="lineCov">          1 :   if (!message_.empty()) {</span></a>
 <a name="140"><span class="lineNum">     140 </span><span class="lineNoCov">          0 :     absl::StrAppend(&amp;composed_err.message,</span></a>
 <a name="141"><span class="lineNum">     141 </span><span class="lineNoCov">          0 :                     status_.message().empty() ? &quot;&quot; : &quot;; &quot;, message_);</span></a>
 <a name="142"><span class="lineNum">     142 </span>            :   }</a>
-<a name="143"><span class="lineNum">     143 </span><span class="lineNoCov">          0 :   status_.SetPayload(absl::StrCat(nudl::grammar::kParseErrorUrl, &quot;/&quot;,</span></a>
-<a name="144"><span class="lineNum">     144 </span><span class="lineNoCov">          0 :                                   status::GetNumPayloads(status_)),</span></a>
-<a name="145"><span class="lineNum">     145 </span><span class="lineNoCov">          0 :                      absl::Cord(composed_err.ToProto().SerializeAsString()));</span></a>
-<a name="146"><span class="lineNum">     146 </span><span class="lineNoCov">          0 :   return *this;</span></a>
-<a name="147"><span class="lineNum">     147 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="143"><span class="lineNum">     143 </span><span class="lineCov">          1 :   status_.SetPayload(absl::StrCat(nudl::grammar::kParseErrorUrl, &quot;/&quot;,</span></a>
+<a name="144"><span class="lineNum">     144 </span><span class="lineCov">          1 :                                   status::GetNumPayloads(status_)),</span></a>
+<a name="145"><span class="lineNum">     145 </span><span class="lineCov">          2 :                      absl::Cord(composed_err.ToProto().SerializeAsString()));</span></a>
+<a name="146"><span class="lineNum">     146 </span><span class="lineCov">          1 :   return *this;</span></a>
+<a name="147"><span class="lineNum">     147 </span>            : }</a>
 <a name="148"><span class="lineNum">     148 </span>            : template &lt;&gt;</a>
-<a name="149"><span class="lineNum">     149 </span><span class="lineNoCov">          0 : inline StatusWriter&amp; StatusWriter::operator&lt;&lt;(const nudl::pb::ErrorInfo&amp; err) {</span></a>
-<a name="150"><span class="lineNum">     150 </span><span class="lineNoCov">          0 :   if (HasParseErrorInfo(status_)) {</span></a>
-<a name="151"><span class="lineNum">     151 </span><span class="lineNoCov">          0 :     return *this;</span></a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineCov">        155 : inline StatusWriter&amp; StatusWriter::operator&lt;&lt;(const nudl::pb::ErrorInfo&amp; err) {</span></a>
+<a name="150"><span class="lineNum">     150 </span><span class="lineCov">        155 :   if (HasParseErrorInfo(status_)) {</span></a>
+<a name="151"><span class="lineNum">     151 </span><span class="lineCov">         60 :     return *this;</span></a>
 <a name="152"><span class="lineNum">     152 </span>            :   }</a>
-<a name="153"><span class="lineNum">     153 </span><span class="lineNoCov">          0 :   nudl::pb::ErrorInfo composed_err(err);</span></a>
+<a name="153"><span class="lineNum">     153 </span><span class="lineCov">        190 :   nudl::pb::ErrorInfo composed_err(err);</span></a>
 <a name="154"><span class="lineNum">     154 </span>            :   std::string message =</a>
-<a name="155"><span class="lineNum">     155 </span><span class="lineNoCov">          0 :       absl::StrCat(err.error_message(), &quot;: &quot;, status_.message());</span></a>
-<a name="156"><span class="lineNum">     156 </span><span class="lineNoCov">          0 :   if (!message_.empty()) {</span></a>
-<a name="157"><span class="lineNum">     157 </span><span class="lineNoCov">          0 :     absl::StrAppend(&amp;message, status_.message().empty() ? &quot;&quot; : &quot;; &quot;, message_);</span></a>
+<a name="155"><span class="lineNum">     155 </span><span class="lineCov">         95 :       absl::StrCat(err.error_message(), &quot;: &quot;, status_.message());</span></a>
+<a name="156"><span class="lineNum">     156 </span><span class="lineCov">         95 :   if (!message_.empty()) {</span></a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">         51 :     absl::StrAppend(&amp;message, status_.message().empty() ? &quot;&quot; : &quot;; &quot;, message_);</span></a>
 <a name="158"><span class="lineNum">     158 </span>            :   }</a>
 <a name="159"><span class="lineNum">     159 </span>            :   composed_err.set_error_message(message);</a>
-<a name="160"><span class="lineNum">     160 </span><span class="lineNoCov">          0 :   status_.SetPayload(absl::StrCat(nudl::grammar::kParseErrorUrl, &quot;/&quot;,</span></a>
-<a name="161"><span class="lineNum">     161 </span><span class="lineNoCov">          0 :                                   status::GetNumPayloads(status_)),</span></a>
-<a name="162"><span class="lineNum">     162 </span><span class="lineNoCov">          0 :                      absl::Cord(composed_err.SerializeAsString()));</span></a>
-<a name="163"><span class="lineNum">     163 </span><span class="lineNoCov">          0 :   return *this;</span></a>
-<a name="164"><span class="lineNum">     164 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">         95 :   status_.SetPayload(absl::StrCat(nudl::grammar::kParseErrorUrl, &quot;/&quot;,</span></a>
+<a name="161"><span class="lineNum">     161 </span><span class="lineCov">         95 :                                   status::GetNumPayloads(status_)),</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">        190 :                      absl::Cord(composed_err.SerializeAsString()));</span></a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">         95 :   return *this;</span></a>
+<a name="164"><span class="lineNum">     164 </span>            : }</a>
 <a name="165"><span class="lineNum">     165 </span>            : template &lt;&gt;</a>
-<a name="166"><span class="lineNum">     166 </span><span class="lineNoCov">          0 : inline StatusWriter&amp; StatusWriter::operator&lt;&lt;(</span></a>
+<a name="166"><span class="lineNum">     166 </span><span class="lineCov">         78 : inline StatusWriter&amp; StatusWriter::operator&lt;&lt;(</span></a>
 <a name="167"><span class="lineNum">     167 </span>            :     const nudl::ParseFileInfo&amp; info) {</a>
-<a name="168"><span class="lineNum">     168 </span><span class="lineNoCov">          0 :   status_.SetPayload(absl::StrCat(nudl::grammar::kParseFileUrl, &quot;/&quot;,</span></a>
-<a name="169"><span class="lineNum">     169 </span><span class="lineNoCov">          0 :                                   status::GetNumPayloads(status_)),</span></a>
-<a name="170"><span class="lineNum">     170 </span><span class="lineNoCov">          0 :                      absl::Cord(info.filename));</span></a>
-<a name="171"><span class="lineNum">     171 </span><span class="lineNoCov">          0 :   return *this;</span></a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineCov">         78 :   status_.SetPayload(absl::StrCat(nudl::grammar::kParseFileUrl, &quot;/&quot;,</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">         78 :                                   status::GetNumPayloads(status_)),</span></a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineCov">        156 :                      absl::Cord(info.filename));</span></a>
+<a name="171"><span class="lineNum">     171 </span><span class="lineCov">         78 :   return *this;</span></a>
 <a name="172"><span class="lineNum">     172 </span>            : }</a>
 <a name="173"><span class="lineNum">     173 </span>            : template &lt;&gt;</a>
-<a name="174"><span class="lineNum">     174 </span><span class="lineNoCov">          0 : inline StatusWriter&amp; StatusWriter::operator&lt;&lt;(</span></a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">         78 : inline StatusWriter&amp; StatusWriter::operator&lt;&lt;(</span></a>
 <a name="175"><span class="lineNum">     175 </span>            :     const nudl::ParseFileContent&amp; info) {</a>
-<a name="176"><span class="lineNum">     176 </span><span class="lineNoCov">          0 :   status_.SetPayload(absl::StrCat(nudl::grammar::kParseCodeUrl, &quot;/&quot;,</span></a>
-<a name="177"><span class="lineNum">     177 </span><span class="lineNoCov">          0 :                                   status::GetNumPayloads(status_)),</span></a>
-<a name="178"><span class="lineNum">     178 </span><span class="lineNoCov">          0 :                      absl::Cord(info.code));</span></a>
-<a name="179"><span class="lineNum">     179 </span><span class="lineNoCov">          0 :   return *this;</span></a>
+<a name="176"><span class="lineNum">     176 </span><span class="lineCov">         78 :   status_.SetPayload(absl::StrCat(nudl::grammar::kParseCodeUrl, &quot;/&quot;,</span></a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">         78 :                                   status::GetNumPayloads(status_)),</span></a>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">        156 :                      absl::Cord(info.code));</span></a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">         78 :   return *this;</span></a>
 <a name="180"><span class="lineNum">     180 </span>            : }</a>
 <a name="181"><span class="lineNum">     181 </span>            : </a>
 <a name="182"><span class="lineNum">     182 </span>            : }  // namespace status</a>

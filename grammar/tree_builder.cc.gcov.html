@@ -31,18 +31,18 @@
             <td class="headerValue">_coverage_report.dat</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">0</td>
-            <td class="headerCovTableEntry">497</td>
-            <td class="headerCovTableEntryLo">0.0 %</td>
+            <td class="headerCovTableEntry">418</td>
+            <td class="headerCovTableEntry">444</td>
+            <td class="headerCovTableEntryHi">94.1 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-24 19:16:22</td>
+            <td class="headerValue">2022-10-24 19:34:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">89</td>
             <td class="headerCovTableEntry">91</td>
-            <td class="headerCovTableEntryLo">0.0 %</td>
+            <td class="headerCovTableEntryHi">97.8 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -91,31 +91,31 @@
 <a name="29"><span class="lineNum">      29 </span>            :   VisitorOptions options_;</a>
 <a name="30"><span class="lineNum">      30 </span>            : </a>
 <a name="31"><span class="lineNum">      31 </span>            :  public:</a>
-<a name="32"><span class="lineNum">      32 </span><span class="lineNoCov">          0 :   DslVisitor(const antlr4::Parser* parser, absl::string_view code,</span></a>
+<a name="32"><span class="lineNum">      32 </span><span class="lineCov">       6046 :   DslVisitor(const antlr4::Parser* parser, absl::string_view code,</span></a>
 <a name="33"><span class="lineNum">      33 </span>            :              VisitorOptions options)</a>
-<a name="34"><span class="lineNum">      34 </span><span class="lineNoCov">          0 :       : NudlDslParserBaseVisitor(),</span></a>
-<a name="35"><span class="lineNum">      35 </span><span class="lineNoCov">          0 :         parser_(CHECK_NOTNULL(parser)),</span></a>
-<a name="36"><span class="lineNum">      36 </span><span class="lineNoCov">          0 :         code_(code),</span></a>
-<a name="37"><span class="lineNum">      37 </span><span class="lineNoCov">          0 :         options_(std::move(options)) {}</span></a>
+<a name="34"><span class="lineNum">      34 </span><span class="lineCov">       6046 :       : NudlDslParserBaseVisitor(),</span></a>
+<a name="35"><span class="lineNum">      35 </span><span class="lineCov">      12092 :         parser_(CHECK_NOTNULL(parser)),</span></a>
+<a name="36"><span class="lineNum">      36 </span>            :         code_(code),</a>
+<a name="37"><span class="lineNum">      37 </span><span class="lineCov">       6046 :         options_(std::move(options)) {}</span></a>
 <a name="38"><span class="lineNum">      38 </span>            : </a>
-<a name="39"><span class="lineNum">      39 </span><span class="lineNoCov">          0 :   std::string FillInterval(const antlr4::tree::ParseTree&amp; pt,</span></a>
+<a name="39"><span class="lineNum">      39 </span><span class="lineCov">       3849 :   std::string FillInterval(const antlr4::tree::ParseTree&amp; pt,</span></a>
 <a name="40"><span class="lineNum">      40 </span>            :                            pb::CodeInterval* interval) const {</a>
-<a name="41"><span class="lineNum">      41 </span><span class="lineNoCov">          0 :     *interval = TreeUtil::GetInterval(pt);</span></a>
-<a name="42"><span class="lineNum">      42 </span><span class="lineNoCov">          0 :     if (options_.no_interval_positions) {</span></a>
-<a name="43"><span class="lineNum">      43 </span><span class="lineNoCov">          0 :       interval-&gt;mutable_begin()-&gt;clear_position();</span></a>
-<a name="44"><span class="lineNum">      44 </span><span class="lineNoCov">          0 :       interval-&gt;mutable_end()-&gt;clear_position();</span></a>
+<a name="41"><span class="lineNum">      41 </span><span class="lineCov">       3849 :     *interval = TreeUtil::GetInterval(pt);</span></a>
+<a name="42"><span class="lineNum">      42 </span><span class="lineCov">       3849 :     if (options_.no_interval_positions) {</span></a>
+<a name="43"><span class="lineNum">      43 </span><span class="lineCov">         11 :       interval-&gt;mutable_begin()-&gt;clear_position();</span></a>
+<a name="44"><span class="lineNum">      44 </span><span class="lineCov">         11 :       interval-&gt;mutable_end()-&gt;clear_position();</span></a>
 <a name="45"><span class="lineNum">      45 </span>            :     }</a>
 <a name="46"><span class="lineNum">      46 </span>            :     return std::string(</a>
-<a name="47"><span class="lineNum">      47 </span><span class="lineNoCov">          0 :         TreeUtil::CodeSnippet(code_, interval-&gt;begin(), interval-&gt;end()));</span></a>
+<a name="47"><span class="lineNum">      47 </span><span class="lineCov">       7698 :         TreeUtil::CodeSnippet(code_, interval-&gt;begin(), interval-&gt;end()));</span></a>
 <a name="48"><span class="lineNum">      48 </span>            :   }</a>
 <a name="49"><span class="lineNum">      49 </span>            : </a>
-<a name="50"><span class="lineNum">      50 </span><span class="lineNoCov">          0 :   pb::Expression emptyExpression(const antlr4::tree::ParseTree&amp; pt) const {</span></a>
-<a name="51"><span class="lineNum">      51 </span><span class="lineNoCov">          0 :     pb::Expression expression;</span></a>
-<a name="52"><span class="lineNum">      52 </span><span class="lineNoCov">          0 :     if (!code_.empty() &amp;&amp; !options_.no_intervals) {</span></a>
-<a name="53"><span class="lineNum">      53 </span><span class="lineNoCov">          0 :       expression.set_code(FillInterval(pt, expression.mutable_code_interval()));</span></a>
+<a name="50"><span class="lineNum">      50 </span><span class="lineCov">       2614 :   pb::Expression emptyExpression(const antlr4::tree::ParseTree&amp; pt) const {</span></a>
+<a name="51"><span class="lineNum">      51 </span><span class="lineCov">       2614 :     pb::Expression expression;</span></a>
+<a name="52"><span class="lineNum">      52 </span><span class="lineCov">       2614 :     if (!code_.empty() &amp;&amp; !options_.no_intervals) {</span></a>
+<a name="53"><span class="lineNum">      53 </span><span class="lineCov">       4458 :       expression.set_code(FillInterval(pt, expression.mutable_code_interval()));</span></a>
 <a name="54"><span class="lineNum">      54 </span>            :     }</a>
-<a name="55"><span class="lineNum">      55 </span><span class="lineNoCov">          0 :     return expression;</span></a>
-<a name="56"><span class="lineNum">      56 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="55"><span class="lineNum">      55 </span><span class="lineCov">       2614 :     return expression;</span></a>
+<a name="56"><span class="lineNum">      56 </span>            :   }</a>
 <a name="57"><span class="lineNum">      57 </span><span class="lineNoCov">          0 :   std::any setError(pb::Expression* expression, antlr4::tree::ParseTree* pt,</span></a>
 <a name="58"><span class="lineNum">      58 </span>            :                     absl::string_view message) const {</a>
 <a name="59"><span class="lineNum">      59 </span><span class="lineNoCov">          0 :     auto error = expression-&gt;mutable_error();</span></a>
@@ -123,433 +123,433 @@
 <a name="61"><span class="lineNum">      61 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(*expression));</span></a>
 <a name="62"><span class="lineNum">      62 </span>            :   }</a>
 <a name="63"><span class="lineNum">      63 </span>            :   template &lt;class Context&gt;</a>
-<a name="64"><span class="lineNum">      64 </span><span class="lineNoCov">          0 :   pb::Expression computeExpression(Context* context) {</span></a>
-<a name="65"><span class="lineNum">      65 </span><span class="lineNoCov">          0 :     return std::any_cast&lt;pb::Expression&gt;(visit(context));</span></a>
+<a name="64"><span class="lineNum">      64 </span><span class="lineCov">       1350 :   pb::Expression computeExpression(Context* context) {</span></a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">       1350 :     return std::any_cast&lt;pb::Expression&gt;(visit(context));</span></a>
 <a name="66"><span class="lineNum">      66 </span>            :   }</a>
-<a name="67"><span class="lineNum">      67 </span><span class="lineNoCov">          0 :   pb::ExpressionBlock expressionBlock(</span></a>
+<a name="67"><span class="lineNum">      67 </span><span class="lineCov">        386 :   pb::ExpressionBlock expressionBlock(</span></a>
 <a name="68"><span class="lineNum">      68 </span>            :       NudlDslParser::ExpressionBlockContext* context) {</a>
-<a name="69"><span class="lineNum">      69 </span><span class="lineNoCov">          0 :     return std::any_cast&lt;pb::ExpressionBlock&gt;(visit(context));</span></a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineCov">        772 :     return std::any_cast&lt;pb::ExpressionBlock&gt;(visit(context));</span></a>
 <a name="70"><span class="lineNum">      70 </span>            :   }</a>
-<a name="71"><span class="lineNum">      71 </span><span class="lineNoCov">          0 :   pb::Identifier identifier(NudlDslParser::ComposedIdentifierContext* context) {</span></a>
-<a name="72"><span class="lineNum">      72 </span><span class="lineNoCov">          0 :     return std::any_cast&lt;pb::Identifier&gt;(visit(context));</span></a>
+<a name="71"><span class="lineNum">      71 </span><span class="lineCov">      14710 :   pb::Identifier identifier(NudlDslParser::ComposedIdentifierContext* context) {</span></a>
+<a name="72"><span class="lineNum">      72 </span><span class="lineCov">      29420 :     return std::any_cast&lt;pb::Identifier&gt;(visit(context));</span></a>
 <a name="73"><span class="lineNum">      73 </span>            :   }</a>
-<a name="74"><span class="lineNum">      74 </span><span class="lineNoCov">          0 :   pb::FunctionParameter paramDefinition(</span></a>
+<a name="74"><span class="lineNum">      74 </span><span class="lineCov">       2609 :   pb::FunctionParameter paramDefinition(</span></a>
 <a name="75"><span class="lineNum">      75 </span>            :       NudlDslParser::ParamDefinitionContext* context) {</a>
-<a name="76"><span class="lineNum">      76 </span><span class="lineNoCov">          0 :     return std::any_cast&lt;pb::FunctionParameter&gt;(visit(context));</span></a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">       5218 :     return std::any_cast&lt;pb::FunctionParameter&gt;(visit(context));</span></a>
 <a name="77"><span class="lineNum">      77 </span>            :   }</a>
 <a name="78"><span class="lineNum">      78 </span>            :   template &lt;class Context&gt;</a>
-<a name="79"><span class="lineNum">      79 </span><span class="lineNoCov">          0 :   pb::TypeSpec typeSpec(Context* context) {</span></a>
-<a name="80"><span class="lineNum">      80 </span><span class="lineNoCov">          0 :     return std::any_cast&lt;pb::TypeSpec&gt;(visit(context));</span></a>
+<a name="79"><span class="lineNum">      79 </span><span class="lineCov">       8804 :   pb::TypeSpec typeSpec(Context* context) {</span></a>
+<a name="80"><span class="lineNum">      80 </span><span class="lineCov">       8804 :     return std::any_cast&lt;pb::TypeSpec&gt;(visit(context));</span></a>
 <a name="81"><span class="lineNum">      81 </span>            :   }</a>
 <a name="82"><span class="lineNum">      82 </span>            : </a>
-<a name="83"><span class="lineNum">      83 </span><span class="lineNoCov">          0 :   std::any visitLiteral(NudlDslParser::LiteralContext* context) override {</span></a>
-<a name="84"><span class="lineNum">      84 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="85"><span class="lineNum">      85 </span><span class="lineNoCov">          0 :     auto literal = expression.mutable_literal();</span></a>
-<a name="86"><span class="lineNum">      86 </span><span class="lineNoCov">          0 :     literal-&gt;set_original(TreeUtil::Recompose(context));</span></a>
-<a name="87"><span class="lineNum">      87 </span><span class="lineNoCov">          0 :     if (context-&gt;KW_NULL()) {</span></a>
-<a name="88"><span class="lineNum">      88 </span><span class="lineNoCov">          0 :       literal-&gt;set_null_value(pb::NullType::NULL_VALUE);</span></a>
-<a name="89"><span class="lineNum">      89 </span><span class="lineNoCov">          0 :     } else if (context-&gt;KW_TRUE()) {</span></a>
-<a name="90"><span class="lineNum">      90 </span><span class="lineNoCov">          0 :       literal-&gt;set_bool_value(true);</span></a>
-<a name="91"><span class="lineNum">      91 </span><span class="lineNoCov">          0 :     } else if (context-&gt;KW_FALSE()) {</span></a>
-<a name="92"><span class="lineNum">      92 </span><span class="lineNoCov">          0 :       literal-&gt;set_bool_value(false);</span></a>
-<a name="93"><span class="lineNum">      93 </span><span class="lineNoCov">          0 :     } else if (context-&gt;LITERAL_DECIMAL()) {</span></a>
+<a name="83"><span class="lineNum">      83 </span><span class="lineCov">        486 :   std::any visitLiteral(NudlDslParser::LiteralContext* context) override {</span></a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineCov">        972 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="85"><span class="lineNum">      85 </span><span class="lineCov">        486 :     auto literal = expression.mutable_literal();</span></a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineCov">        972 :     literal-&gt;set_original(TreeUtil::Recompose(context));</span></a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineCov">        486 :     if (context-&gt;KW_NULL()) {</span></a>
+<a name="88"><span class="lineNum">      88 </span><span class="lineCov">          9 :       literal-&gt;set_null_value(pb::NullType::NULL_VALUE);</span></a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineCov">        477 :     } else if (context-&gt;KW_TRUE()) {</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">          6 :       literal-&gt;set_bool_value(true);</span></a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineCov">        471 :     } else if (context-&gt;KW_FALSE()) {</span></a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">         27 :       literal-&gt;set_bool_value(false);</span></a>
+<a name="93"><span class="lineNum">      93 </span><span class="lineCov">        444 :     } else if (context-&gt;LITERAL_DECIMAL()) {</span></a>
 <a name="94"><span class="lineNum">      94 </span>            :       uint64_t value;</a>
-<a name="95"><span class="lineNum">      95 </span><span class="lineNoCov">          0 :       if (!absl::SimpleAtoi(literal-&gt;original(), &amp;value)) {</span></a>
+<a name="95"><span class="lineNum">      95 </span><span class="lineCov">        300 :       if (!absl::SimpleAtoi(literal-&gt;original(), &amp;value)) {</span></a>
 <a name="96"><span class="lineNum">      96 </span><span class="lineNoCov">          0 :         return setError(&amp;expression, context, &quot;Invalid decimal literal&quot;);</span></a>
 <a name="97"><span class="lineNum">      97 </span>            :       }</a>
-<a name="98"><span class="lineNum">      98 </span><span class="lineNoCov">          0 :       literal-&gt;set_int_value(value);</span></a>
-<a name="99"><span class="lineNum">      99 </span><span class="lineNoCov">          0 :     } else if (context-&gt;LITERAL_UNSIGNED_DECIMAL()) {</span></a>
+<a name="98"><span class="lineNum">      98 </span><span class="lineCov">        300 :       literal-&gt;set_int_value(value);</span></a>
+<a name="99"><span class="lineNum">      99 </span><span class="lineCov">        144 :     } else if (context-&gt;LITERAL_UNSIGNED_DECIMAL()) {</span></a>
 <a name="100"><span class="lineNum">     100 </span>            :       uint64_t value;</a>
-<a name="101"><span class="lineNum">     101 </span><span class="lineNoCov">          0 :       if (!absl::SimpleAtoi(</span></a>
-<a name="102"><span class="lineNum">     102 </span><span class="lineNoCov">          0 :               absl::StripSuffix(absl::StripSuffix(literal-&gt;original(), &quot;u&quot;),</span></a>
+<a name="101"><span class="lineNum">     101 </span><span class="lineCov">         68 :       if (!absl::SimpleAtoi(</span></a>
+<a name="102"><span class="lineNum">     102 </span><span class="lineCov">         34 :               absl::StripSuffix(absl::StripSuffix(literal-&gt;original(), &quot;u&quot;),</span></a>
 <a name="103"><span class="lineNum">     103 </span>            :                                 &quot;U&quot;),</a>
 <a name="104"><span class="lineNum">     104 </span>            :               &amp;value)) {</a>
 <a name="105"><span class="lineNum">     105 </span><span class="lineNoCov">          0 :         return setError(&amp;expression, context, &quot;Invalid decimal literal&quot;);</span></a>
 <a name="106"><span class="lineNum">     106 </span>            :       }</a>
-<a name="107"><span class="lineNum">     107 </span><span class="lineNoCov">          0 :       literal-&gt;set_uint_value(value);</span></a>
-<a name="108"><span class="lineNum">     108 </span><span class="lineNoCov">          0 :     } else if (context-&gt;LITERAL_HEXADECIMAL()) {</span></a>
+<a name="107"><span class="lineNum">     107 </span><span class="lineCov">         34 :       literal-&gt;set_uint_value(value);</span></a>
+<a name="108"><span class="lineNum">     108 </span><span class="lineCov">        110 :     } else if (context-&gt;LITERAL_HEXADECIMAL()) {</span></a>
 <a name="109"><span class="lineNum">     109 </span>            :       absl::string_view value_str =</a>
-<a name="110"><span class="lineNum">     110 </span><span class="lineNoCov">          0 :           absl::StripPrefix(absl::StripPrefix(literal-&gt;original(), &quot;0x&quot;), &quot;0X&quot;);</span></a>
+<a name="110"><span class="lineNum">     110 </span><span class="lineCov">          2 :           absl::StripPrefix(absl::StripPrefix(literal-&gt;original(), &quot;0x&quot;), &quot;0X&quot;);</span></a>
 <a name="111"><span class="lineNum">     111 </span>            :       uint64_t value;</a>
-<a name="112"><span class="lineNum">     112 </span><span class="lineNoCov">          0 :       if (!absl::SimpleHexAtoi(value_str, &amp;value)) {</span></a>
+<a name="112"><span class="lineNum">     112 </span><span class="lineCov">          2 :       if (!absl::SimpleHexAtoi(value_str, &amp;value)) {</span></a>
 <a name="113"><span class="lineNum">     113 </span><span class="lineNoCov">          0 :         return setError(&amp;expression, context, &quot;Invalid hexadecimal literal&quot;);</span></a>
 <a name="114"><span class="lineNum">     114 </span>            :       }</a>
-<a name="115"><span class="lineNum">     115 </span><span class="lineNoCov">          0 :       literal-&gt;set_int_value(value);</span></a>
-<a name="116"><span class="lineNum">     116 </span><span class="lineNoCov">          0 :     } else if (context-&gt;LITERAL_UNSIGNED_HEXADECIMAL()) {</span></a>
-<a name="117"><span class="lineNum">     117 </span><span class="lineNoCov">          0 :       absl::string_view value_str = absl::StripSuffix(</span></a>
+<a name="115"><span class="lineNum">     115 </span><span class="lineCov">          2 :       literal-&gt;set_int_value(value);</span></a>
+<a name="116"><span class="lineNum">     116 </span><span class="lineCov">        108 :     } else if (context-&gt;LITERAL_UNSIGNED_HEXADECIMAL()) {</span></a>
+<a name="117"><span class="lineNum">     117 </span>            :       absl::string_view value_str = absl::StripSuffix(</a>
 <a name="118"><span class="lineNum">     118 </span>            :           absl::StripSuffix(</a>
-<a name="119"><span class="lineNum">     119 </span><span class="lineNoCov">          0 :               absl::StripPrefix(absl::StripPrefix(literal-&gt;original(), &quot;0x&quot;),</span></a>
+<a name="119"><span class="lineNum">     119 </span><span class="lineCov">          2 :               absl::StripPrefix(absl::StripPrefix(literal-&gt;original(), &quot;0x&quot;),</span></a>
 <a name="120"><span class="lineNum">     120 </span>            :                                 &quot;0X&quot;),</a>
 <a name="121"><span class="lineNum">     121 </span>            :               &quot;u&quot;),</a>
-<a name="122"><span class="lineNum">     122 </span>            :           &quot;U&quot;);</a>
+<a name="122"><span class="lineNum">     122 </span><span class="lineCov">          4 :           &quot;U&quot;);</span></a>
 <a name="123"><span class="lineNum">     123 </span>            :       uint64_t value;</a>
-<a name="124"><span class="lineNum">     124 </span><span class="lineNoCov">          0 :       if (!absl::SimpleHexAtoi(value_str, &amp;value)) {</span></a>
+<a name="124"><span class="lineNum">     124 </span><span class="lineCov">          2 :       if (!absl::SimpleHexAtoi(value_str, &amp;value)) {</span></a>
 <a name="125"><span class="lineNum">     125 </span><span class="lineNoCov">          0 :         return setError(&amp;expression, context, &quot;Invalid hexadecimal literal&quot;);</span></a>
 <a name="126"><span class="lineNum">     126 </span>            :       }</a>
-<a name="127"><span class="lineNum">     127 </span><span class="lineNoCov">          0 :       literal-&gt;set_uint_value(value);</span></a>
-<a name="128"><span class="lineNum">     128 </span><span class="lineNoCov">          0 :     } else if (context-&gt;LITERAL_FLOAT()) {</span></a>
+<a name="127"><span class="lineNum">     127 </span><span class="lineCov">          2 :       literal-&gt;set_uint_value(value);</span></a>
+<a name="128"><span class="lineNum">     128 </span><span class="lineCov">        106 :     } else if (context-&gt;LITERAL_FLOAT()) {</span></a>
 <a name="129"><span class="lineNum">     129 </span>            :       float value;</a>
-<a name="130"><span class="lineNum">     130 </span><span class="lineNoCov">          0 :       if (!absl::SimpleAtof(absl::StripSuffix(literal-&gt;original(), &quot;f&quot;),</span></a>
+<a name="130"><span class="lineNum">     130 </span><span class="lineCov">          1 :       if (!absl::SimpleAtof(absl::StripSuffix(literal-&gt;original(), &quot;f&quot;),</span></a>
 <a name="131"><span class="lineNum">     131 </span>            :                             &amp;value)) {</a>
 <a name="132"><span class="lineNum">     132 </span><span class="lineNoCov">          0 :         return setError(&amp;expression, context, &quot;Invalid float literal&quot;);</span></a>
 <a name="133"><span class="lineNum">     133 </span>            :       }</a>
-<a name="134"><span class="lineNum">     134 </span><span class="lineNoCov">          0 :       literal-&gt;set_float_value(value);</span></a>
-<a name="135"><span class="lineNum">     135 </span><span class="lineNoCov">          0 :     } else if (context-&gt;LITERAL_DOUBLE()) {</span></a>
+<a name="134"><span class="lineNum">     134 </span><span class="lineCov">          1 :       literal-&gt;set_float_value(value);</span></a>
+<a name="135"><span class="lineNum">     135 </span><span class="lineCov">        105 :     } else if (context-&gt;LITERAL_DOUBLE()) {</span></a>
 <a name="136"><span class="lineNum">     136 </span>            :       double value;</a>
-<a name="137"><span class="lineNum">     137 </span><span class="lineNoCov">          0 :       if (!absl::SimpleAtod(literal-&gt;original(), &amp;value)) {</span></a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineCov">          9 :       if (!absl::SimpleAtod(literal-&gt;original(), &amp;value)) {</span></a>
 <a name="138"><span class="lineNum">     138 </span><span class="lineNoCov">          0 :         return setError(&amp;expression, context, &quot;Invalid double literal&quot;);</span></a>
 <a name="139"><span class="lineNum">     139 </span>            :       }</a>
-<a name="140"><span class="lineNum">     140 </span><span class="lineNoCov">          0 :       literal-&gt;set_double_value(value);</span></a>
-<a name="141"><span class="lineNum">     141 </span><span class="lineNoCov">          0 :     } else if (context-&gt;LITERAL_STRING()) {</span></a>
+<a name="140"><span class="lineNum">     140 </span><span class="lineCov">          9 :       literal-&gt;set_double_value(value);</span></a>
+<a name="141"><span class="lineNum">     141 </span><span class="lineCov">         96 :     } else if (context-&gt;LITERAL_STRING()) {</span></a>
 <a name="142"><span class="lineNum">     142 </span>            :       absl::string_view value_str =</a>
-<a name="143"><span class="lineNum">     143 </span><span class="lineNoCov">          0 :           absl::StripSuffix(absl::StripPrefix(literal-&gt;original(), &quot;\&quot;&quot;), &quot;\&quot;&quot;);</span></a>
-<a name="144"><span class="lineNum">     144 </span><span class="lineNoCov">          0 :       std::string error;</span></a>
-<a name="145"><span class="lineNum">     145 </span><span class="lineNoCov">          0 :       if (!absl::CUnescape(value_str, literal-&gt;mutable_str_value(), &amp;error)) {</span></a>
+<a name="143"><span class="lineNum">     143 </span><span class="lineCov">         63 :           absl::StripSuffix(absl::StripPrefix(literal-&gt;original(), &quot;\&quot;&quot;), &quot;\&quot;&quot;);</span></a>
+<a name="144"><span class="lineNum">     144 </span><span class="lineCov">         63 :       std::string error;</span></a>
+<a name="145"><span class="lineNum">     145 </span><span class="lineCov">         63 :       if (!absl::CUnescape(value_str, literal-&gt;mutable_str_value(), &amp;error)) {</span></a>
 <a name="146"><span class="lineNum">     146 </span>            :         return setError(&amp;expression, context,</a>
 <a name="147"><span class="lineNum">     147 </span><span class="lineNoCov">          0 :                         absl::StrCat(&quot;Invalid string literal: &quot;, error));</span></a>
 <a name="148"><span class="lineNum">     148 </span>            :       }</a>
-<a name="149"><span class="lineNum">     149 </span><span class="lineNoCov">          0 :     } else if (context-&gt;LITERAL_BYTES()) {</span></a>
-<a name="150"><span class="lineNum">     150 </span><span class="lineNoCov">          0 :       absl::string_view value_str = absl::StripSuffix(</span></a>
-<a name="151"><span class="lineNum">     151 </span><span class="lineNoCov">          0 :           absl::StripPrefix(literal-&gt;original(), &quot;b\&quot;&quot;), &quot;\&quot;&quot;);</span></a>
-<a name="152"><span class="lineNum">     152 </span><span class="lineNoCov">          0 :       std::string error;</span></a>
-<a name="153"><span class="lineNum">     153 </span><span class="lineNoCov">          0 :       if (!absl::CUnescape(value_str, literal-&gt;mutable_bytes_value(), &amp;error)) {</span></a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineCov">         33 :     } else if (context-&gt;LITERAL_BYTES()) {</span></a>
+<a name="150"><span class="lineNum">     150 </span>            :       absl::string_view value_str = absl::StripSuffix(</a>
+<a name="151"><span class="lineNum">     151 </span><span class="lineCov">         31 :           absl::StripPrefix(literal-&gt;original(), &quot;b\&quot;&quot;), &quot;\&quot;&quot;);</span></a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">         31 :       std::string error;</span></a>
+<a name="153"><span class="lineNum">     153 </span><span class="lineCov">         31 :       if (!absl::CUnescape(value_str, literal-&gt;mutable_bytes_value(), &amp;error)) {</span></a>
 <a name="154"><span class="lineNum">     154 </span>            :         return setError(&amp;expression, context,</a>
 <a name="155"><span class="lineNum">     155 </span><span class="lineNoCov">          0 :                         absl::StrCat(&quot;Invalid bytes literal: &quot;, error));</span></a>
 <a name="156"><span class="lineNum">     156 </span>            :       }</a>
-<a name="157"><span class="lineNum">     157 </span><span class="lineNoCov">          0 :     } else if (!context-&gt;LITERAL_TIMERANGE().empty()) {</span></a>
-<a name="158"><span class="lineNum">     158 </span><span class="lineNoCov">          0 :       absl::Duration duration;</span></a>
-<a name="159"><span class="lineNum">     159 </span><span class="lineNoCov">          0 :       for (auto token : context-&gt;LITERAL_TIMERANGE()) {</span></a>
-<a name="160"><span class="lineNum">     160 </span><span class="lineNoCov">          0 :         const std::string text = token-&gt;toString();</span></a>
-<a name="161"><span class="lineNum">     161 </span><span class="lineNoCov">          0 :         size_t value = 0;</span></a>
-<a name="162"><span class="lineNum">     162 </span><span class="lineNoCov">          0 :         std::string unit;</span></a>
-<a name="163"><span class="lineNum">     163 </span><span class="lineNoCov">          0 :         re2::StringPiece input(text);</span></a>
-<a name="164"><span class="lineNum">     164 </span><span class="lineNoCov">          0 :         if (!RE2::Consume(&amp;input, &quot;(\\d+)(\\w+)&quot;, &amp;value, &amp;unit)) {</span></a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">          2 :     } else if (!context-&gt;LITERAL_TIMERANGE().empty()) {</span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">          2 :       absl::Duration duration;</span></a>
+<a name="159"><span class="lineNum">     159 </span><span class="lineCov">          8 :       for (auto token : context-&gt;LITERAL_TIMERANGE()) {</span></a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">          6 :         const std::string text = token-&gt;toString();</span></a>
+<a name="161"><span class="lineNum">     161 </span><span class="lineCov">          6 :         size_t value = 0;</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">          6 :         std::string unit;</span></a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">          6 :         re2::StringPiece input(text);</span></a>
+<a name="164"><span class="lineNum">     164 </span><span class="lineCov">          6 :         if (!RE2::Consume(&amp;input, &quot;(\\d+)(\\w+)&quot;, &amp;value, &amp;unit)) {</span></a>
 <a name="165"><span class="lineNum">     165 </span><span class="lineNoCov">          0 :           return setError(&amp;expression, context, &quot;invalid timerange format&quot;);</span></a>
 <a name="166"><span class="lineNum">     166 </span>            :         }</a>
-<a name="167"><span class="lineNum">     167 </span><span class="lineNoCov">          0 :         if (unit == &quot;seconds&quot;) {</span></a>
-<a name="168"><span class="lineNum">     168 </span><span class="lineNoCov">          0 :           duration += absl::Seconds(value);</span></a>
-<a name="169"><span class="lineNum">     169 </span><span class="lineNoCov">          0 :         } else if (unit == &quot;minutes&quot;) {</span></a>
-<a name="170"><span class="lineNum">     170 </span><span class="lineNoCov">          0 :           duration += absl::Minutes(value);</span></a>
-<a name="171"><span class="lineNum">     171 </span><span class="lineNoCov">          0 :         } else if (unit == &quot;hours&quot;) {</span></a>
-<a name="172"><span class="lineNum">     172 </span><span class="lineNoCov">          0 :           duration += absl::Hours(value);</span></a>
-<a name="173"><span class="lineNum">     173 </span><span class="lineNoCov">          0 :         } else if (unit == &quot;days&quot;) {</span></a>
-<a name="174"><span class="lineNum">     174 </span><span class="lineNoCov">          0 :           duration += absl::Hours(value * 24);</span></a>
-<a name="175"><span class="lineNum">     175 </span><span class="lineNoCov">          0 :         } else if (unit == &quot;weeks&quot;) {</span></a>
-<a name="176"><span class="lineNum">     176 </span><span class="lineNoCov">          0 :           duration += absl::Hours(value * 24 * 7);</span></a>
+<a name="167"><span class="lineNum">     167 </span><span class="lineCov">          6 :         if (unit == &quot;seconds&quot;) {</span></a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineCov">          1 :           duration += absl::Seconds(value);</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">          5 :         } else if (unit == &quot;minutes&quot;) {</span></a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineCov">          1 :           duration += absl::Minutes(value);</span></a>
+<a name="171"><span class="lineNum">     171 </span><span class="lineCov">          4 :         } else if (unit == &quot;hours&quot;) {</span></a>
+<a name="172"><span class="lineNum">     172 </span><span class="lineCov">          2 :           duration += absl::Hours(value);</span></a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">          2 :         } else if (unit == &quot;days&quot;) {</span></a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">          1 :           duration += absl::Hours(value * 24);</span></a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineCov">          1 :         } else if (unit == &quot;weeks&quot;) {</span></a>
+<a name="176"><span class="lineNum">     176 </span><span class="lineCov">          1 :           duration += absl::Hours(value * 24 * 7);</span></a>
 <a name="177"><span class="lineNum">     177 </span>            :         } else {</a>
 <a name="178"><span class="lineNum">     178 </span>            :           return setError(&amp;expression, context,</a>
 <a name="179"><span class="lineNum">     179 </span><span class="lineNoCov">          0 :                           absl::StrCat(&quot;Unknown unit: &quot;, unit));</span></a>
 <a name="180"><span class="lineNum">     180 </span>            :         }</a>
-<a name="181"><span class="lineNum">     181 </span><span class="lineNoCov">          0 :       }</span></a>
-<a name="182"><span class="lineNum">     182 </span><span class="lineNoCov">          0 :       literal-&gt;mutable_time_range()-&gt;set_seconds(</span></a>
+<a name="181"><span class="lineNum">     181 </span>            :       }</a>
+<a name="182"><span class="lineNum">     182 </span><span class="lineCov">          2 :       literal-&gt;mutable_time_range()-&gt;set_seconds(</span></a>
 <a name="183"><span class="lineNum">     183 </span>            :           absl::ToInt64Seconds(duration));</a>
 <a name="184"><span class="lineNum">     184 </span>            :     }</a>
-<a name="185"><span class="lineNum">     185 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="186"><span class="lineNum">     186 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="185"><span class="lineNum">     185 </span><span class="lineCov">        486 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="186"><span class="lineNum">     186 </span>            :   }</a>
 <a name="187"><span class="lineNum">     187 </span>            : </a>
-<a name="188"><span class="lineNum">     188 </span><span class="lineNoCov">          0 :   std::any visitEmptyStruct(</span></a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineCov">          8 :   std::any visitEmptyStruct(</span></a>
 <a name="189"><span class="lineNum">     189 </span>            :       NudlDslParser::EmptyStructContext* context) override {</a>
-<a name="190"><span class="lineNum">     190 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="191"><span class="lineNum">     191 </span><span class="lineNoCov">          0 :     expression.set_empty_struct(pb::NullType::NULL_VALUE);</span></a>
-<a name="192"><span class="lineNum">     192 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="193"><span class="lineNum">     193 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineCov">         16 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="191"><span class="lineNum">     191 </span><span class="lineCov">          8 :     expression.set_empty_struct(pb::NullType::NULL_VALUE);</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">         16 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="193"><span class="lineNum">     193 </span>            :   }</a>
 <a name="194"><span class="lineNum">     194 </span>            : </a>
-<a name="195"><span class="lineNum">     195 </span><span class="lineNoCov">          0 :   std::any visitArrayDefinition(</span></a>
+<a name="195"><span class="lineNum">     195 </span><span class="lineCov">         19 :   std::any visitArrayDefinition(</span></a>
 <a name="196"><span class="lineNum">     196 </span>            :       NudlDslParser::ArrayDefinitionContext* context) override {</a>
-<a name="197"><span class="lineNum">     197 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="198"><span class="lineNum">     198 </span><span class="lineNoCov">          0 :     CHECK_NOTNULL(context-&gt;computeExpressions());</span></a>
-<a name="199"><span class="lineNum">     199 </span><span class="lineNoCov">          0 :     auto array_def = expression.mutable_array_def();</span></a>
-<a name="200"><span class="lineNum">     200 </span><span class="lineNoCov">          0 :     for (auto expression : context-&gt;computeExpressions()-&gt;computeExpression()) {</span></a>
-<a name="201"><span class="lineNum">     201 </span><span class="lineNoCov">          0 :       *array_def-&gt;add_element() = computeExpression(expression);</span></a>
-<a name="202"><span class="lineNum">     202 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="203"><span class="lineNum">     203 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="204"><span class="lineNum">     204 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="197"><span class="lineNum">     197 </span><span class="lineCov">         38 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineCov">         19 :     CHECK_NOTNULL(context-&gt;computeExpressions());</span></a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineCov">         19 :     auto array_def = expression.mutable_array_def();</span></a>
+<a name="200"><span class="lineNum">     200 </span><span class="lineCov">         68 :     for (auto expression : context-&gt;computeExpressions()-&gt;computeExpression()) {</span></a>
+<a name="201"><span class="lineNum">     201 </span><span class="lineCov">         49 :       *array_def-&gt;add_element() = computeExpression(expression);</span></a>
+<a name="202"><span class="lineNum">     202 </span>            :     }</a>
+<a name="203"><span class="lineNum">     203 </span><span class="lineCov">         38 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="204"><span class="lineNum">     204 </span>            :   }</a>
 <a name="205"><span class="lineNum">     205 </span>            : </a>
-<a name="206"><span class="lineNum">     206 </span><span class="lineNoCov">          0 :   std::any visitMapDefinition(</span></a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">          5 :   std::any visitMapDefinition(</span></a>
 <a name="207"><span class="lineNum">     207 </span>            :       NudlDslParser::MapDefinitionContext* context) override {</a>
-<a name="208"><span class="lineNum">     208 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="209"><span class="lineNum">     209 </span><span class="lineNoCov">          0 :     CHECK_NOTNULL(context-&gt;mapElements());</span></a>
-<a name="210"><span class="lineNum">     210 </span><span class="lineNoCov">          0 :     auto map_def = expression.mutable_map_def();</span></a>
-<a name="211"><span class="lineNum">     211 </span><span class="lineNoCov">          0 :     for (auto element : context-&gt;mapElements()-&gt;mapElement()) {</span></a>
-<a name="212"><span class="lineNum">     212 </span><span class="lineNoCov">          0 :       auto keyval = element-&gt;computeExpression();</span></a>
-<a name="213"><span class="lineNum">     213 </span><span class="lineNoCov">          0 :       CHECK_EQ(keyval.size(), 2ul);</span></a>
-<a name="214"><span class="lineNum">     214 </span><span class="lineNoCov">          0 :       auto elem = map_def-&gt;add_element();</span></a>
-<a name="215"><span class="lineNum">     215 </span><span class="lineNoCov">          0 :       *elem-&gt;mutable_key() = computeExpression(keyval[0]);</span></a>
-<a name="216"><span class="lineNum">     216 </span><span class="lineNoCov">          0 :       *elem-&gt;mutable_value() = computeExpression(keyval[1]);</span></a>
-<a name="217"><span class="lineNum">     217 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="218"><span class="lineNum">     218 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="219"><span class="lineNum">     219 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">         10 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="209"><span class="lineNum">     209 </span><span class="lineCov">          5 :     CHECK_NOTNULL(context-&gt;mapElements());</span></a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">          5 :     auto map_def = expression.mutable_map_def();</span></a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineCov">         16 :     for (auto element : context-&gt;mapElements()-&gt;mapElement()) {</span></a>
+<a name="212"><span class="lineNum">     212 </span><span class="lineCov">         11 :       auto keyval = element-&gt;computeExpression();</span></a>
+<a name="213"><span class="lineNum">     213 </span><span class="lineCov">         11 :       CHECK_EQ(keyval.size(), 2ul);</span></a>
+<a name="214"><span class="lineNum">     214 </span><span class="lineCov">         11 :       auto elem = map_def-&gt;add_element();</span></a>
+<a name="215"><span class="lineNum">     215 </span><span class="lineCov">         11 :       *elem-&gt;mutable_key() = computeExpression(keyval[0]);</span></a>
+<a name="216"><span class="lineNum">     216 </span><span class="lineCov">         11 :       *elem-&gt;mutable_value() = computeExpression(keyval[1]);</span></a>
+<a name="217"><span class="lineNum">     217 </span>            :     }</a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">         10 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="219"><span class="lineNum">     219 </span>            :   }</a>
 <a name="220"><span class="lineNum">     220 </span>            : </a>
-<a name="221"><span class="lineNum">     221 </span><span class="lineNoCov">          0 :   std::any visitComposedIdentifier(</span></a>
+<a name="221"><span class="lineNum">     221 </span><span class="lineCov">      14710 :   std::any visitComposedIdentifier(</span></a>
 <a name="222"><span class="lineNum">     222 </span>            :       NudlDslParser::ComposedIdentifierContext* context) override {</a>
-<a name="223"><span class="lineNum">     223 </span><span class="lineNoCov">          0 :     pb::Identifier identifier;</span></a>
-<a name="224"><span class="lineNum">     224 </span><span class="lineNoCov">          0 :     identifier.add_name(</span></a>
-<a name="225"><span class="lineNum">     225 </span><span class="lineNoCov">          0 :         TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
-<a name="226"><span class="lineNum">     226 </span><span class="lineNoCov">          0 :     for (auto dot : context-&gt;dotIdentifier()) {</span></a>
-<a name="227"><span class="lineNum">     227 </span><span class="lineNoCov">          0 :       identifier.add_name(</span></a>
-<a name="228"><span class="lineNum">     228 </span><span class="lineNoCov">          0 :           TreeUtil::Recompose(CHECK_NOTNULL(dot-&gt;IDENTIFIER())));</span></a>
-<a name="229"><span class="lineNum">     229 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="230"><span class="lineNum">     230 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Identifier&gt;(std::move(identifier));</span></a>
-<a name="231"><span class="lineNum">     231 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="223"><span class="lineNum">     223 </span><span class="lineCov">      29420 :     pb::Identifier identifier;</span></a>
+<a name="224"><span class="lineNum">     224 </span><span class="lineCov">      14710 :     identifier.add_name(</span></a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">      29420 :         TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
+<a name="226"><span class="lineNum">     226 </span><span class="lineCov">      14811 :     for (auto dot : context-&gt;dotIdentifier()) {</span></a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineCov">        101 :       identifier.add_name(</span></a>
+<a name="228"><span class="lineNum">     228 </span><span class="lineCov">        202 :           TreeUtil::Recompose(CHECK_NOTNULL(dot-&gt;IDENTIFIER())));</span></a>
+<a name="229"><span class="lineNum">     229 </span>            :     }</a>
+<a name="230"><span class="lineNum">     230 </span><span class="lineCov">      29420 :     return std::make_any&lt;pb::Identifier&gt;(std::move(identifier));</span></a>
+<a name="231"><span class="lineNum">     231 </span>            :   }</a>
 <a name="232"><span class="lineNum">     232 </span>            : </a>
-<a name="233"><span class="lineNum">     233 </span><span class="lineNoCov">          0 :   std::any visitIfExpression(</span></a>
+<a name="233"><span class="lineNum">     233 </span><span class="lineCov">         29 :   std::any visitIfExpression(</span></a>
 <a name="234"><span class="lineNum">     234 </span>            :       NudlDslParser::IfExpressionContext* context) override {</a>
-<a name="235"><span class="lineNum">     235 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="236"><span class="lineNum">     236 </span><span class="lineNoCov">          0 :     auto if_expr = expression.mutable_if_expr();</span></a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineCov">         58 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="236"><span class="lineNum">     236 </span><span class="lineCov">         29 :     auto if_expr = expression.mutable_if_expr();</span></a>
 <a name="237"><span class="lineNum">     237 </span>            :     *if_expr-&gt;add_condition() =</a>
-<a name="238"><span class="lineNum">     238 </span><span class="lineNoCov">          0 :         computeExpression(CHECK_NOTNULL(context-&gt;computeExpression()));</span></a>
+<a name="238"><span class="lineNum">     238 </span><span class="lineCov">         29 :         computeExpression(CHECK_NOTNULL(context-&gt;computeExpression()));</span></a>
 <a name="239"><span class="lineNum">     239 </span>            :     *if_expr-&gt;add_expression_block() =</a>
-<a name="240"><span class="lineNum">     240 </span><span class="lineNoCov">          0 :         expressionBlock(CHECK_NOTNULL(context-&gt;expressionBlock()));</span></a>
-<a name="241"><span class="lineNum">     241 </span><span class="lineNoCov">          0 :     if (context-&gt;elseExpression()) {</span></a>
-<a name="242"><span class="lineNum">     242 </span><span class="lineNoCov">          0 :       *if_expr-&gt;add_expression_block() = expressionBlock(</span></a>
-<a name="243"><span class="lineNum">     243 </span><span class="lineNoCov">          0 :           CHECK_NOTNULL(context-&gt;elseExpression()-&gt;expressionBlock()));</span></a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineCov">         29 :         expressionBlock(CHECK_NOTNULL(context-&gt;expressionBlock()));</span></a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineCov">         29 :     if (context-&gt;elseExpression()) {</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">         20 :       *if_expr-&gt;add_expression_block() = expressionBlock(</span></a>
+<a name="243"><span class="lineNum">     243 </span><span class="lineCov">         30 :           CHECK_NOTNULL(context-&gt;elseExpression()-&gt;expressionBlock()));</span></a>
 <a name="244"><span class="lineNum">     244 </span>            :     } else {</a>
-<a name="245"><span class="lineNum">     245 </span><span class="lineNoCov">          0 :       auto crt_elif = context-&gt;elifExpression();</span></a>
-<a name="246"><span class="lineNum">     246 </span><span class="lineNoCov">          0 :       while (crt_elif) {</span></a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineCov">         19 :       auto crt_elif = context-&gt;elifExpression();</span></a>
+<a name="246"><span class="lineNum">     246 </span><span class="lineCov">         19 :       while (crt_elif) {</span></a>
 <a name="247"><span class="lineNum">     247 </span>            :         *if_expr-&gt;add_condition() =</a>
-<a name="248"><span class="lineNum">     248 </span><span class="lineNoCov">          0 :             computeExpression(CHECK_NOTNULL(crt_elif-&gt;computeExpression()));</span></a>
+<a name="248"><span class="lineNum">     248 </span><span class="lineCov">          1 :             computeExpression(CHECK_NOTNULL(crt_elif-&gt;computeExpression()));</span></a>
 <a name="249"><span class="lineNum">     249 </span>            :         *if_expr-&gt;add_expression_block() =</a>
-<a name="250"><span class="lineNum">     250 </span><span class="lineNoCov">          0 :             expressionBlock(CHECK_NOTNULL(crt_elif-&gt;expressionBlock()));</span></a>
-<a name="251"><span class="lineNum">     251 </span><span class="lineNoCov">          0 :         if (crt_elif-&gt;elseExpression()) {</span></a>
-<a name="252"><span class="lineNum">     252 </span><span class="lineNoCov">          0 :           *if_expr-&gt;add_expression_block() = expressionBlock(</span></a>
-<a name="253"><span class="lineNum">     253 </span><span class="lineNoCov">          0 :               CHECK_NOTNULL(crt_elif-&gt;elseExpression()-&gt;expressionBlock()));</span></a>
-<a name="254"><span class="lineNum">     254 </span><span class="lineNoCov">          0 :           break;</span></a>
+<a name="250"><span class="lineNum">     250 </span><span class="lineCov">          1 :             expressionBlock(CHECK_NOTNULL(crt_elif-&gt;expressionBlock()));</span></a>
+<a name="251"><span class="lineNum">     251 </span><span class="lineCov">          1 :         if (crt_elif-&gt;elseExpression()) {</span></a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineCov">          2 :           *if_expr-&gt;add_expression_block() = expressionBlock(</span></a>
+<a name="253"><span class="lineNum">     253 </span><span class="lineCov">          2 :               CHECK_NOTNULL(crt_elif-&gt;elseExpression()-&gt;expressionBlock()));</span></a>
+<a name="254"><span class="lineNum">     254 </span><span class="lineCov">          1 :           break;</span></a>
 <a name="255"><span class="lineNum">     255 </span>            :         }</a>
 <a name="256"><span class="lineNum">     256 </span><span class="lineNoCov">          0 :         crt_elif = crt_elif-&gt;elifExpression();</span></a>
 <a name="257"><span class="lineNum">     257 </span>            :       }</a>
 <a name="258"><span class="lineNum">     258 </span>            :     }</a>
-<a name="259"><span class="lineNum">     259 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="260"><span class="lineNum">     260 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="259"><span class="lineNum">     259 </span><span class="lineCov">         58 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="260"><span class="lineNum">     260 </span>            :   }</a>
 <a name="261"><span class="lineNum">     261 </span>            : </a>
-<a name="262"><span class="lineNum">     262 </span><span class="lineNoCov">          0 :   std::any visitReturnExpression(</span></a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineCov">         25 :   std::any visitReturnExpression(</span></a>
 <a name="263"><span class="lineNum">     263 </span>            :       NudlDslParser::ReturnExpressionContext* context) override {</a>
-<a name="264"><span class="lineNum">     264 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">         50 :     pb::Expression expression(emptyExpression(*context));</span></a>
 <a name="265"><span class="lineNum">     265 </span>            :     *expression.mutable_return_expr() =</a>
-<a name="266"><span class="lineNum">     266 </span><span class="lineNoCov">          0 :         computeExpression(CHECK_NOTNULL(context-&gt;computeExpression()));</span></a>
-<a name="267"><span class="lineNum">     267 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="268"><span class="lineNum">     268 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineCov">         25 :         computeExpression(CHECK_NOTNULL(context-&gt;computeExpression()));</span></a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineCov">         50 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="268"><span class="lineNum">     268 </span>            :   }</a>
 <a name="269"><span class="lineNum">     269 </span>            : </a>
-<a name="270"><span class="lineNum">     270 </span><span class="lineNoCov">          0 :   std::any visitYieldExpression(</span></a>
+<a name="270"><span class="lineNum">     270 </span><span class="lineCov">         12 :   std::any visitYieldExpression(</span></a>
 <a name="271"><span class="lineNum">     271 </span>            :       NudlDslParser::YieldExpressionContext* context) override {</a>
-<a name="272"><span class="lineNum">     272 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="272"><span class="lineNum">     272 </span><span class="lineCov">         24 :     pb::Expression expression(emptyExpression(*context));</span></a>
 <a name="273"><span class="lineNum">     273 </span>            :     *expression.mutable_yield_expr() =</a>
-<a name="274"><span class="lineNum">     274 </span><span class="lineNoCov">          0 :         computeExpression(CHECK_NOTNULL(context-&gt;computeExpression()));</span></a>
-<a name="275"><span class="lineNum">     275 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="276"><span class="lineNum">     276 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="274"><span class="lineNum">     274 </span><span class="lineCov">         12 :         computeExpression(CHECK_NOTNULL(context-&gt;computeExpression()));</span></a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineCov">         24 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="276"><span class="lineNum">     276 </span>            :   }</a>
 <a name="277"><span class="lineNum">     277 </span>            : </a>
-<a name="278"><span class="lineNum">     278 </span><span class="lineNoCov">          0 :   std::any visitPassExpression(</span></a>
+<a name="278"><span class="lineNum">     278 </span><span class="lineCov">          8 :   std::any visitPassExpression(</span></a>
 <a name="279"><span class="lineNum">     279 </span>            :       NudlDslParser::PassExpressionContext* context) override {</a>
-<a name="280"><span class="lineNum">     280 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="281"><span class="lineNum">     281 </span><span class="lineNoCov">          0 :     expression.set_pass_expr(pb::NullType::NULL_VALUE);</span></a>
-<a name="282"><span class="lineNum">     282 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="283"><span class="lineNum">     283 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineCov">         16 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="281"><span class="lineNum">     281 </span><span class="lineCov">          8 :     expression.set_pass_expr(pb::NullType::NULL_VALUE);</span></a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineCov">         16 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="283"><span class="lineNum">     283 </span>            :   }</a>
 <a name="284"><span class="lineNum">     284 </span>            : </a>
-<a name="285"><span class="lineNum">     285 </span><span class="lineNoCov">          0 :   std::any visitTypeAssignment(</span></a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineCov">       5112 :   std::any visitTypeAssignment(</span></a>
 <a name="286"><span class="lineNum">     286 </span>            :       NudlDslParser::TypeAssignmentContext* context) override {</a>
-<a name="287"><span class="lineNum">     287 </span><span class="lineNoCov">          0 :     return visitTypeExpression(CHECK_NOTNULL(context-&gt;typeExpression()));</span></a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">      10224 :     return visitTypeExpression(CHECK_NOTNULL(context-&gt;typeExpression()));</span></a>
 <a name="288"><span class="lineNum">     288 </span>            :   }</a>
 <a name="289"><span class="lineNum">     289 </span>            : </a>
-<a name="290"><span class="lineNum">     290 </span><span class="lineNoCov">          0 :   std::any visitTypeExpression(</span></a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineCov">      14561 :   std::any visitTypeExpression(</span></a>
 <a name="291"><span class="lineNum">     291 </span>            :       NudlDslParser::TypeExpressionContext* context) override {</a>
-<a name="292"><span class="lineNum">     292 </span><span class="lineNoCov">          0 :     pb::TypeSpec type_spec;</span></a>
-<a name="293"><span class="lineNum">     293 </span><span class="lineNoCov">          0 :     if (context-&gt;typeNamedArgument()) {</span></a>
-<a name="294"><span class="lineNum">     294 </span><span class="lineNoCov">          0 :       type_spec.set_is_local_type(true);</span></a>
-<a name="295"><span class="lineNum">     295 </span><span class="lineNoCov">          0 :       type_spec.mutable_identifier()-&gt;add_name(TreeUtil::Recompose(</span></a>
-<a name="296"><span class="lineNum">     296 </span><span class="lineNoCov">          0 :           CHECK_NOTNULL(context-&gt;typeNamedArgument()-&gt;IDENTIFIER())));</span></a>
-<a name="297"><span class="lineNum">     297 </span><span class="lineNoCov">          0 :       if (context-&gt;typeNamedArgument()-&gt;typeAssignment()) {</span></a>
+<a name="292"><span class="lineNum">     292 </span><span class="lineCov">      29122 :     pb::TypeSpec type_spec;</span></a>
+<a name="293"><span class="lineNum">     293 </span><span class="lineCov">      14561 :     if (context-&gt;typeNamedArgument()) {</span></a>
+<a name="294"><span class="lineNum">     294 </span><span class="lineCov">       1224 :       type_spec.set_is_local_type(true);</span></a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineCov">       2448 :       type_spec.mutable_identifier()-&gt;add_name(TreeUtil::Recompose(</span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">       1224 :           CHECK_NOTNULL(context-&gt;typeNamedArgument()-&gt;IDENTIFIER())));</span></a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">       1224 :       if (context-&gt;typeNamedArgument()-&gt;typeAssignment()) {</span></a>
 <a name="298"><span class="lineNum">     298 </span>            :         *type_spec.add_argument()-&gt;mutable_type_spec() =</a>
-<a name="299"><span class="lineNum">     299 </span><span class="lineNoCov">          0 :             typeSpec(context-&gt;typeNamedArgument()-&gt;typeAssignment());</span></a>
+<a name="299"><span class="lineNum">     299 </span><span class="lineCov">       1044 :             typeSpec(context-&gt;typeNamedArgument()-&gt;typeAssignment());</span></a>
 <a name="300"><span class="lineNum">     300 </span>            :       }</a>
-<a name="301"><span class="lineNum">     301 </span><span class="lineNoCov">          0 :       return std::make_any&lt;pb::TypeSpec&gt;(std::move(type_spec));</span></a>
+<a name="301"><span class="lineNum">     301 </span><span class="lineCov">       1224 :       return std::make_any&lt;pb::TypeSpec&gt;(std::move(type_spec));</span></a>
 <a name="302"><span class="lineNum">     302 </span>            :     }</a>
 <a name="303"><span class="lineNum">     303 </span>            :     *type_spec.mutable_identifier() =</a>
-<a name="304"><span class="lineNum">     304 </span><span class="lineNoCov">          0 :         identifier(CHECK_NOTNULL(context-&gt;composedIdentifier()));</span></a>
-<a name="305"><span class="lineNum">     305 </span><span class="lineNoCov">          0 :     if (context-&gt;typeTemplate()) {</span></a>
-<a name="306"><span class="lineNum">     306 </span><span class="lineNoCov">          0 :       for (auto arg : context-&gt;typeTemplate()-&gt;typeTemplateArgument()) {</span></a>
-<a name="307"><span class="lineNum">     307 </span><span class="lineNoCov">          0 :         if (arg-&gt;typeExpression()) {</span></a>
+<a name="304"><span class="lineNum">     304 </span><span class="lineCov">      13337 :         identifier(CHECK_NOTNULL(context-&gt;composedIdentifier()));</span></a>
+<a name="305"><span class="lineNum">     305 </span><span class="lineCov">      13337 :     if (context-&gt;typeTemplate()) {</span></a>
+<a name="306"><span class="lineNum">     306 </span><span class="lineCov">       6052 :       for (auto arg : context-&gt;typeTemplate()-&gt;typeTemplateArgument()) {</span></a>
+<a name="307"><span class="lineNum">     307 </span><span class="lineCov">       3693 :         if (arg-&gt;typeExpression()) {</span></a>
 <a name="308"><span class="lineNum">     308 </span>            :           *type_spec.add_argument()-&gt;mutable_type_spec() =</a>
-<a name="309"><span class="lineNum">     309 </span><span class="lineNoCov">          0 :               typeSpec(arg-&gt;typeExpression());</span></a>
-<a name="310"><span class="lineNum">     310 </span><span class="lineNoCov">          0 :         } else if (arg-&gt;LITERAL_DECIMAL()) {</span></a>
+<a name="309"><span class="lineNum">     309 </span><span class="lineCov">       3691 :               typeSpec(arg-&gt;typeExpression());</span></a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineCov">          2 :         } else if (arg-&gt;LITERAL_DECIMAL()) {</span></a>
 <a name="311"><span class="lineNum">     311 </span>            :           uint64_t value;</a>
-<a name="312"><span class="lineNum">     312 </span><span class="lineNoCov">          0 :           if (absl::SimpleAtoi(TreeUtil::Recompose(arg-&gt;LITERAL_DECIMAL()),</span></a>
+<a name="312"><span class="lineNum">     312 </span><span class="lineCov">          2 :           if (absl::SimpleAtoi(TreeUtil::Recompose(arg-&gt;LITERAL_DECIMAL()),</span></a>
 <a name="313"><span class="lineNum">     313 </span>            :                                &amp;value)) {</a>
-<a name="314"><span class="lineNum">     314 </span><span class="lineNoCov">          0 :             type_spec.add_argument()-&gt;set_int_value(value);</span></a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">          2 :             type_spec.add_argument()-&gt;set_int_value(value);</span></a>
 <a name="315"><span class="lineNum">     315 </span>            :           }</a>
 <a name="316"><span class="lineNum">     316 </span>            :         }</a>
-<a name="317"><span class="lineNum">     317 </span><span class="lineNoCov">          0 :       }</span></a>
+<a name="317"><span class="lineNum">     317 </span>            :       }</a>
 <a name="318"><span class="lineNum">     318 </span>            :     }</a>
-<a name="319"><span class="lineNum">     319 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::TypeSpec&gt;(std::move(type_spec));</span></a>
-<a name="320"><span class="lineNum">     320 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="319"><span class="lineNum">     319 </span><span class="lineCov">      13337 :     return std::make_any&lt;pb::TypeSpec&gt;(std::move(type_spec));</span></a>
+<a name="320"><span class="lineNum">     320 </span>            :   }</a>
 <a name="321"><span class="lineNum">     321 </span>            : </a>
-<a name="322"><span class="lineNum">     322 </span><span class="lineNoCov">          0 :   pb::Assignment buildAssignment(</span></a>
+<a name="322"><span class="lineNum">     322 </span><span class="lineCov">        183 :   pb::Assignment buildAssignment(</span></a>
 <a name="323"><span class="lineNum">     323 </span>            :       NudlDslParser::AssignExpressionContext* context) {</a>
-<a name="324"><span class="lineNum">     324 </span><span class="lineNoCov">          0 :     pb::Assignment assign;</span></a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineCov">        183 :     pb::Assignment assign;</span></a>
 <a name="325"><span class="lineNum">     325 </span>            :     *assign.mutable_identifier() =</a>
-<a name="326"><span class="lineNum">     326 </span><span class="lineNoCov">          0 :         identifier(CHECK_NOTNULL(context-&gt;composedIdentifier()));</span></a>
-<a name="327"><span class="lineNum">     327 </span><span class="lineNoCov">          0 :     if (context-&gt;typeAssignment()) {</span></a>
-<a name="328"><span class="lineNum">     328 </span><span class="lineNoCov">          0 :       *assign.mutable_type_spec() = typeSpec(context-&gt;typeAssignment());</span></a>
+<a name="326"><span class="lineNum">     326 </span><span class="lineCov">        183 :         identifier(CHECK_NOTNULL(context-&gt;composedIdentifier()));</span></a>
+<a name="327"><span class="lineNum">     327 </span><span class="lineCov">        183 :     if (context-&gt;typeAssignment()) {</span></a>
+<a name="328"><span class="lineNum">     328 </span><span class="lineCov">         62 :       *assign.mutable_type_spec() = typeSpec(context-&gt;typeAssignment());</span></a>
 <a name="329"><span class="lineNum">     329 </span>            :     }</a>
 <a name="330"><span class="lineNum">     330 </span>            :     *assign.mutable_value() =</a>
-<a name="331"><span class="lineNum">     331 </span><span class="lineNoCov">          0 :         computeExpression(CHECK_NOTNULL(context-&gt;computeExpression()));</span></a>
-<a name="332"><span class="lineNum">     332 </span><span class="lineNoCov">          0 :     return assign;</span></a>
-<a name="333"><span class="lineNum">     333 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="331"><span class="lineNum">     331 </span><span class="lineCov">        183 :         computeExpression(CHECK_NOTNULL(context-&gt;computeExpression()));</span></a>
+<a name="332"><span class="lineNum">     332 </span><span class="lineCov">        183 :     return assign;</span></a>
+<a name="333"><span class="lineNum">     333 </span>            :   }</a>
 <a name="334"><span class="lineNum">     334 </span>            : </a>
-<a name="335"><span class="lineNum">     335 </span><span class="lineNoCov">          0 :   std::any visitAssignExpression(</span></a>
+<a name="335"><span class="lineNum">     335 </span><span class="lineCov">         40 :   std::any visitAssignExpression(</span></a>
 <a name="336"><span class="lineNum">     336 </span>            :       NudlDslParser::AssignExpressionContext* context) override {</a>
-<a name="337"><span class="lineNum">     337 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="338"><span class="lineNum">     338 </span><span class="lineNoCov">          0 :     *expression.mutable_assignment() = buildAssignment(context);</span></a>
-<a name="339"><span class="lineNum">     339 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="340"><span class="lineNum">     340 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="337"><span class="lineNum">     337 </span><span class="lineCov">         80 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="338"><span class="lineNum">     338 </span><span class="lineCov">         40 :     *expression.mutable_assignment() = buildAssignment(context);</span></a>
+<a name="339"><span class="lineNum">     339 </span><span class="lineCov">         80 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="340"><span class="lineNum">     340 </span>            :   }</a>
 <a name="341"><span class="lineNum">     341 </span>            : </a>
-<a name="342"><span class="lineNum">     342 </span><span class="lineNoCov">          0 :   std::any visitParamDefinition(</span></a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineCov">       2609 :   std::any visitParamDefinition(</span></a>
 <a name="343"><span class="lineNum">     343 </span>            :       NudlDslParser::ParamDefinitionContext* context) override {</a>
-<a name="344"><span class="lineNum">     344 </span><span class="lineNoCov">          0 :     pb::FunctionParameter param;</span></a>
-<a name="345"><span class="lineNum">     345 </span><span class="lineNoCov">          0 :     param.set_name(TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
-<a name="346"><span class="lineNum">     346 </span><span class="lineNoCov">          0 :     if (context-&gt;typeAssignment()) {</span></a>
-<a name="347"><span class="lineNum">     347 </span><span class="lineNoCov">          0 :       *param.mutable_type_spec() = typeSpec(context-&gt;typeAssignment());</span></a>
+<a name="344"><span class="lineNum">     344 </span><span class="lineCov">       5218 :     pb::FunctionParameter param;</span></a>
+<a name="345"><span class="lineNum">     345 </span><span class="lineCov">       5218 :     param.set_name(TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
+<a name="346"><span class="lineNum">     346 </span><span class="lineCov">       2609 :     if (context-&gt;typeAssignment()) {</span></a>
+<a name="347"><span class="lineNum">     347 </span><span class="lineCov">       2561 :       *param.mutable_type_spec() = typeSpec(context-&gt;typeAssignment());</span></a>
 <a name="348"><span class="lineNum">     348 </span>            :     }</a>
-<a name="349"><span class="lineNum">     349 </span><span class="lineNoCov">          0 :     if (context-&gt;computeExpression()) {</span></a>
+<a name="349"><span class="lineNum">     349 </span><span class="lineCov">       2609 :     if (context-&gt;computeExpression()) {</span></a>
 <a name="350"><span class="lineNum">     350 </span>            :       *param.mutable_default_value() =</a>
-<a name="351"><span class="lineNum">     351 </span><span class="lineNoCov">          0 :           computeExpression(context-&gt;computeExpression());</span></a>
+<a name="351"><span class="lineNum">     351 </span><span class="lineCov">        167 :           computeExpression(context-&gt;computeExpression());</span></a>
 <a name="352"><span class="lineNum">     352 </span>            :     }</a>
-<a name="353"><span class="lineNum">     353 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::FunctionParameter&gt;(std::move(param));</span></a>
-<a name="354"><span class="lineNum">     354 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="353"><span class="lineNum">     353 </span><span class="lineCov">       5218 :     return std::make_any&lt;pb::FunctionParameter&gt;(std::move(param));</span></a>
+<a name="354"><span class="lineNum">     354 </span>            :   }</a>
 <a name="355"><span class="lineNum">     355 </span>            : </a>
-<a name="356"><span class="lineNum">     356 </span><span class="lineNoCov">          0 :   std::any visitFunctionDefinition(</span></a>
+<a name="356"><span class="lineNum">     356 </span><span class="lineCov">       1511 :   std::any visitFunctionDefinition(</span></a>
 <a name="357"><span class="lineNum">     357 </span>            :       NudlDslParser::FunctionDefinitionContext* context) override {</a>
-<a name="358"><span class="lineNum">     358 </span><span class="lineNoCov">          0 :     pb::FunctionDefinition fundef;</span></a>
-<a name="359"><span class="lineNum">     359 </span><span class="lineNoCov">          0 :     fundef.set_name(TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
-<a name="360"><span class="lineNum">     360 </span><span class="lineNoCov">          0 :     if (context-&gt;KW_METHOD()) {</span></a>
-<a name="361"><span class="lineNum">     361 </span><span class="lineNoCov">          0 :       fundef.set_is_method(true);</span></a>
+<a name="358"><span class="lineNum">     358 </span><span class="lineCov">       3022 :     pb::FunctionDefinition fundef;</span></a>
+<a name="359"><span class="lineNum">     359 </span><span class="lineCov">       3022 :     fundef.set_name(TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
+<a name="360"><span class="lineNum">     360 </span><span class="lineCov">       1511 :     if (context-&gt;KW_METHOD()) {</span></a>
+<a name="361"><span class="lineNum">     361 </span><span class="lineCov">        437 :       fundef.set_is_method(true);</span></a>
 <a name="362"><span class="lineNum">     362 </span>            :     }</a>
-<a name="363"><span class="lineNum">     363 </span><span class="lineNoCov">          0 :     if (context-&gt;expressionBlock()) {</span></a>
+<a name="363"><span class="lineNum">     363 </span><span class="lineCov">       1511 :     if (context-&gt;expressionBlock()) {</span></a>
 <a name="364"><span class="lineNum">     364 </span>            :       *fundef.mutable_expression_block() =</a>
-<a name="365"><span class="lineNum">     365 </span><span class="lineNoCov">          0 :           expressionBlock(CHECK_NOTNULL(context-&gt;expressionBlock()));</span></a>
+<a name="365"><span class="lineNum">     365 </span><span class="lineCov">        319 :           expressionBlock(CHECK_NOTNULL(context-&gt;expressionBlock()));</span></a>
 <a name="366"><span class="lineNum">     366 </span>            :     } else {</a>
-<a name="367"><span class="lineNum">     367 </span><span class="lineNoCov">          0 :       for (auto body : context-&gt;inlineBody()) {</span></a>
-<a name="368"><span class="lineNum">     368 </span><span class="lineNoCov">          0 :         std::string body_str(absl::StripPrefix(</span></a>
-<a name="369"><span class="lineNum">     369 </span><span class="lineNoCov">          0 :             absl::StripSuffix(CHECK_NOTNULL(body-&gt;INLINE_BODY())-&gt;toString(),</span></a>
+<a name="367"><span class="lineNum">     367 </span><span class="lineCov">       2385 :       for (auto body : context-&gt;inlineBody()) {</span></a>
+<a name="368"><span class="lineNum">     368 </span><span class="lineCov">       1193 :         std::string body_str(absl::StripPrefix(</span></a>
+<a name="369"><span class="lineNum">     369 </span><span class="lineCov">       1193 :             absl::StripSuffix(CHECK_NOTNULL(body-&gt;INLINE_BODY())-&gt;toString(),</span></a>
 <a name="370"><span class="lineNum">     370 </span>            :                               &quot;$$end&quot;),</a>
-<a name="371"><span class="lineNum">     371 </span><span class="lineNoCov">          0 :             &quot;$$&quot;));</span></a>
-<a name="372"><span class="lineNum">     372 </span><span class="lineNoCov">          0 :         re2::StringPiece native_body(body_str);</span></a>
-<a name="373"><span class="lineNum">     373 </span><span class="lineNoCov">          0 :         auto snippet = fundef.add_snippet();</span></a>
-<a name="374"><span class="lineNum">     374 </span><span class="lineNoCov">          0 :         std::string inline_name;</span></a>
-<a name="375"><span class="lineNum">     375 </span><span class="lineNoCov">          0 :         if (RE2::Consume(&amp;native_body, R&quot;(([a-zA-Z_][a-zA-Z0-9_]*))&quot;,</span></a>
-<a name="376"><span class="lineNum">     376 </span><span class="lineNoCov">          0 :                          &amp;inline_name)) {</span></a>
-<a name="377"><span class="lineNum">     377 </span><span class="lineNoCov">          0 :           snippet-&gt;set_name(std::move(inline_name));</span></a>
-<a name="378"><span class="lineNum">     378 </span><span class="lineNoCov">          0 :           snippet-&gt;set_body(std::string(</span></a>
-<a name="379"><span class="lineNum">     379 </span><span class="lineNoCov">          0 :               absl::StripSuffix(absl::StripPrefix(native_body, &quot;\n&quot;), &quot;\n&quot;)));</span></a>
+<a name="371"><span class="lineNum">     371 </span><span class="lineCov">       4772 :             &quot;$$&quot;));</span></a>
+<a name="372"><span class="lineNum">     372 </span><span class="lineCov">       1193 :         re2::StringPiece native_body(body_str);</span></a>
+<a name="373"><span class="lineNum">     373 </span><span class="lineCov">       1193 :         auto snippet = fundef.add_snippet();</span></a>
+<a name="374"><span class="lineNum">     374 </span><span class="lineCov">       2386 :         std::string inline_name;</span></a>
+<a name="375"><span class="lineNum">     375 </span><span class="lineCov">       1193 :         if (RE2::Consume(&amp;native_body, R&quot;(([a-zA-Z_][a-zA-Z0-9_]*))&quot;,</span></a>
+<a name="376"><span class="lineNum">     376 </span><span class="lineCov">       2386 :                          &amp;inline_name)) {</span></a>
+<a name="377"><span class="lineNum">     377 </span><span class="lineCov">       1193 :           snippet-&gt;set_name(std::move(inline_name));</span></a>
+<a name="378"><span class="lineNum">     378 </span><span class="lineCov">       4772 :           snippet-&gt;set_body(std::string(</span></a>
+<a name="379"><span class="lineNum">     379 </span><span class="lineCov">       2386 :               absl::StripSuffix(absl::StripPrefix(native_body, &quot;\n&quot;), &quot;\n&quot;)));</span></a>
 <a name="380"><span class="lineNum">     380 </span>            :         } else {</a>
 <a name="381"><span class="lineNum">     381 </span><span class="lineNoCov">          0 :           snippet-&gt;set_body(std::string(</span></a>
 <a name="382"><span class="lineNum">     382 </span><span class="lineNoCov">          0 :               absl::StripSuffix(absl::StripPrefix(body_str, &quot;\n&quot;), &quot;\n&quot;)));</span></a>
 <a name="383"><span class="lineNum">     383 </span>            :         }</a>
-<a name="384"><span class="lineNum">     384 </span><span class="lineNoCov">          0 :       }</span></a>
+<a name="384"><span class="lineNum">     384 </span>            :       }</a>
 <a name="385"><span class="lineNum">     385 </span>            :     }</a>
-<a name="386"><span class="lineNum">     386 </span><span class="lineNoCov">          0 :     if (context-&gt;typeAssignment()) {</span></a>
-<a name="387"><span class="lineNum">     387 </span><span class="lineNoCov">          0 :       *fundef.mutable_result_type() = typeSpec(context-&gt;typeAssignment());</span></a>
+<a name="386"><span class="lineNum">     386 </span><span class="lineCov">       1511 :     if (context-&gt;typeAssignment()) {</span></a>
+<a name="387"><span class="lineNum">     387 </span><span class="lineCov">       1343 :       *fundef.mutable_result_type() = typeSpec(context-&gt;typeAssignment());</span></a>
 <a name="388"><span class="lineNum">     388 </span>            :     }</a>
-<a name="389"><span class="lineNum">     389 </span><span class="lineNoCov">          0 :     if (context-&gt;paramsList()) {</span></a>
-<a name="390"><span class="lineNum">     390 </span><span class="lineNoCov">          0 :       for (auto param : context-&gt;paramsList()-&gt;paramDefinition()) {</span></a>
-<a name="391"><span class="lineNum">     391 </span><span class="lineNoCov">          0 :         *fundef.add_param() = paramDefinition(param);</span></a>
-<a name="392"><span class="lineNum">     392 </span><span class="lineNoCov">          0 :       }</span></a>
+<a name="389"><span class="lineNum">     389 </span><span class="lineCov">       1511 :     if (context-&gt;paramsList()) {</span></a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineCov">       4063 :       for (auto param : context-&gt;paramsList()-&gt;paramDefinition()) {</span></a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineCov">       2578 :         *fundef.add_param() = paramDefinition(param);</span></a>
+<a name="392"><span class="lineNum">     392 </span>            :       }</a>
 <a name="393"><span class="lineNum">     393 </span>            :     }</a>
-<a name="394"><span class="lineNum">     394 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::FunctionDefinition&gt;(std::move(fundef));</span></a>
-<a name="395"><span class="lineNum">     395 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="394"><span class="lineNum">     394 </span><span class="lineCov">       3022 :     return std::make_any&lt;pb::FunctionDefinition&gt;(std::move(fundef));</span></a>
+<a name="395"><span class="lineNum">     395 </span>            :   }</a>
 <a name="396"><span class="lineNum">     396 </span>            : </a>
-<a name="397"><span class="lineNum">     397 </span><span class="lineNoCov">          0 :   void setArgumentList(NudlDslParser::ArgumentListContext* context,</span></a>
+<a name="397"><span class="lineNum">     397 </span><span class="lineCov">        402 :   void setArgumentList(NudlDslParser::ArgumentListContext* context,</span></a>
 <a name="398"><span class="lineNum">     398 </span>            :                        pb::FunctionCall* funcall) {</a>
-<a name="399"><span class="lineNum">     399 </span><span class="lineNoCov">          0 :     if (!context) {</span></a>
-<a name="400"><span class="lineNum">     400 </span><span class="lineNoCov">          0 :       return;</span></a>
+<a name="399"><span class="lineNum">     399 </span><span class="lineCov">        402 :     if (!context) {</span></a>
+<a name="400"><span class="lineNum">     400 </span><span class="lineCov">         28 :       return;</span></a>
 <a name="401"><span class="lineNum">     401 </span>            :     }</a>
-<a name="402"><span class="lineNum">     402 </span><span class="lineNoCov">          0 :     for (auto arg : context-&gt;argumentSpec()) {</span></a>
-<a name="403"><span class="lineNum">     403 </span><span class="lineNoCov">          0 :       auto farg = funcall-&gt;add_argument();</span></a>
-<a name="404"><span class="lineNum">     404 </span><span class="lineNoCov">          0 :       if (arg-&gt;IDENTIFIER()) {</span></a>
-<a name="405"><span class="lineNum">     405 </span><span class="lineNoCov">          0 :         farg-&gt;set_name(TreeUtil::Recompose(arg-&gt;IDENTIFIER()));</span></a>
+<a name="402"><span class="lineNum">     402 </span><span class="lineCov">        770 :     for (auto arg : context-&gt;argumentSpec()) {</span></a>
+<a name="403"><span class="lineNum">     403 </span><span class="lineCov">        396 :       auto farg = funcall-&gt;add_argument();</span></a>
+<a name="404"><span class="lineNum">     404 </span><span class="lineCov">        396 :       if (arg-&gt;IDENTIFIER()) {</span></a>
+<a name="405"><span class="lineNum">     405 </span><span class="lineCov">         10 :         farg-&gt;set_name(TreeUtil::Recompose(arg-&gt;IDENTIFIER()));</span></a>
 <a name="406"><span class="lineNum">     406 </span>            :       }</a>
 <a name="407"><span class="lineNum">     407 </span>            :       *farg-&gt;mutable_value() =</a>
-<a name="408"><span class="lineNum">     408 </span><span class="lineNoCov">          0 :           computeExpression(CHECK_NOTNULL(arg-&gt;computeExpression()));</span></a>
-<a name="409"><span class="lineNum">     409 </span><span class="lineNoCov">          0 :     }</span></a>
+<a name="408"><span class="lineNum">     408 </span><span class="lineCov">        396 :           computeExpression(CHECK_NOTNULL(arg-&gt;computeExpression()));</span></a>
+<a name="409"><span class="lineNum">     409 </span>            :     }</a>
 <a name="410"><span class="lineNum">     410 </span>            :   }</a>
 <a name="411"><span class="lineNum">     411 </span>            : </a>
-<a name="412"><span class="lineNum">     412 </span><span class="lineNoCov">          0 :   std::any visitFunctionCall(</span></a>
+<a name="412"><span class="lineNum">     412 </span><span class="lineCov">          1 :   std::any visitFunctionCall(</span></a>
 <a name="413"><span class="lineNum">     413 </span>            :       NudlDslParser::FunctionCallContext* context) override {</a>
-<a name="414"><span class="lineNum">     414 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="415"><span class="lineNum">     415 </span><span class="lineNoCov">          0 :     auto funcall = expression.mutable_function_call();</span></a>
-<a name="416"><span class="lineNum">     416 </span><span class="lineNoCov">          0 :     CHECK_NOTNULL(context-&gt;functionName());</span></a>
-<a name="417"><span class="lineNum">     417 </span><span class="lineNoCov">          0 :     if (context-&gt;functionName()-&gt;composedIdentifier()) {</span></a>
+<a name="414"><span class="lineNum">     414 </span><span class="lineCov">          2 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="415"><span class="lineNum">     415 </span><span class="lineCov">          1 :     auto funcall = expression.mutable_function_call();</span></a>
+<a name="416"><span class="lineNum">     416 </span><span class="lineCov">          1 :     CHECK_NOTNULL(context-&gt;functionName());</span></a>
+<a name="417"><span class="lineNum">     417 </span><span class="lineCov">          1 :     if (context-&gt;functionName()-&gt;composedIdentifier()) {</span></a>
 <a name="418"><span class="lineNum">     418 </span>            :       *funcall-&gt;mutable_identifier() =</a>
 <a name="419"><span class="lineNum">     419 </span><span class="lineNoCov">          0 :           identifier(context-&gt;functionName()-&gt;composedIdentifier());</span></a>
-<a name="420"><span class="lineNum">     420 </span><span class="lineNoCov">          0 :     } else if (context-&gt;functionName()-&gt;typeExpression()) {</span></a>
+<a name="420"><span class="lineNum">     420 </span><span class="lineCov">          1 :     } else if (context-&gt;functionName()-&gt;typeExpression()) {</span></a>
 <a name="421"><span class="lineNum">     421 </span>            :       *funcall-&gt;mutable_type_spec() =</a>
-<a name="422"><span class="lineNum">     422 </span><span class="lineNoCov">          0 :           typeSpec(context-&gt;functionName()-&gt;typeExpression());</span></a>
+<a name="422"><span class="lineNum">     422 </span><span class="lineCov">          1 :           typeSpec(context-&gt;functionName()-&gt;typeExpression());</span></a>
 <a name="423"><span class="lineNum">     423 </span>            :     }</a>
-<a name="424"><span class="lineNum">     424 </span><span class="lineNoCov">          0 :     setArgumentList(context-&gt;argumentList(), funcall);</span></a>
-<a name="425"><span class="lineNum">     425 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="426"><span class="lineNum">     426 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="424"><span class="lineNum">     424 </span><span class="lineCov">          1 :     setArgumentList(context-&gt;argumentList(), funcall);</span></a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">          2 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="426"><span class="lineNum">     426 </span>            :   }</a>
 <a name="427"><span class="lineNum">     427 </span>            : </a>
-<a name="428"><span class="lineNum">     428 </span><span class="lineNoCov">          0 :   std::any visitLambdaExpression(</span></a>
+<a name="428"><span class="lineNum">     428 </span><span class="lineCov">         26 :   std::any visitLambdaExpression(</span></a>
 <a name="429"><span class="lineNum">     429 </span>            :       NudlDslParser::LambdaExpressionContext* context) override {</a>
-<a name="430"><span class="lineNum">     430 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="431"><span class="lineNum">     431 </span><span class="lineNoCov">          0 :     auto lambda = expression.mutable_lambda_def();</span></a>
-<a name="432"><span class="lineNum">     432 </span><span class="lineNoCov">          0 :     for (auto param : context-&gt;paramDefinition()) {</span></a>
-<a name="433"><span class="lineNum">     433 </span><span class="lineNoCov">          0 :       *lambda-&gt;add_param() = paramDefinition(param);</span></a>
-<a name="434"><span class="lineNum">     434 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="435"><span class="lineNum">     435 </span><span class="lineNoCov">          0 :     if (context-&gt;typeAssignment()) {</span></a>
-<a name="436"><span class="lineNum">     436 </span><span class="lineNoCov">          0 :       *lambda-&gt;mutable_result_type() = typeSpec(context-&gt;typeAssignment());</span></a>
+<a name="430"><span class="lineNum">     430 </span><span class="lineCov">         52 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="431"><span class="lineNum">     431 </span><span class="lineCov">         26 :     auto lambda = expression.mutable_lambda_def();</span></a>
+<a name="432"><span class="lineNum">     432 </span><span class="lineCov">         57 :     for (auto param : context-&gt;paramDefinition()) {</span></a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineCov">         31 :       *lambda-&gt;add_param() = paramDefinition(param);</span></a>
+<a name="434"><span class="lineNum">     434 </span>            :     }</a>
+<a name="435"><span class="lineNum">     435 </span><span class="lineCov">         26 :     if (context-&gt;typeAssignment()) {</span></a>
+<a name="436"><span class="lineNum">     436 </span><span class="lineCov">          4 :       *lambda-&gt;mutable_result_type() = typeSpec(context-&gt;typeAssignment());</span></a>
 <a name="437"><span class="lineNum">     437 </span>            :     }</a>
 <a name="438"><span class="lineNum">     438 </span>            :     *lambda-&gt;mutable_expression_block() =</a>
-<a name="439"><span class="lineNum">     439 </span><span class="lineNoCov">          0 :         expressionBlock(CHECK_NOTNULL(context-&gt;expressionBlock()));</span></a>
-<a name="440"><span class="lineNum">     440 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="441"><span class="lineNum">     441 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="439"><span class="lineNum">     439 </span><span class="lineCov">         26 :         expressionBlock(CHECK_NOTNULL(context-&gt;expressionBlock()));</span></a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineCov">         52 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="441"><span class="lineNum">     441 </span>            :   }</a>
 <a name="442"><span class="lineNum">     442 </span>            : </a>
-<a name="443"><span class="lineNum">     443 </span><span class="lineNoCov">          0 :   std::any visitParenthesisedExpression(</span></a>
+<a name="443"><span class="lineNum">     443 </span><span class="lineCov">          3 :   std::any visitParenthesisedExpression(</span></a>
 <a name="444"><span class="lineNum">     444 </span>            :       NudlDslParser::ParenthesisedExpressionContext* context) override {</a>
-<a name="445"><span class="lineNum">     445 </span><span class="lineNoCov">          0 :     return visitComputeExpression(context-&gt;computeExpression());</span></a>
+<a name="445"><span class="lineNum">     445 </span><span class="lineCov">          3 :     return visitComputeExpression(context-&gt;computeExpression());</span></a>
 <a name="446"><span class="lineNum">     446 </span>            :   }</a>
 <a name="447"><span class="lineNum">     447 </span>            : </a>
-<a name="448"><span class="lineNum">     448 </span><span class="lineNoCov">          0 :   std::any visitPrimaryExpression(</span></a>
+<a name="448"><span class="lineNum">     448 </span><span class="lineCov">       1687 :   std::any visitPrimaryExpression(</span></a>
 <a name="449"><span class="lineNum">     449 </span>            :       NudlDslParser::PrimaryExpressionContext* context) override {</a>
-<a name="450"><span class="lineNum">     450 </span><span class="lineNoCov">          0 :     if (context-&gt;composedIdentifier()) {</span></a>
-<a name="451"><span class="lineNum">     451 </span><span class="lineNoCov">          0 :       pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="450"><span class="lineNum">     450 </span><span class="lineCov">       1687 :     if (context-&gt;composedIdentifier()) {</span></a>
+<a name="451"><span class="lineNum">     451 </span><span class="lineCov">       2334 :       pb::Expression expression(emptyExpression(*context));</span></a>
 <a name="452"><span class="lineNum">     452 </span>            :       *expression.mutable_identifier() =</a>
-<a name="453"><span class="lineNum">     453 </span><span class="lineNoCov">          0 :           identifier(context-&gt;composedIdentifier());</span></a>
-<a name="454"><span class="lineNum">     454 </span><span class="lineNoCov">          0 :       return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="455"><span class="lineNum">     455 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="456"><span class="lineNum">     456 </span><span class="lineNoCov">          0 :     return visitChildren(context);</span></a>
+<a name="453"><span class="lineNum">     453 </span><span class="lineCov">       1167 :           identifier(context-&gt;composedIdentifier());</span></a>
+<a name="454"><span class="lineNum">     454 </span><span class="lineCov">       1167 :       return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="455"><span class="lineNum">     455 </span>            :     }</a>
+<a name="456"><span class="lineNum">     456 </span><span class="lineCov">        520 :     return visitChildren(context);</span></a>
 <a name="457"><span class="lineNum">     457 </span>            :   }</a>
 <a name="458"><span class="lineNum">     458 </span>            : </a>
-<a name="459"><span class="lineNum">     459 </span><span class="lineNoCov">          0 :   std::any visitPostfixExpression(</span></a>
+<a name="459"><span class="lineNum">     459 </span><span class="lineCov">       1687 :   std::any visitPostfixExpression(</span></a>
 <a name="460"><span class="lineNum">     460 </span>            :       NudlDslParser::PostfixExpressionContext* context) override {</a>
 <a name="461"><span class="lineNum">     461 </span>            :     pb::Expression primary_expression = std::any_cast&lt;pb::Expression&gt;(</a>
-<a name="462"><span class="lineNum">     462 </span><span class="lineNoCov">          0 :         visit(CHECK_NOTNULL(context-&gt;primaryExpression())));</span></a>
-<a name="463"><span class="lineNum">     463 </span><span class="lineNoCov">          0 :     for (auto postfix : context-&gt;postfixValue()) {</span></a>
-<a name="464"><span class="lineNum">     464 </span><span class="lineNoCov">          0 :       pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="465"><span class="lineNum">     465 </span><span class="lineNoCov">          0 :       if (postfix-&gt;LBRACKET()) {</span></a>
-<a name="466"><span class="lineNum">     466 </span><span class="lineNoCov">          0 :         auto index_expr = expression.mutable_index_expr();</span></a>
-<a name="467"><span class="lineNum">     467 </span><span class="lineNoCov">          0 :         *index_expr-&gt;mutable_object() = std::move(primary_expression);</span></a>
+<a name="462"><span class="lineNum">     462 </span><span class="lineCov">       3374 :         visit(CHECK_NOTNULL(context-&gt;primaryExpression())));</span></a>
+<a name="463"><span class="lineNum">     463 </span><span class="lineCov">       2122 :     for (auto postfix : context-&gt;postfixValue()) {</span></a>
+<a name="464"><span class="lineNum">     464 </span><span class="lineCov">        435 :       pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="465"><span class="lineNum">     465 </span><span class="lineCov">        435 :       if (postfix-&gt;LBRACKET()) {</span></a>
+<a name="466"><span class="lineNum">     466 </span><span class="lineCov">         16 :         auto index_expr = expression.mutable_index_expr();</span></a>
+<a name="467"><span class="lineNum">     467 </span><span class="lineCov">         16 :         *index_expr-&gt;mutable_object() = std::move(primary_expression);</span></a>
 <a name="468"><span class="lineNum">     468 </span>            :         *index_expr-&gt;mutable_index() =</a>
-<a name="469"><span class="lineNum">     469 </span><span class="lineNoCov">          0 :             computeExpression(CHECK_NOTNULL(postfix-&gt;computeExpression()));</span></a>
-<a name="470"><span class="lineNum">     470 </span><span class="lineNoCov">          0 :       } else if (postfix-&gt;LPAREN()) {</span></a>
-<a name="471"><span class="lineNum">     471 </span><span class="lineNoCov">          0 :         auto funcall = expression.mutable_function_call();</span></a>
-<a name="472"><span class="lineNum">     472 </span><span class="lineNoCov">          0 :         *funcall-&gt;mutable_expr_spec() = std::move(primary_expression);</span></a>
-<a name="473"><span class="lineNum">     473 </span><span class="lineNoCov">          0 :         setArgumentList(postfix-&gt;argumentList(), funcall);</span></a>
-<a name="474"><span class="lineNum">     474 </span><span class="lineNoCov">          0 :       } else if (postfix-&gt;DOT()) {</span></a>
-<a name="475"><span class="lineNum">     475 </span><span class="lineNoCov">          0 :         auto dot_expr = expression.mutable_dot_expr();</span></a>
-<a name="476"><span class="lineNum">     476 </span><span class="lineNoCov">          0 :         *dot_expr-&gt;mutable_left() = std::move(primary_expression);</span></a>
-<a name="477"><span class="lineNum">     477 </span><span class="lineNoCov">          0 :         if (postfix-&gt;IDENTIFIER()) {</span></a>
-<a name="478"><span class="lineNum">     478 </span><span class="lineNoCov">          0 :           dot_expr-&gt;set_name(TreeUtil::Recompose(postfix-&gt;IDENTIFIER()));</span></a>
+<a name="469"><span class="lineNum">     469 </span><span class="lineCov">         16 :             computeExpression(CHECK_NOTNULL(postfix-&gt;computeExpression()));</span></a>
+<a name="470"><span class="lineNum">     470 </span><span class="lineCov">        419 :       } else if (postfix-&gt;LPAREN()) {</span></a>
+<a name="471"><span class="lineNum">     471 </span><span class="lineCov">        401 :         auto funcall = expression.mutable_function_call();</span></a>
+<a name="472"><span class="lineNum">     472 </span><span class="lineCov">        401 :         *funcall-&gt;mutable_expr_spec() = std::move(primary_expression);</span></a>
+<a name="473"><span class="lineNum">     473 </span><span class="lineCov">        401 :         setArgumentList(postfix-&gt;argumentList(), funcall);</span></a>
+<a name="474"><span class="lineNum">     474 </span><span class="lineCov">         18 :       } else if (postfix-&gt;DOT()) {</span></a>
+<a name="475"><span class="lineNum">     475 </span><span class="lineCov">         18 :         auto dot_expr = expression.mutable_dot_expr();</span></a>
+<a name="476"><span class="lineNum">     476 </span><span class="lineCov">         18 :         *dot_expr-&gt;mutable_left() = std::move(primary_expression);</span></a>
+<a name="477"><span class="lineNum">     477 </span><span class="lineCov">         18 :         if (postfix-&gt;IDENTIFIER()) {</span></a>
+<a name="478"><span class="lineNum">     478 </span><span class="lineCov">         18 :           dot_expr-&gt;set_name(TreeUtil::Recompose(postfix-&gt;IDENTIFIER()));</span></a>
 <a name="479"><span class="lineNum">     479 </span>            :         } else {</a>
-<a name="480"><span class="lineNum">     480 </span><span class="lineNoCov">          0 :           *dot_expr-&gt;mutable_function_call() = std::move(</span></a>
+<a name="480"><span class="lineNum">     480 </span>            :           *dot_expr-&gt;mutable_function_call() = std::move(</a>
 <a name="481"><span class="lineNum">     481 </span><span class="lineNoCov">          0 :               *std::any_cast&lt;pb::Expression&gt;(visit(postfix-&gt;functionCall()))</span></a>
 <a name="482"><span class="lineNum">     482 </span><span class="lineNoCov">          0 :                    .mutable_function_call());</span></a>
 <a name="483"><span class="lineNum">     483 </span>            :         }</a>
 <a name="484"><span class="lineNum">     484 </span>            :       } else {</a>
 <a name="485"><span class="lineNum">     485 </span><span class="lineNoCov">          0 :         break;</span></a>
 <a name="486"><span class="lineNum">     486 </span>            :       }</a>
-<a name="487"><span class="lineNum">     487 </span><span class="lineNoCov">          0 :       primary_expression = std::move(expression);</span></a>
-<a name="488"><span class="lineNum">     488 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="489"><span class="lineNum">     489 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(primary_expression));</span></a>
-<a name="490"><span class="lineNum">     490 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="487"><span class="lineNum">     487 </span><span class="lineCov">        435 :       primary_expression = std::move(expression);</span></a>
+<a name="488"><span class="lineNum">     488 </span>            :     }</a>
+<a name="489"><span class="lineNum">     489 </span><span class="lineCov">       3374 :     return std::make_any&lt;pb::Expression&gt;(std::move(primary_expression));</span></a>
+<a name="490"><span class="lineNum">     490 </span>            :   }</a>
 <a name="491"><span class="lineNum">     491 </span>            : </a>
 <a name="492"><span class="lineNum">     492 </span>            :   template &lt;class T, class O&gt;</a>
 <a name="493"><span class="lineNum">     493 </span>            :   class OperatorBuilder {</a>
@@ -560,148 +560,148 @@
 <a name="498"><span class="lineNum">     498 </span>            :     DslVisitor* visitor_;</a>
 <a name="499"><span class="lineNum">     499 </span>            : </a>
 <a name="500"><span class="lineNum">     500 </span>            :    public:</a>
-<a name="501"><span class="lineNum">     501 </span><span class="lineNoCov">          0 :     OperatorBuilder(antlr4::tree::ParseTree* pt, std::vector&lt;T*&gt; exprs,</span></a>
+<a name="501"><span class="lineNum">     501 </span><span class="lineCov">      13647 :     OperatorBuilder(antlr4::tree::ParseTree* pt, std::vector&lt;T*&gt; exprs,</span></a>
 <a name="502"><span class="lineNum">     502 </span>            :                     std::vector&lt;O*&gt; opers, DslVisitor* visitor)</a>
-<a name="503"><span class="lineNum">     503 </span><span class="lineNoCov">          0 :         : pt_(pt),</span></a>
-<a name="504"><span class="lineNum">     504 </span><span class="lineNoCov">          0 :           exprs_(std::move(exprs)),</span></a>
-<a name="505"><span class="lineNum">     505 </span><span class="lineNoCov">          0 :           opers_(std::move(opers)),</span></a>
-<a name="506"><span class="lineNum">     506 </span><span class="lineNoCov">          0 :           visitor_(visitor) {}</span></a>
-<a name="507"><span class="lineNum">     507 </span><span class="lineNoCov">          0 :     OperatorBuilder(antlr4::tree::ParseTree* pt, std::vector&lt;T*&gt; exprs, O* oper,</span></a>
+<a name="503"><span class="lineNum">     503 </span>            :         : pt_(pt),</a>
+<a name="504"><span class="lineNum">     504 </span><span class="lineCov">      13647 :           exprs_(std::move(exprs)),</span></a>
+<a name="505"><span class="lineNum">     505 </span><span class="lineCov">      13647 :           opers_(std::move(opers)),</span></a>
+<a name="506"><span class="lineNum">     506 </span><span class="lineCov">      13647 :           visitor_(visitor) {}</span></a>
+<a name="507"><span class="lineNum">     507 </span><span class="lineCov">       7202 :     OperatorBuilder(antlr4::tree::ParseTree* pt, std::vector&lt;T*&gt; exprs, O* oper,</span></a>
 <a name="508"><span class="lineNum">     508 </span>            :                     DslVisitor* visitor)</a>
-<a name="509"><span class="lineNum">     509 </span><span class="lineNoCov">          0 :         : pt_(pt), exprs_(std::move(exprs)), visitor_(visitor) {</span></a>
-<a name="510"><span class="lineNum">     510 </span><span class="lineNoCov">          0 :       if (oper) {</span></a>
-<a name="511"><span class="lineNum">     511 </span><span class="lineNoCov">          0 :         opers_.push_back(oper);</span></a>
+<a name="509"><span class="lineNum">     509 </span><span class="lineCov">       7202 :         : pt_(pt), exprs_(std::move(exprs)), visitor_(visitor) {</span></a>
+<a name="510"><span class="lineNum">     510 </span><span class="lineCov">       7202 :       if (oper) {</span></a>
+<a name="511"><span class="lineNum">     511 </span><span class="lineCov">        184 :         opers_.push_back(oper);</span></a>
 <a name="512"><span class="lineNum">     512 </span>            :       }</a>
-<a name="513"><span class="lineNum">     513 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="514"><span class="lineNum">     514 </span><span class="lineNoCov">          0 :     OperatorBuilder(antlr4::tree::ParseTree* pt, T* expr, O* oper,</span></a>
+<a name="513"><span class="lineNum">     513 </span><span class="lineCov">       7202 :     }</span></a>
+<a name="514"><span class="lineNum">     514 </span><span class="lineCov">       1687 :     OperatorBuilder(antlr4::tree::ParseTree* pt, T* expr, O* oper,</span></a>
 <a name="515"><span class="lineNum">     515 </span>            :                     DslVisitor* visitor)</a>
-<a name="516"><span class="lineNum">     516 </span><span class="lineNoCov">          0 :         : pt_(pt), exprs_(1, CHECK_NOTNULL(expr)), visitor_(visitor) {</span></a>
-<a name="517"><span class="lineNum">     517 </span><span class="lineNoCov">          0 :       if (oper) {</span></a>
-<a name="518"><span class="lineNum">     518 </span><span class="lineNoCov">          0 :         opers_.push_back(oper);</span></a>
+<a name="516"><span class="lineNum">     516 </span><span class="lineCov">       1687 :         : pt_(pt), exprs_(1, CHECK_NOTNULL(expr)), visitor_(visitor) {</span></a>
+<a name="517"><span class="lineNum">     517 </span><span class="lineCov">       1687 :       if (oper) {</span></a>
+<a name="518"><span class="lineNum">     518 </span><span class="lineCov">          4 :         opers_.push_back(oper);</span></a>
 <a name="519"><span class="lineNum">     519 </span>            :       }</a>
-<a name="520"><span class="lineNum">     520 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="521"><span class="lineNum">     521 </span><span class="lineNoCov">          0 :     std::any visit() {</span></a>
-<a name="522"><span class="lineNum">     522 </span><span class="lineNoCov">          0 :       CHECK(!exprs_.empty());</span></a>
-<a name="523"><span class="lineNum">     523 </span><span class="lineNoCov">          0 :       if (opers_.empty()) {</span></a>
-<a name="524"><span class="lineNum">     524 </span><span class="lineNoCov">          0 :         CHECK_EQ(exprs_.size(), 1ul);</span></a>
-<a name="525"><span class="lineNum">     525 </span><span class="lineNoCov">          0 :         return visitor_-&gt;visit(exprs_.front());</span></a>
+<a name="520"><span class="lineNum">     520 </span><span class="lineCov">       1687 :     }</span></a>
+<a name="521"><span class="lineNum">     521 </span><span class="lineCov">      22536 :     std::any visit() {</span></a>
+<a name="522"><span class="lineNum">     522 </span><span class="lineCov">      22536 :       CHECK(!exprs_.empty());</span></a>
+<a name="523"><span class="lineNum">     523 </span><span class="lineCov">      22536 :       if (opers_.empty()) {</span></a>
+<a name="524"><span class="lineNum">     524 </span><span class="lineCov">      22190 :         CHECK_EQ(exprs_.size(), 1ul);</span></a>
+<a name="525"><span class="lineNum">     525 </span><span class="lineCov">      22190 :         return visitor_-&gt;visit(exprs_.front());</span></a>
 <a name="526"><span class="lineNum">     526 </span>            :       }</a>
-<a name="527"><span class="lineNum">     527 </span><span class="lineNoCov">          0 :       pb::Expression expression(visitor_-&gt;emptyExpression(*pt_));</span></a>
-<a name="528"><span class="lineNum">     528 </span><span class="lineNoCov">          0 :       auto oper = expression.mutable_operator_expr();</span></a>
-<a name="529"><span class="lineNum">     529 </span><span class="lineNoCov">          0 :       for (auto expr : exprs_) {</span></a>
-<a name="530"><span class="lineNum">     530 </span><span class="lineNoCov">          0 :         *oper-&gt;add_argument() =</span></a>
-<a name="531"><span class="lineNum">     531 </span><span class="lineNoCov">          0 :             std::any_cast&lt;pb::Expression&gt;(visitor_-&gt;visit(expr));</span></a>
+<a name="527"><span class="lineNum">     527 </span><span class="lineCov">        692 :       pb::Expression expression(visitor_-&gt;emptyExpression(*pt_));</span></a>
+<a name="528"><span class="lineNum">     528 </span><span class="lineCov">        346 :       auto oper = expression.mutable_operator_expr();</span></a>
+<a name="529"><span class="lineNum">     529 </span><span class="lineCov">       1175 :       for (auto expr : exprs_) {</span></a>
+<a name="530"><span class="lineNum">     530 </span><span class="lineCov">        829 :         *oper-&gt;add_argument() =</span></a>
+<a name="531"><span class="lineNum">     531 </span><span class="lineCov">        829 :             std::any_cast&lt;pb::Expression&gt;(visitor_-&gt;visit(expr));</span></a>
 <a name="532"><span class="lineNum">     532 </span>            :       }</a>
-<a name="533"><span class="lineNum">     533 </span><span class="lineNoCov">          0 :       for (auto oper_node : opers_) {</span></a>
-<a name="534"><span class="lineNum">     534 </span><span class="lineNoCov">          0 :         oper-&gt;add_op(TreeUtil::Recompose(oper_node));</span></a>
+<a name="533"><span class="lineNum">     533 </span><span class="lineCov">        694 :       for (auto oper_node : opers_) {</span></a>
+<a name="534"><span class="lineNum">     534 </span><span class="lineCov">        348 :         oper-&gt;add_op(TreeUtil::Recompose(oper_node));</span></a>
 <a name="535"><span class="lineNum">     535 </span>            :       }</a>
-<a name="536"><span class="lineNum">     536 </span><span class="lineNoCov">          0 :       return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="537"><span class="lineNum">     537 </span><span class="lineNoCov">          0 :     }</span></a>
+<a name="536"><span class="lineNum">     536 </span><span class="lineCov">        346 :       return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="537"><span class="lineNum">     537 </span>            :     }</a>
 <a name="538"><span class="lineNum">     538 </span>            :   };</a>
 <a name="539"><span class="lineNum">     539 </span>            : </a>
-<a name="540"><span class="lineNum">     540 </span><span class="lineNoCov">          0 :   std::any visitUnaryOperatorExpression(</span></a>
+<a name="540"><span class="lineNum">     540 </span><span class="lineCov">       1687 :   std::any visitUnaryOperatorExpression(</span></a>
 <a name="541"><span class="lineNum">     541 </span>            :       NudlDslParser::UnaryOperatorExpressionContext* context) override {</a>
-<a name="542"><span class="lineNum">     542 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;postfixExpression(),</span></a>
+<a name="542"><span class="lineNum">     542 </span><span class="lineCov">       3374 :     return OperatorBuilder(context, context-&gt;postfixExpression(),</span></a>
 <a name="543"><span class="lineNum">     543 </span>            :                            context-&gt;unaryOperator(), this)</a>
-<a name="544"><span class="lineNum">     544 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="544"><span class="lineNum">     544 </span><span class="lineCov">       3374 :         .visit();</span></a>
 <a name="545"><span class="lineNum">     545 </span>            :   }</a>
 <a name="546"><span class="lineNum">     546 </span>            : </a>
-<a name="547"><span class="lineNum">     547 </span><span class="lineNoCov">          0 :   std::any visitMultiplicativeExpression(</span></a>
+<a name="547"><span class="lineNum">     547 </span><span class="lineCov">       1637 :   std::any visitMultiplicativeExpression(</span></a>
 <a name="548"><span class="lineNum">     548 </span>            :       NudlDslParser::MultiplicativeExpressionContext* context) override {</a>
-<a name="549"><span class="lineNum">     549 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;unaryOperatorExpression(),</span></a>
-<a name="550"><span class="lineNum">     550 </span><span class="lineNoCov">          0 :                            context-&gt;multiplicativeOperator(), this)</span></a>
-<a name="551"><span class="lineNum">     551 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="549"><span class="lineNum">     549 </span><span class="lineCov">       3274 :     return OperatorBuilder(context, context-&gt;unaryOperatorExpression(),</span></a>
+<a name="550"><span class="lineNum">     550 </span><span class="lineCov">       3274 :                            context-&gt;multiplicativeOperator(), this)</span></a>
+<a name="551"><span class="lineNum">     551 </span><span class="lineCov">       3274 :         .visit();</span></a>
 <a name="552"><span class="lineNum">     552 </span>            :   }</a>
 <a name="553"><span class="lineNum">     553 </span>            : </a>
-<a name="554"><span class="lineNum">     554 </span><span class="lineNoCov">          0 :   std::any visitAdditiveExpression(</span></a>
+<a name="554"><span class="lineNum">     554 </span><span class="lineCov">       1545 :   std::any visitAdditiveExpression(</span></a>
 <a name="555"><span class="lineNum">     555 </span>            :       NudlDslParser::AdditiveExpressionContext* context) override {</a>
-<a name="556"><span class="lineNum">     556 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;multiplicativeExpression(),</span></a>
-<a name="557"><span class="lineNum">     557 </span><span class="lineNoCov">          0 :                            context-&gt;additiveOperator(), this)</span></a>
-<a name="558"><span class="lineNum">     558 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="556"><span class="lineNum">     556 </span><span class="lineCov">       3090 :     return OperatorBuilder(context, context-&gt;multiplicativeExpression(),</span></a>
+<a name="557"><span class="lineNum">     557 </span><span class="lineCov">       3090 :                            context-&gt;additiveOperator(), this)</span></a>
+<a name="558"><span class="lineNum">     558 </span><span class="lineCov">       3090 :         .visit();</span></a>
 <a name="559"><span class="lineNum">     559 </span>            :   }</a>
 <a name="560"><span class="lineNum">     560 </span>            : </a>
-<a name="561"><span class="lineNum">     561 </span><span class="lineNoCov">          0 :   std::any visitShiftExpression(</span></a>
+<a name="561"><span class="lineNum">     561 </span><span class="lineCov">       1542 :   std::any visitShiftExpression(</span></a>
 <a name="562"><span class="lineNum">     562 </span>            :       NudlDslParser::ShiftExpressionContext* context) override {</a>
-<a name="563"><span class="lineNum">     563 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;additiveExpression(),</span></a>
-<a name="564"><span class="lineNum">     564 </span><span class="lineNoCov">          0 :                            context-&gt;shiftOperator(), this)</span></a>
-<a name="565"><span class="lineNum">     565 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="563"><span class="lineNum">     563 </span><span class="lineCov">       3084 :     return OperatorBuilder(context, context-&gt;additiveExpression(),</span></a>
+<a name="564"><span class="lineNum">     564 </span><span class="lineCov">       3084 :                            context-&gt;shiftOperator(), this)</span></a>
+<a name="565"><span class="lineNum">     565 </span><span class="lineCov">       3084 :         .visit();</span></a>
 <a name="566"><span class="lineNum">     566 </span>            :   }</a>
 <a name="567"><span class="lineNum">     567 </span>            : </a>
-<a name="568"><span class="lineNum">     568 </span><span class="lineNoCov">          0 :   std::any visitRelationalExpression(</span></a>
+<a name="568"><span class="lineNum">     568 </span><span class="lineCov">       1527 :   std::any visitRelationalExpression(</span></a>
 <a name="569"><span class="lineNum">     569 </span>            :       NudlDslParser::RelationalExpressionContext* context) override {</a>
-<a name="570"><span class="lineNum">     570 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;shiftExpression(),</span></a>
+<a name="570"><span class="lineNum">     570 </span><span class="lineCov">       3054 :     return OperatorBuilder(context, context-&gt;shiftExpression(),</span></a>
 <a name="571"><span class="lineNum">     571 </span>            :                            context-&gt;relationalOperator(), this)</a>
-<a name="572"><span class="lineNum">     572 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="572"><span class="lineNum">     572 </span><span class="lineCov">       3054 :         .visit();</span></a>
 <a name="573"><span class="lineNum">     573 </span>            :   }</a>
 <a name="574"><span class="lineNum">     574 </span>            : </a>
-<a name="575"><span class="lineNum">     575 </span><span class="lineNoCov">          0 :   std::any visitEqualityExpression(</span></a>
+<a name="575"><span class="lineNum">     575 </span><span class="lineCov">       1499 :   std::any visitEqualityExpression(</span></a>
 <a name="576"><span class="lineNum">     576 </span>            :       NudlDslParser::EqualityExpressionContext* context) override {</a>
-<a name="577"><span class="lineNum">     577 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;relationalExpression(),</span></a>
+<a name="577"><span class="lineNum">     577 </span><span class="lineCov">       2998 :     return OperatorBuilder(context, context-&gt;relationalExpression(),</span></a>
 <a name="578"><span class="lineNum">     578 </span>            :                            context-&gt;equalityOperator(), this)</a>
-<a name="579"><span class="lineNum">     579 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="579"><span class="lineNum">     579 </span><span class="lineCov">       2998 :         .visit();</span></a>
 <a name="580"><span class="lineNum">     580 </span>            :   }</a>
 <a name="581"><span class="lineNum">     581 </span>            : </a>
-<a name="582"><span class="lineNum">     582 </span><span class="lineNoCov">          0 :   std::any visitAndExpression(</span></a>
+<a name="582"><span class="lineNum">     582 </span><span class="lineCov">       1497 :   std::any visitAndExpression(</span></a>
 <a name="583"><span class="lineNum">     583 </span>            :       NudlDslParser::AndExpressionContext* context) override {</a>
-<a name="584"><span class="lineNum">     584 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;equalityExpression(),</span></a>
-<a name="585"><span class="lineNum">     585 </span><span class="lineNoCov">          0 :                            context-&gt;AMPERSAND(), this)</span></a>
-<a name="586"><span class="lineNum">     586 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="584"><span class="lineNum">     584 </span><span class="lineCov">       2994 :     return OperatorBuilder(context, context-&gt;equalityExpression(),</span></a>
+<a name="585"><span class="lineNum">     585 </span><span class="lineCov">       2994 :                            context-&gt;AMPERSAND(), this)</span></a>
+<a name="586"><span class="lineNum">     586 </span><span class="lineCov">       2994 :         .visit();</span></a>
 <a name="587"><span class="lineNum">     587 </span>            :   }</a>
 <a name="588"><span class="lineNum">     588 </span>            : </a>
-<a name="589"><span class="lineNum">     589 </span><span class="lineNoCov">          0 :   std::any visitXorExpression(</span></a>
+<a name="589"><span class="lineNum">     589 </span><span class="lineCov">       1495 :   std::any visitXorExpression(</span></a>
 <a name="590"><span class="lineNum">     590 </span>            :       NudlDslParser::XorExpressionContext* context) override {</a>
-<a name="591"><span class="lineNum">     591 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;andExpression(), context-&gt;CARET(),</span></a>
+<a name="591"><span class="lineNum">     591 </span><span class="lineCov">       2990 :     return OperatorBuilder(context, context-&gt;andExpression(), context-&gt;CARET(),</span></a>
 <a name="592"><span class="lineNum">     592 </span>            :                            this)</a>
-<a name="593"><span class="lineNum">     593 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="593"><span class="lineNum">     593 </span><span class="lineCov">       2990 :         .visit();</span></a>
 <a name="594"><span class="lineNum">     594 </span>            :   }</a>
 <a name="595"><span class="lineNum">     595 </span>            : </a>
-<a name="596"><span class="lineNum">     596 </span><span class="lineNoCov">          0 :   std::any visitOrExpression(</span></a>
+<a name="596"><span class="lineNum">     596 </span><span class="lineCov">       1493 :   std::any visitOrExpression(</span></a>
 <a name="597"><span class="lineNum">     597 </span>            :       NudlDslParser::OrExpressionContext* context) override {</a>
-<a name="598"><span class="lineNum">     598 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;xorExpression(), context-&gt;VBAR(),</span></a>
+<a name="598"><span class="lineNum">     598 </span><span class="lineCov">       2986 :     return OperatorBuilder(context, context-&gt;xorExpression(), context-&gt;VBAR(),</span></a>
 <a name="599"><span class="lineNum">     599 </span>            :                            this)</a>
-<a name="600"><span class="lineNum">     600 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="600"><span class="lineNum">     600 </span><span class="lineCov">       2986 :         .visit();</span></a>
 <a name="601"><span class="lineNum">     601 </span>            :   }</a>
 <a name="602"><span class="lineNum">     602 </span>            : </a>
-<a name="603"><span class="lineNum">     603 </span><span class="lineNoCov">          0 :   std::any visitBetweenExpression(</span></a>
+<a name="603"><span class="lineNum">     603 </span><span class="lineCov">       1487 :   std::any visitBetweenExpression(</span></a>
 <a name="604"><span class="lineNum">     604 </span>            :       NudlDslParser::BetweenExpressionContext* context) override {</a>
-<a name="605"><span class="lineNum">     605 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;orExpression(),</span></a>
+<a name="605"><span class="lineNum">     605 </span><span class="lineCov">       2974 :     return OperatorBuilder(context, context-&gt;orExpression(),</span></a>
 <a name="606"><span class="lineNum">     606 </span>            :                            context-&gt;KW_BETWEEN(), this)</a>
-<a name="607"><span class="lineNum">     607 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="607"><span class="lineNum">     607 </span><span class="lineCov">       2974 :         .visit();</span></a>
 <a name="608"><span class="lineNum">     608 </span>            :   }</a>
 <a name="609"><span class="lineNum">     609 </span>            : </a>
-<a name="610"><span class="lineNum">     610 </span><span class="lineNoCov">          0 :   std::any visitInExpression(</span></a>
+<a name="610"><span class="lineNum">     610 </span><span class="lineCov">       1485 :   std::any visitInExpression(</span></a>
 <a name="611"><span class="lineNum">     611 </span>            :       NudlDslParser::InExpressionContext* context) override {</a>
-<a name="612"><span class="lineNum">     612 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;betweenExpression(),</span></a>
+<a name="612"><span class="lineNum">     612 </span><span class="lineCov">       2970 :     return OperatorBuilder(context, context-&gt;betweenExpression(),</span></a>
 <a name="613"><span class="lineNum">     613 </span>            :                            context-&gt;KW_IN(), this)</a>
-<a name="614"><span class="lineNum">     614 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="614"><span class="lineNum">     614 </span><span class="lineCov">       2970 :         .visit();</span></a>
 <a name="615"><span class="lineNum">     615 </span>            :   }</a>
 <a name="616"><span class="lineNum">     616 </span>            : </a>
-<a name="617"><span class="lineNum">     617 </span><span class="lineNoCov">          0 :   std::any visitLogicalAndExpression(</span></a>
+<a name="617"><span class="lineNum">     617 </span><span class="lineCov">       1482 :   std::any visitLogicalAndExpression(</span></a>
 <a name="618"><span class="lineNum">     618 </span>            :       NudlDslParser::LogicalAndExpressionContext* context) override {</a>
-<a name="619"><span class="lineNum">     619 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;inExpression(), context-&gt;KW_AND(),</span></a>
+<a name="619"><span class="lineNum">     619 </span><span class="lineCov">       2964 :     return OperatorBuilder(context, context-&gt;inExpression(), context-&gt;KW_AND(),</span></a>
 <a name="620"><span class="lineNum">     620 </span>            :                            this)</a>
-<a name="621"><span class="lineNum">     621 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="621"><span class="lineNum">     621 </span><span class="lineCov">       2964 :         .visit();</span></a>
 <a name="622"><span class="lineNum">     622 </span>            :   }</a>
 <a name="623"><span class="lineNum">     623 </span>            : </a>
-<a name="624"><span class="lineNum">     624 </span><span class="lineNoCov">          0 :   std::any visitLogicalXorExpression(</span></a>
+<a name="624"><span class="lineNum">     624 </span><span class="lineCov">       1480 :   std::any visitLogicalXorExpression(</span></a>
 <a name="625"><span class="lineNum">     625 </span>            :       NudlDslParser::LogicalXorExpressionContext* context) override {</a>
-<a name="626"><span class="lineNum">     626 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;logicalAndExpression(),</span></a>
-<a name="627"><span class="lineNum">     627 </span><span class="lineNoCov">          0 :                            context-&gt;KW_XOR(), this)</span></a>
-<a name="628"><span class="lineNum">     628 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="626"><span class="lineNum">     626 </span><span class="lineCov">       2960 :     return OperatorBuilder(context, context-&gt;logicalAndExpression(),</span></a>
+<a name="627"><span class="lineNum">     627 </span><span class="lineCov">       2960 :                            context-&gt;KW_XOR(), this)</span></a>
+<a name="628"><span class="lineNum">     628 </span><span class="lineCov">       2960 :         .visit();</span></a>
 <a name="629"><span class="lineNum">     629 </span>            :   }</a>
 <a name="630"><span class="lineNum">     630 </span>            : </a>
-<a name="631"><span class="lineNum">     631 </span><span class="lineNoCov">          0 :   std::any visitLogicalOrExpression(</span></a>
+<a name="631"><span class="lineNum">     631 </span><span class="lineCov">       1476 :   std::any visitLogicalOrExpression(</span></a>
 <a name="632"><span class="lineNum">     632 </span>            :       NudlDslParser::LogicalOrExpressionContext* context) override {</a>
-<a name="633"><span class="lineNum">     633 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;logicalXorExpression(),</span></a>
-<a name="634"><span class="lineNum">     634 </span><span class="lineNoCov">          0 :                            context-&gt;KW_OR(), this)</span></a>
-<a name="635"><span class="lineNum">     635 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="633"><span class="lineNum">     633 </span><span class="lineCov">       2952 :     return OperatorBuilder(context, context-&gt;logicalXorExpression(),</span></a>
+<a name="634"><span class="lineNum">     634 </span><span class="lineCov">       2952 :                            context-&gt;KW_OR(), this)</span></a>
+<a name="635"><span class="lineNum">     635 </span><span class="lineCov">       2952 :         .visit();</span></a>
 <a name="636"><span class="lineNum">     636 </span>            :   }</a>
 <a name="637"><span class="lineNum">     637 </span>            : </a>
-<a name="638"><span class="lineNum">     638 </span><span class="lineNoCov">          0 :   std::any visitConditionalExpression(</span></a>
+<a name="638"><span class="lineNum">     638 </span><span class="lineCov">       1204 :   std::any visitConditionalExpression(</span></a>
 <a name="639"><span class="lineNum">     639 </span>            :       NudlDslParser::ConditionalExpressionContext* context) override {</a>
-<a name="640"><span class="lineNum">     640 </span><span class="lineNoCov">          0 :     return OperatorBuilder(context, context-&gt;logicalOrExpression(),</span></a>
+<a name="640"><span class="lineNum">     640 </span><span class="lineCov">       2408 :     return OperatorBuilder(context, context-&gt;logicalOrExpression(),</span></a>
 <a name="641"><span class="lineNum">     641 </span>            :                            context-&gt;QUESTION(), this)</a>
-<a name="642"><span class="lineNum">     642 </span><span class="lineNoCov">          0 :         .visit();</span></a>
+<a name="642"><span class="lineNum">     642 </span><span class="lineCov">       2408 :         .visit();</span></a>
 <a name="643"><span class="lineNum">     643 </span>            :   }</a>
 <a name="644"><span class="lineNum">     644 </span>            : </a>
 <a name="645"><span class="lineNum">     645 </span><span class="lineNoCov">          0 :   std::any visitComputeExpressions(</span></a>
@@ -709,149 +709,149 @@
 <a name="647"><span class="lineNum">     647 </span><span class="lineNoCov">          0 :     pb::ExpressionBlock block;</span></a>
 <a name="648"><span class="lineNum">     648 </span><span class="lineNoCov">          0 :     for (auto expr : context-&gt;computeExpression()) {</span></a>
 <a name="649"><span class="lineNum">     649 </span><span class="lineNoCov">          0 :       *block.add_expression() = computeExpression(expr);</span></a>
-<a name="650"><span class="lineNum">     650 </span><span class="lineNoCov">          0 :     }</span></a>
+<a name="650"><span class="lineNum">     650 </span>            :     }</a>
 <a name="651"><span class="lineNum">     651 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::ExpressionBlock&gt;(std::move(block));</span></a>
-<a name="652"><span class="lineNum">     652 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="652"><span class="lineNum">     652 </span>            :   }</a>
 <a name="653"><span class="lineNum">     653 </span>            : </a>
-<a name="654"><span class="lineNum">     654 </span><span class="lineNoCov">          0 :   std::any visitExpressionBlock(</span></a>
+<a name="654"><span class="lineNum">     654 </span><span class="lineCov">        386 :   std::any visitExpressionBlock(</span></a>
 <a name="655"><span class="lineNum">     655 </span>            :       NudlDslParser::ExpressionBlockContext* context) override {</a>
-<a name="656"><span class="lineNum">     656 </span><span class="lineNoCov">          0 :     if (context-&gt;blockBody()) {</span></a>
-<a name="657"><span class="lineNum">     657 </span><span class="lineNoCov">          0 :       return visit(context-&gt;blockBody());</span></a>
+<a name="656"><span class="lineNum">     656 </span><span class="lineCov">        386 :     if (context-&gt;blockBody()) {</span></a>
+<a name="657"><span class="lineNum">     657 </span><span class="lineCov">        123 :       return visit(context-&gt;blockBody());</span></a>
 <a name="658"><span class="lineNum">     658 </span>            :     }</a>
-<a name="659"><span class="lineNum">     659 </span><span class="lineNoCov">          0 :     pb::ExpressionBlock block;</span></a>
+<a name="659"><span class="lineNum">     659 </span><span class="lineCov">        526 :     pb::ExpressionBlock block;</span></a>
 <a name="660"><span class="lineNum">     660 </span>            :     *block.add_expression() =</a>
-<a name="661"><span class="lineNum">     661 </span><span class="lineNoCov">          0 :         computeExpression(CHECK_NOTNULL(context-&gt;blockElement()));</span></a>
-<a name="662"><span class="lineNum">     662 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::ExpressionBlock&gt;(std::move(block));</span></a>
-<a name="663"><span class="lineNum">     663 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="661"><span class="lineNum">     661 </span><span class="lineCov">        263 :         computeExpression(CHECK_NOTNULL(context-&gt;blockElement()));</span></a>
+<a name="662"><span class="lineNum">     662 </span><span class="lineCov">        263 :     return std::make_any&lt;pb::ExpressionBlock&gt;(std::move(block));</span></a>
+<a name="663"><span class="lineNum">     663 </span>            :   }</a>
 <a name="664"><span class="lineNum">     664 </span>            : </a>
-<a name="665"><span class="lineNum">     665 </span><span class="lineNoCov">          0 :   std::any visitBlockBody(NudlDslParser::BlockBodyContext* context) override {</span></a>
-<a name="666"><span class="lineNum">     666 </span><span class="lineNoCov">          0 :     pb::ExpressionBlock block;</span></a>
-<a name="667"><span class="lineNum">     667 </span><span class="lineNoCov">          0 :     for (auto expr : context-&gt;blockElement()) {</span></a>
-<a name="668"><span class="lineNum">     668 </span><span class="lineNoCov">          0 :       *block.add_expression() = computeExpression(expr);</span></a>
-<a name="669"><span class="lineNum">     669 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="670"><span class="lineNum">     670 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::ExpressionBlock&gt;(std::move(block));</span></a>
-<a name="671"><span class="lineNum">     671 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="665"><span class="lineNum">     665 </span><span class="lineCov">        123 :   std::any visitBlockBody(NudlDslParser::BlockBodyContext* context) override {</span></a>
+<a name="666"><span class="lineNum">     666 </span><span class="lineCov">        246 :     pb::ExpressionBlock block;</span></a>
+<a name="667"><span class="lineNum">     667 </span><span class="lineCov">        301 :     for (auto expr : context-&gt;blockElement()) {</span></a>
+<a name="668"><span class="lineNum">     668 </span><span class="lineCov">        178 :       *block.add_expression() = computeExpression(expr);</span></a>
+<a name="669"><span class="lineNum">     669 </span>            :     }</a>
+<a name="670"><span class="lineNum">     670 </span><span class="lineCov">        246 :     return std::make_any&lt;pb::ExpressionBlock&gt;(std::move(block));</span></a>
+<a name="671"><span class="lineNum">     671 </span>            :   }</a>
 <a name="672"><span class="lineNum">     672 </span>            : </a>
-<a name="673"><span class="lineNum">     673 </span><span class="lineNoCov">          0 :   std::any visitSchemaDefinition(</span></a>
+<a name="673"><span class="lineNum">     673 </span><span class="lineCov">         30 :   std::any visitSchemaDefinition(</span></a>
 <a name="674"><span class="lineNum">     674 </span>            :       NudlDslParser::SchemaDefinitionContext* context) override {</a>
-<a name="675"><span class="lineNum">     675 </span><span class="lineNoCov">          0 :     pb::SchemaDefinition schema;</span></a>
-<a name="676"><span class="lineNum">     676 </span><span class="lineNoCov">          0 :     schema.set_name(TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
-<a name="677"><span class="lineNum">     677 </span><span class="lineNoCov">          0 :     if (context-&gt;fieldsDefinition()) {</span></a>
-<a name="678"><span class="lineNum">     678 </span><span class="lineNoCov">          0 :       for (auto field_def : context-&gt;fieldsDefinition()-&gt;fieldDefinition()) {</span></a>
+<a name="675"><span class="lineNum">     675 </span><span class="lineCov">         60 :     pb::SchemaDefinition schema;</span></a>
+<a name="676"><span class="lineNum">     676 </span><span class="lineCov">         60 :     schema.set_name(TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
+<a name="677"><span class="lineNum">     677 </span><span class="lineCov">         30 :     if (context-&gt;fieldsDefinition()) {</span></a>
+<a name="678"><span class="lineNum">     678 </span><span class="lineCov">        128 :       for (auto field_def : context-&gt;fieldsDefinition()-&gt;fieldDefinition()) {</span></a>
 <a name="679"><span class="lineNum">     679 </span>            :         *schema.add_field() =</a>
-<a name="680"><span class="lineNum">     680 </span><span class="lineNoCov">          0 :             std::any_cast&lt;pb::SchemaDefinition::Field&gt;(visit(field_def));</span></a>
-<a name="681"><span class="lineNum">     681 </span><span class="lineNoCov">          0 :       }</span></a>
+<a name="680"><span class="lineNum">     680 </span><span class="lineCov">         98 :             std::any_cast&lt;pb::SchemaDefinition::Field&gt;(visit(field_def));</span></a>
+<a name="681"><span class="lineNum">     681 </span>            :       }</a>
 <a name="682"><span class="lineNum">     682 </span>            :     }</a>
-<a name="683"><span class="lineNum">     683 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::SchemaDefinition&gt;(std::move(schema));</span></a>
-<a name="684"><span class="lineNum">     684 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="683"><span class="lineNum">     683 </span><span class="lineCov">         60 :     return std::make_any&lt;pb::SchemaDefinition&gt;(std::move(schema));</span></a>
+<a name="684"><span class="lineNum">     684 </span>            :   }</a>
 <a name="685"><span class="lineNum">     685 </span>            : </a>
-<a name="686"><span class="lineNum">     686 </span><span class="lineNoCov">          0 :   std::any visitFieldDefinition(</span></a>
+<a name="686"><span class="lineNum">     686 </span><span class="lineCov">         98 :   std::any visitFieldDefinition(</span></a>
 <a name="687"><span class="lineNum">     687 </span>            :       NudlDslParser::FieldDefinitionContext* context) override {</a>
-<a name="688"><span class="lineNum">     688 </span><span class="lineNoCov">          0 :     pb::SchemaDefinition::Field field;</span></a>
-<a name="689"><span class="lineNum">     689 </span><span class="lineNoCov">          0 :     field.set_name(TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
+<a name="688"><span class="lineNum">     688 </span><span class="lineCov">        196 :     pb::SchemaDefinition::Field field;</span></a>
+<a name="689"><span class="lineNum">     689 </span><span class="lineCov">        196 :     field.set_name(TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
 <a name="690"><span class="lineNum">     690 </span>            :     *field.mutable_type_spec() =</a>
-<a name="691"><span class="lineNum">     691 </span><span class="lineNoCov">          0 :         typeSpec(CHECK_NOTNULL(context-&gt;typeAssignment()));</span></a>
-<a name="692"><span class="lineNum">     692 </span><span class="lineNoCov">          0 :     if (context-&gt;fieldOptions()) {</span></a>
-<a name="693"><span class="lineNum">     693 </span><span class="lineNoCov">          0 :       for (auto option : context-&gt;fieldOptions()-&gt;fieldOption()) {</span></a>
-<a name="694"><span class="lineNum">     694 </span><span class="lineNoCov">          0 :         auto pb_option = field.add_field_option();</span></a>
+<a name="691"><span class="lineNum">     691 </span><span class="lineCov">         98 :         typeSpec(CHECK_NOTNULL(context-&gt;typeAssignment()));</span></a>
+<a name="692"><span class="lineNum">     692 </span><span class="lineCov">         98 :     if (context-&gt;fieldOptions()) {</span></a>
+<a name="693"><span class="lineNum">     693 </span><span class="lineCov">          4 :       for (auto option : context-&gt;fieldOptions()-&gt;fieldOption()) {</span></a>
+<a name="694"><span class="lineNum">     694 </span><span class="lineCov">          2 :         auto pb_option = field.add_field_option();</span></a>
 <a name="695"><span class="lineNum">     695 </span>            :         pb_option-&gt;set_name(</a>
-<a name="696"><span class="lineNum">     696 </span><span class="lineNoCov">          0 :             TreeUtil::Recompose(CHECK_NOTNULL(option-&gt;IDENTIFIER())));</span></a>
+<a name="696"><span class="lineNum">     696 </span><span class="lineCov">          4 :             TreeUtil::Recompose(CHECK_NOTNULL(option-&gt;IDENTIFIER())));</span></a>
 <a name="697"><span class="lineNum">     697 </span>            :         *pb_option-&gt;mutable_value() =</a>
-<a name="698"><span class="lineNum">     698 </span><span class="lineNoCov">          0 :             computeExpression(CHECK_NOTNULL(option-&gt;literal()));</span></a>
-<a name="699"><span class="lineNum">     699 </span><span class="lineNoCov">          0 :       }</span></a>
+<a name="698"><span class="lineNum">     698 </span><span class="lineCov">          2 :             computeExpression(CHECK_NOTNULL(option-&gt;literal()));</span></a>
+<a name="699"><span class="lineNum">     699 </span>            :       }</a>
 <a name="700"><span class="lineNum">     700 </span>            :     }</a>
-<a name="701"><span class="lineNum">     701 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::SchemaDefinition::Field&gt;(std::move(field));</span></a>
-<a name="702"><span class="lineNum">     702 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="701"><span class="lineNum">     701 </span><span class="lineCov">        196 :     return std::make_any&lt;pb::SchemaDefinition::Field&gt;(std::move(field));</span></a>
+<a name="702"><span class="lineNum">     702 </span>            :   }</a>
 <a name="703"><span class="lineNum">     703 </span>            : </a>
-<a name="704"><span class="lineNum">     704 </span><span class="lineNoCov">          0 :   std::any visitImportStatement(</span></a>
+<a name="704"><span class="lineNum">     704 </span><span class="lineCov">         23 :   std::any visitImportStatement(</span></a>
 <a name="705"><span class="lineNum">     705 </span>            :       NudlDslParser::ImportStatementContext* context) override {</a>
-<a name="706"><span class="lineNum">     706 </span><span class="lineNoCov">          0 :     pb::ImportStatement stmt;</span></a>
-<a name="707"><span class="lineNum">     707 </span><span class="lineNoCov">          0 :     for (auto spec : context-&gt;importSpecification()) {</span></a>
+<a name="706"><span class="lineNum">     706 </span><span class="lineCov">         46 :     pb::ImportStatement stmt;</span></a>
+<a name="707"><span class="lineNum">     707 </span><span class="lineCov">         46 :     for (auto spec : context-&gt;importSpecification()) {</span></a>
 <a name="708"><span class="lineNum">     708 </span>            :       *stmt.add_spec() =</a>
-<a name="709"><span class="lineNum">     709 </span><span class="lineNoCov">          0 :           std::any_cast&lt;pb::ImportStatement::Specification&gt;(visit(spec));</span></a>
-<a name="710"><span class="lineNum">     710 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="711"><span class="lineNum">     711 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::ImportStatement&gt;(std::move(stmt));</span></a>
-<a name="712"><span class="lineNum">     712 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="709"><span class="lineNum">     709 </span><span class="lineCov">         23 :           std::any_cast&lt;pb::ImportStatement::Specification&gt;(visit(spec));</span></a>
+<a name="710"><span class="lineNum">     710 </span>            :     }</a>
+<a name="711"><span class="lineNum">     711 </span><span class="lineCov">         46 :     return std::make_any&lt;pb::ImportStatement&gt;(std::move(stmt));</span></a>
+<a name="712"><span class="lineNum">     712 </span>            :   }</a>
 <a name="713"><span class="lineNum">     713 </span>            : </a>
-<a name="714"><span class="lineNum">     714 </span><span class="lineNoCov">          0 :   std::any visitImportSpecification(</span></a>
+<a name="714"><span class="lineNum">     714 </span><span class="lineCov">         23 :   std::any visitImportSpecification(</span></a>
 <a name="715"><span class="lineNum">     715 </span>            :       NudlDslParser::ImportSpecificationContext* context) override {</a>
-<a name="716"><span class="lineNum">     716 </span><span class="lineNoCov">          0 :     pb::ImportStatement::Specification spec;</span></a>
-<a name="717"><span class="lineNum">     717 </span><span class="lineNoCov">          0 :     if (context-&gt;IDENTIFIER()) {</span></a>
-<a name="718"><span class="lineNum">     718 </span><span class="lineNoCov">          0 :       spec.set_alias(TreeUtil::Recompose(context-&gt;IDENTIFIER()));</span></a>
+<a name="716"><span class="lineNum">     716 </span><span class="lineCov">         46 :     pb::ImportStatement::Specification spec;</span></a>
+<a name="717"><span class="lineNum">     717 </span><span class="lineCov">         23 :     if (context-&gt;IDENTIFIER()) {</span></a>
+<a name="718"><span class="lineNum">     718 </span><span class="lineCov">          2 :       spec.set_alias(TreeUtil::Recompose(context-&gt;IDENTIFIER()));</span></a>
 <a name="719"><span class="lineNum">     719 </span>            :     }</a>
 <a name="720"><span class="lineNum">     720 </span>            :     *spec.mutable_module() =</a>
-<a name="721"><span class="lineNum">     721 </span><span class="lineNoCov">          0 :         identifier(CHECK_NOTNULL(context-&gt;composedIdentifier()));</span></a>
-<a name="722"><span class="lineNum">     722 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::ImportStatement::Specification&gt;(std::move(spec));</span></a>
-<a name="723"><span class="lineNum">     723 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="721"><span class="lineNum">     721 </span><span class="lineCov">         23 :         identifier(CHECK_NOTNULL(context-&gt;composedIdentifier()));</span></a>
+<a name="722"><span class="lineNum">     722 </span><span class="lineCov">         46 :     return std::make_any&lt;pb::ImportStatement::Specification&gt;(std::move(spec));</span></a>
+<a name="723"><span class="lineNum">     723 </span>            :   }</a>
 <a name="724"><span class="lineNum">     724 </span>            : </a>
-<a name="725"><span class="lineNum">     725 </span><span class="lineNoCov">          0 :   std::any visitModuleAssignment(</span></a>
+<a name="725"><span class="lineNum">     725 </span><span class="lineCov">        143 :   std::any visitModuleAssignment(</span></a>
 <a name="726"><span class="lineNum">     726 </span>            :       NudlDslParser::ModuleAssignmentContext* context) override {</a>
-<a name="727"><span class="lineNum">     727 </span><span class="lineNoCov">          0 :     auto assign = buildAssignment(CHECK_NOTNULL(context-&gt;assignExpression()));</span></a>
-<a name="728"><span class="lineNum">     728 </span><span class="lineNoCov">          0 :     for (auto qualifier : context-&gt;assignQualifier()) {</span></a>
-<a name="729"><span class="lineNum">     729 </span><span class="lineNoCov">          0 :       if (qualifier-&gt;KW_PARAM()) {</span></a>
-<a name="730"><span class="lineNum">     730 </span><span class="lineNoCov">          0 :         assign.add_qualifier(pb::QualifierType::PARAM);</span></a>
+<a name="727"><span class="lineNum">     727 </span><span class="lineCov">        286 :     auto assign = buildAssignment(CHECK_NOTNULL(context-&gt;assignExpression()));</span></a>
+<a name="728"><span class="lineNum">     728 </span><span class="lineCov">        147 :     for (auto qualifier : context-&gt;assignQualifier()) {</span></a>
+<a name="729"><span class="lineNum">     729 </span><span class="lineCov">          4 :       if (qualifier-&gt;KW_PARAM()) {</span></a>
+<a name="730"><span class="lineNum">     730 </span><span class="lineCov">          4 :         assign.add_qualifier(pb::QualifierType::PARAM);</span></a>
 <a name="731"><span class="lineNum">     731 </span>            :       }</a>
-<a name="732"><span class="lineNum">     732 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="733"><span class="lineNum">     733 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Assignment&gt;(std::move(assign));</span></a>
-<a name="734"><span class="lineNum">     734 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="732"><span class="lineNum">     732 </span>            :     }</a>
+<a name="733"><span class="lineNum">     733 </span><span class="lineCov">        286 :     return std::make_any&lt;pb::Assignment&gt;(std::move(assign));</span></a>
+<a name="734"><span class="lineNum">     734 </span>            :   }</a>
 <a name="735"><span class="lineNum">     735 </span>            : </a>
-<a name="736"><span class="lineNum">     736 </span><span class="lineNoCov">          0 :   pb::PragmaExpression buildPragma(</span></a>
+<a name="736"><span class="lineNum">     736 </span><span class="lineCov">         16 :   pb::PragmaExpression buildPragma(</span></a>
 <a name="737"><span class="lineNum">     737 </span>            :       NudlDslParser::PragmaExpressionContext* context) {</a>
-<a name="738"><span class="lineNum">     738 </span><span class="lineNoCov">          0 :     pb::PragmaExpression pragma_node;</span></a>
+<a name="738"><span class="lineNum">     738 </span><span class="lineCov">         16 :     pb::PragmaExpression pragma_node;</span></a>
 <a name="739"><span class="lineNum">     739 </span>            :     pragma_node.set_name(</a>
-<a name="740"><span class="lineNum">     740 </span><span class="lineNoCov">          0 :         TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
-<a name="741"><span class="lineNum">     741 </span><span class="lineNoCov">          0 :     if (context-&gt;computeExpression()) {</span></a>
+<a name="740"><span class="lineNum">     740 </span><span class="lineCov">         32 :         TreeUtil::Recompose(CHECK_NOTNULL(context-&gt;IDENTIFIER())));</span></a>
+<a name="741"><span class="lineNum">     741 </span><span class="lineCov">         16 :     if (context-&gt;computeExpression()) {</span></a>
 <a name="742"><span class="lineNum">     742 </span>            :       *pragma_node.mutable_value() =</a>
-<a name="743"><span class="lineNum">     743 </span><span class="lineNoCov">          0 :           computeExpression(context-&gt;computeExpression());</span></a>
+<a name="743"><span class="lineNum">     743 </span><span class="lineCov">          7 :           computeExpression(context-&gt;computeExpression());</span></a>
 <a name="744"><span class="lineNum">     744 </span>            :     }</a>
-<a name="745"><span class="lineNum">     745 </span><span class="lineNoCov">          0 :     return pragma_node;</span></a>
-<a name="746"><span class="lineNum">     746 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="745"><span class="lineNum">     745 </span><span class="lineCov">         16 :     return pragma_node;</span></a>
+<a name="746"><span class="lineNum">     746 </span>            :   }</a>
 <a name="747"><span class="lineNum">     747 </span>            : </a>
-<a name="748"><span class="lineNum">     748 </span><span class="lineNoCov">          0 :   std::any visitPragmaExpression(</span></a>
+<a name="748"><span class="lineNum">     748 </span><span class="lineCov">          7 :   std::any visitPragmaExpression(</span></a>
 <a name="749"><span class="lineNum">     749 </span>            :       NudlDslParser::PragmaExpressionContext* context) override {</a>
-<a name="750"><span class="lineNum">     750 </span><span class="lineNoCov">          0 :     pb::Expression expression(emptyExpression(*context));</span></a>
-<a name="751"><span class="lineNum">     751 </span><span class="lineNoCov">          0 :     *expression.mutable_pragma_expr() = buildPragma(context);</span></a>
-<a name="752"><span class="lineNum">     752 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
-<a name="753"><span class="lineNum">     753 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="750"><span class="lineNum">     750 </span><span class="lineCov">         14 :     pb::Expression expression(emptyExpression(*context));</span></a>
+<a name="751"><span class="lineNum">     751 </span><span class="lineCov">          7 :     *expression.mutable_pragma_expr() = buildPragma(context);</span></a>
+<a name="752"><span class="lineNum">     752 </span><span class="lineCov">         14 :     return std::make_any&lt;pb::Expression&gt;(std::move(expression));</span></a>
+<a name="753"><span class="lineNum">     753 </span>            :   }</a>
 <a name="754"><span class="lineNum">     754 </span>            : </a>
-<a name="755"><span class="lineNum">     755 </span><span class="lineNoCov">          0 :   std::any visitModuleElement(</span></a>
+<a name="755"><span class="lineNum">     755 </span><span class="lineCov">       1716 :   std::any visitModuleElement(</span></a>
 <a name="756"><span class="lineNum">     756 </span>            :       NudlDslParser::ModuleElementContext* context) override {</a>
-<a name="757"><span class="lineNum">     757 </span><span class="lineNoCov">          0 :     pb::ModuleElement element;</span></a>
-<a name="758"><span class="lineNum">     758 </span><span class="lineNoCov">          0 :     if (!code_.empty() &amp;&amp; !options_.no_intervals) {</span></a>
-<a name="759"><span class="lineNum">     759 </span><span class="lineNoCov">          0 :       element.set_code(FillInterval(*context, element.mutable_code_interval()));</span></a>
+<a name="757"><span class="lineNum">     757 </span><span class="lineCov">       3432 :     pb::ModuleElement element;</span></a>
+<a name="758"><span class="lineNum">     758 </span><span class="lineCov">       1716 :     if (!code_.empty() &amp;&amp; !options_.no_intervals) {</span></a>
+<a name="759"><span class="lineNum">     759 </span><span class="lineCov">       3240 :       element.set_code(FillInterval(*context, element.mutable_code_interval()));</span></a>
 <a name="760"><span class="lineNum">     760 </span>            :     }</a>
-<a name="761"><span class="lineNum">     761 </span><span class="lineNoCov">          0 :     if (context-&gt;importStatement()) {</span></a>
+<a name="761"><span class="lineNum">     761 </span><span class="lineCov">       1716 :     if (context-&gt;importStatement()) {</span></a>
 <a name="762"><span class="lineNum">     762 </span>            :       *element.mutable_import_stmt() =</a>
-<a name="763"><span class="lineNum">     763 </span><span class="lineNoCov">          0 :           std::any_cast&lt;pb::ImportStatement&gt;(visit(context-&gt;importStatement()));</span></a>
-<a name="764"><span class="lineNum">     764 </span><span class="lineNoCov">          0 :     } else if (context-&gt;schemaDefinition()) {</span></a>
-<a name="765"><span class="lineNum">     765 </span><span class="lineNoCov">          0 :       *element.mutable_schema() = std::any_cast&lt;pb::SchemaDefinition&gt;(</span></a>
-<a name="766"><span class="lineNum">     766 </span><span class="lineNoCov">          0 :           visit(context-&gt;schemaDefinition()));</span></a>
-<a name="767"><span class="lineNum">     767 </span><span class="lineNoCov">          0 :     } else if (context-&gt;functionDefinition()) {</span></a>
-<a name="768"><span class="lineNum">     768 </span><span class="lineNoCov">          0 :       *element.mutable_function_def() = std::any_cast&lt;pb::FunctionDefinition&gt;(</span></a>
-<a name="769"><span class="lineNum">     769 </span><span class="lineNoCov">          0 :           visit(context-&gt;functionDefinition()));</span></a>
-<a name="770"><span class="lineNum">     770 </span><span class="lineNoCov">          0 :     } else if (context-&gt;moduleAssignment()) {</span></a>
+<a name="763"><span class="lineNum">     763 </span><span class="lineCov">         23 :           std::any_cast&lt;pb::ImportStatement&gt;(visit(context-&gt;importStatement()));</span></a>
+<a name="764"><span class="lineNum">     764 </span><span class="lineCov">       1693 :     } else if (context-&gt;schemaDefinition()) {</span></a>
+<a name="765"><span class="lineNum">     765 </span><span class="lineCov">         60 :       *element.mutable_schema() = std::any_cast&lt;pb::SchemaDefinition&gt;(</span></a>
+<a name="766"><span class="lineNum">     766 </span><span class="lineCov">         90 :           visit(context-&gt;schemaDefinition()));</span></a>
+<a name="767"><span class="lineNum">     767 </span><span class="lineCov">       1663 :     } else if (context-&gt;functionDefinition()) {</span></a>
+<a name="768"><span class="lineNum">     768 </span><span class="lineCov">       3022 :       *element.mutable_function_def() = std::any_cast&lt;pb::FunctionDefinition&gt;(</span></a>
+<a name="769"><span class="lineNum">     769 </span><span class="lineCov">       4533 :           visit(context-&gt;functionDefinition()));</span></a>
+<a name="770"><span class="lineNum">     770 </span><span class="lineCov">        152 :     } else if (context-&gt;moduleAssignment()) {</span></a>
 <a name="771"><span class="lineNum">     771 </span>            :       *element.mutable_assignment() =</a>
-<a name="772"><span class="lineNum">     772 </span><span class="lineNoCov">          0 :           std::any_cast&lt;pb::Assignment&gt;(visit(context-&gt;moduleAssignment()));</span></a>
-<a name="773"><span class="lineNum">     773 </span><span class="lineNoCov">          0 :     } else if (context-&gt;pragmaExpression()) {</span></a>
-<a name="774"><span class="lineNum">     774 </span><span class="lineNoCov">          0 :       *element.mutable_pragma_expr() = buildPragma(context-&gt;pragmaExpression());</span></a>
+<a name="772"><span class="lineNum">     772 </span><span class="lineCov">        143 :           std::any_cast&lt;pb::Assignment&gt;(visit(context-&gt;moduleAssignment()));</span></a>
+<a name="773"><span class="lineNum">     773 </span><span class="lineCov">          9 :     } else if (context-&gt;pragmaExpression()) {</span></a>
+<a name="774"><span class="lineNum">     774 </span><span class="lineCov">          9 :       *element.mutable_pragma_expr() = buildPragma(context-&gt;pragmaExpression());</span></a>
 <a name="775"><span class="lineNum">     775 </span>            :     }</a>
-<a name="776"><span class="lineNum">     776 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::ModuleElement&gt;(std::move(element));</span></a>
-<a name="777"><span class="lineNum">     777 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="776"><span class="lineNum">     776 </span><span class="lineCov">       3432 :     return std::make_any&lt;pb::ModuleElement&gt;(std::move(element));</span></a>
+<a name="777"><span class="lineNum">     777 </span>            :   }</a>
 <a name="778"><span class="lineNum">     778 </span>            : </a>
-<a name="779"><span class="lineNum">     779 </span><span class="lineNoCov">          0 :   std::any visitModule(NudlDslParser::ModuleContext* context) override {</span></a>
-<a name="780"><span class="lineNum">     780 </span><span class="lineNoCov">          0 :     pb::Module module;</span></a>
-<a name="781"><span class="lineNum">     781 </span><span class="lineNoCov">          0 :     for (auto element : context-&gt;moduleElement()) {</span></a>
-<a name="782"><span class="lineNum">     782 </span><span class="lineNoCov">          0 :       *module.add_element() = std::any_cast&lt;pb::ModuleElement&gt;(visit(element));</span></a>
-<a name="783"><span class="lineNum">     783 </span><span class="lineNoCov">          0 :     }</span></a>
-<a name="784"><span class="lineNum">     784 </span><span class="lineNoCov">          0 :     return std::make_any&lt;pb::Module&gt;(std::move(module));</span></a>
-<a name="785"><span class="lineNum">     785 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="779"><span class="lineNum">     779 </span><span class="lineCov">        289 :   std::any visitModule(NudlDslParser::ModuleContext* context) override {</span></a>
+<a name="780"><span class="lineNum">     780 </span><span class="lineCov">        578 :     pb::Module module;</span></a>
+<a name="781"><span class="lineNum">     781 </span><span class="lineCov">       2005 :     for (auto element : context-&gt;moduleElement()) {</span></a>
+<a name="782"><span class="lineNum">     782 </span><span class="lineCov">       1716 :       *module.add_element() = std::any_cast&lt;pb::ModuleElement&gt;(visit(element));</span></a>
+<a name="783"><span class="lineNum">     783 </span>            :     }</a>
+<a name="784"><span class="lineNum">     784 </span><span class="lineCov">        578 :     return std::make_any&lt;pb::Module&gt;(std::move(module));</span></a>
+<a name="785"><span class="lineNum">     785 </span>            :   }</a>
 <a name="786"><span class="lineNum">     786 </span>            : };</a>
 <a name="787"><span class="lineNum">     787 </span>            : }  // namespace</a>
 <a name="788"><span class="lineNum">     788 </span>            : </a>
-<a name="789"><span class="lineNum">     789 </span><span class="lineNoCov">          0 : std::unique_ptr&lt;NudlDslParserVisitor&gt; BuildVisitor(const antlr4::Parser* parser,</span></a>
+<a name="789"><span class="lineNum">     789 </span><span class="lineCov">       6046 : std::unique_ptr&lt;NudlDslParserVisitor&gt; BuildVisitor(const antlr4::Parser* parser,</span></a>
 <a name="790"><span class="lineNum">     790 </span>            :                                                    absl::string_view code,</a>
 <a name="791"><span class="lineNum">     791 </span>            :                                                    VisitorOptions options) {</a>
-<a name="792"><span class="lineNum">     792 </span><span class="lineNoCov">          0 :   return std::make_unique&lt;DslVisitor&gt;(parser, code, options);</span></a>
+<a name="792"><span class="lineNum">     792 </span><span class="lineCov">       6046 :   return std::make_unique&lt;DslVisitor&gt;(parser, code, options);</span></a>
 <a name="793"><span class="lineNum">     793 </span>            : }</a>
 <a name="794"><span class="lineNum">     794 </span>            : </a>
 <a name="795"><span class="lineNum">     795 </span>            : }  // namespace grammar</a>

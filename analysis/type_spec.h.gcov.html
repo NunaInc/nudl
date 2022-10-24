@@ -31,18 +31,18 @@
             <td class="headerValue">_coverage_report.dat</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">0</td>
             <td class="headerCovTableEntry">2</td>
-            <td class="headerCovTableEntryLo">0.0 %</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-24 19:16:22</td>
+            <td class="headerValue">2022-10-24 19:34:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">2</td>
             <td class="headerCovTableEntry">3</td>
-            <td class="headerCovTableEntryLo">0.0 %</td>
+            <td class="headerCovTableEntryLo">66.7 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -124,7 +124,7 @@
 <a name="62"><span class="lineNum">      62 </span>            :            bool is_bound_type = false, const TypeSpec* ancestor = nullptr,</a>
 <a name="63"><span class="lineNum">      63 </span>            :            std::vector&lt;const TypeSpec*&gt; parameters = {});</a>
 <a name="64"><span class="lineNum">      64 </span>            : </a>
-<a name="65"><span class="lineNum">      65 </span><span class="lineNoCov">          0 :   virtual ~TypeSpec() {}</span></a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">      11290 :   virtual ~TypeSpec() {}</span></a>
 <a name="66"><span class="lineNum">      66 </span>            : </a>
 <a name="67"><span class="lineNum">      67 </span>            :   // The unique identifier of this type.</a>
 <a name="68"><span class="lineNum">      68 </span>            :   pb::TypeId type_id() const;</a>
@@ -237,7 +237,7 @@
 <a name="175"><span class="lineNum">     175 </span>            : // Binding with Int and Decimal may result in an error.</a>
 <a name="176"><span class="lineNum">     176 </span>            : class LocalNamesRebinder {</a>
 <a name="177"><span class="lineNum">     177 </span>            :  public:</a>
-<a name="178"><span class="lineNum">     178 </span><span class="lineNoCov">          0 :   LocalNamesRebinder() {}</span></a>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">        704 :   LocalNamesRebinder() {}</span></a>
 <a name="179"><span class="lineNum">     179 </span>            :   absl::Status ProcessType(const TypeSpec* src_param,</a>
 <a name="180"><span class="lineNum">     180 </span>            :                            const TypeSpec* type_spec);</a>
 <a name="181"><span class="lineNum">     181 </span>            :   absl::StatusOr&lt;const TypeSpec*&gt; RebuildType(const TypeSpec* src_param,</a>
