@@ -1,4 +1,4 @@
-name: bazel_build
+name: bazel_coverage
 on: [push, pull_request]
 jobs:
   bazel-build-test:
