@@ -1,0 +1,31 @@
+name: bazel_coverage
+on: [push]
+jobs:
+  bazel-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ runner.tool_cache }}/nudl
+          key: nudl-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/BUILD.bazel') }}
+          restore-keys: nudl-${{ runner.os }}-${{ runner.arch }}
+      - name: Install gcc
+        run: sudo apt-get install -y gcc
+      - name: Install lcov
+        run: sudo apt-get install -y lcov
+      - name: Version checking
+        run: |
+          gcc --version
+          gcov --version
+          lcov --version
+      - uses: bazelbuild/setup-bazelisk@v1
+      - name: Run coverage
+        run: bazel coverage --combined_report=lcov //...
+      - name: Generate coverage report
+        run: genhtml --output genhtml "$(bazel info output_path)/_coverage/_coverage_report.dat"
+      - name: Publish genhtml
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: genhtml
