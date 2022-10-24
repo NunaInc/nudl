@@ -1,7 +1,7 @@
 name: bazel_coverage
 on: [push, pull_request]
 jobs:
-  bazel-build-test:
+  bazel-coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
