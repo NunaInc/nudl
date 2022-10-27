@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-27 04:15:31</td>
+            <td class="headerValue">2022-10-27 04:16:00</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">2</td>
@@ -78,15 +78,15 @@
 <a name="16"><span class="lineNum">      16 </span>            :   const std::string* code = nullptr;</a>
 <a name="17"><span class="lineNum">      17 </span>            : </a>
 <a name="18"><span class="lineNum">      18 </span>            :   template &lt;class Proto&gt;</a>
-<a name="19"><span class="lineNum">      19 </span><span class="lineCov">       4127 :   static CodeContext FromProto(const Proto&amp; proto) {</span></a>
-<a name="20"><span class="lineNum">      20 </span><span class="lineCov">       4127 :     CodeContext context;</span></a>
-<a name="21"><span class="lineNum">      21 </span><span class="lineCov">       4127 :     if (proto.has_code_interval()) {</span></a>
-<a name="22"><span class="lineNum">      22 </span><span class="lineCov">       4101 :       context.interval = &amp;proto.code_interval();</span></a>
+<a name="19"><span class="lineNum">      19 </span><span class="lineCov">       6643 :   static CodeContext FromProto(const Proto&amp; proto) {</span></a>
+<a name="20"><span class="lineNum">      20 </span><span class="lineCov">       6643 :     CodeContext context;</span></a>
+<a name="21"><span class="lineNum">      21 </span><span class="lineCov">       6643 :     if (proto.has_code_interval()) {</span></a>
+<a name="22"><span class="lineNum">      22 </span><span class="lineCov">       6617 :       context.interval = &amp;proto.code_interval();</span></a>
 <a name="23"><span class="lineNum">      23 </span>            :     }</a>
-<a name="24"><span class="lineNum">      24 </span><span class="lineCov">       4127 :     if (proto.has_code()) {</span></a>
-<a name="25"><span class="lineNum">      25 </span><span class="lineCov">       4101 :       context.code = &amp;proto.code();</span></a>
+<a name="24"><span class="lineNum">      24 </span><span class="lineCov">       6643 :     if (proto.has_code()) {</span></a>
+<a name="25"><span class="lineNum">      25 </span><span class="lineCov">       6617 :       context.code = &amp;proto.code();</span></a>
 <a name="26"><span class="lineNum">      26 </span>            :     }</a>
-<a name="27"><span class="lineNum">      27 </span><span class="lineCov">       4127 :     return context;</span></a>
+<a name="27"><span class="lineNum">      27 </span><span class="lineCov">       6643 :     return context;</span></a>
 <a name="28"><span class="lineNum">      28 </span>            :   }</a>
 <a name="29"><span class="lineNum">      29 </span>            :   pb::ErrorInfo ToErrorInfo(absl::string_view message) const;</a>
 <a name="30"><span class="lineNum">      30 </span>            :   absl::Status&amp; AppendErrorToStatus(absl::Status&amp; status,</a>

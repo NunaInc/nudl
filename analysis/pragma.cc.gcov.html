@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-27 04:15:31</td>
+            <td class="headerValue">2022-10-27 04:16:00</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">3</td>
@@ -79,13 +79,13 @@
 <a name="17"><span class="lineNum">      17 </span>            : namespace nudl {</a>
 <a name="18"><span class="lineNum">      18 </span>            : namespace analysis {</a>
 <a name="19"><span class="lineNum">      19 </span>            : </a>
-<a name="20"><span class="lineNum">      20 </span><span class="lineCov">        223 : PragmaHandler::PragmaHandler(Module* module) : module_(module) {}</span></a>
+<a name="20"><span class="lineNum">      20 </span><span class="lineCov">        246 : PragmaHandler::PragmaHandler(Module* module) : module_(module) {}</span></a>
 <a name="21"><span class="lineNum">      21 </span>            : </a>
 <a name="22"><span class="lineNum">      22 </span><span class="lineNoCov">          0 : Module* PragmaHandler::module() const { return module_; }</span></a>
 <a name="23"><span class="lineNum">      23 </span>            : </a>
-<a name="24"><span class="lineNum">      24 </span><span class="lineCov">       5538 : bool PragmaHandler::log_bindings() const {</span></a>
+<a name="24"><span class="lineNum">      24 </span><span class="lineCov">       7436 : bool PragmaHandler::log_bindings() const {</span></a>
 <a name="25"><span class="lineNum">      25 </span>            :   // This flag needs to be global.</a>
-<a name="26"><span class="lineNum">      26 </span><span class="lineCov">       5538 :   return absl::GetFlag(FLAGS_analyze_log_bindings);</span></a>
+<a name="26"><span class="lineNum">      26 </span><span class="lineCov">       7436 :   return absl::GetFlag(FLAGS_analyze_log_bindings);</span></a>
 <a name="27"><span class="lineNum">      27 </span>            : }</a>
 <a name="28"><span class="lineNum">      28 </span>            : </a>
 <a name="29"><span class="lineNum">      29 </span><span class="lineCov">         13 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; PragmaHandler::HandlePragma(</span></a>

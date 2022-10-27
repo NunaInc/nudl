@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-27 04:15:31</td>
+            <td class="headerValue">2022-10-27 04:16:00</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">2</td>
@@ -112,11 +112,11 @@
 <a name="50"><span class="lineNum">      50 </span>            :   // On stack helper for maintaining the function call stacl.</a>
 <a name="51"><span class="lineNum">      51 </span>            :   class FunctionPusher {</a>
 <a name="52"><span class="lineNum">      52 </span>            :    public:</a>
-<a name="53"><span class="lineNum">      53 </span><span class="lineCov">         58 :     FunctionPusher(BasicConvertState* state, const Function* fun)</span></a>
-<a name="54"><span class="lineNum">      54 </span><span class="lineCov">         58 :         : state_(CHECK_NOTNULL(state)) {</span></a>
-<a name="55"><span class="lineNum">      55 </span><span class="lineCov">         58 :       state_-&gt;push_in_function_call(CHECK_NOTNULL(fun));</span></a>
-<a name="56"><span class="lineNum">      56 </span><span class="lineCov">         58 :     }</span></a>
-<a name="57"><span class="lineNum">      57 </span><span class="lineCov">         58 :     ~FunctionPusher() { state_-&gt;pop_in_function_call(); }</span></a>
+<a name="53"><span class="lineNum">      53 </span><span class="lineCov">         64 :     FunctionPusher(BasicConvertState* state, const Function* fun)</span></a>
+<a name="54"><span class="lineNum">      54 </span><span class="lineCov">         64 :         : state_(CHECK_NOTNULL(state)) {</span></a>
+<a name="55"><span class="lineNum">      55 </span><span class="lineCov">         64 :       state_-&gt;push_in_function_call(CHECK_NOTNULL(fun));</span></a>
+<a name="56"><span class="lineNum">      56 </span><span class="lineCov">         64 :     }</span></a>
+<a name="57"><span class="lineNum">      57 </span><span class="lineCov">         64 :     ~FunctionPusher() { state_-&gt;pop_in_function_call(); }</span></a>
 <a name="58"><span class="lineNum">      58 </span>            : </a>
 <a name="59"><span class="lineNum">      59 </span>            :    private:</a>
 <a name="60"><span class="lineNum">      60 </span>            :     BasicConvertState* const state_;</a>
@@ -184,17 +184,19 @@
 <a name="122"><span class="lineNum">     122 </span>            :   absl::Status ConvertSchemaDefinition(</a>
 <a name="123"><span class="lineNum">     123 </span>            :       const SchemaDefinitionExpression&amp; expression,</a>
 <a name="124"><span class="lineNum">     124 </span>            :       ConvertState* state) const override;</a>
-<a name="125"><span class="lineNum">     125 </span>            : </a>
-<a name="126"><span class="lineNum">     126 </span>            :   std::string GetTypeString(const TypeSpec* type_spec,</a>
-<a name="127"><span class="lineNum">     127 </span>            :                             BasicConvertState* state) const;</a>
-<a name="128"><span class="lineNum">     128 </span>            :   absl::Status ConvertFunction(Function* fun, ConvertState* state) const;</a>
-<a name="129"><span class="lineNum">     129 </span>            :   absl::Status ConvertBindings(Function* fun, ConvertState* state) const;</a>
-<a name="130"><span class="lineNum">     130 </span>            : };</a>
-<a name="131"><span class="lineNum">     131 </span>            : </a>
-<a name="132"><span class="lineNum">     132 </span>            : }  // namespace analysis</a>
-<a name="133"><span class="lineNum">     133 </span>            : }  // namespace nudl</a>
-<a name="134"><span class="lineNum">     134 </span>            : </a>
-<a name="135"><span class="lineNum">     135 </span>            : #endif  // NUDL_ANALYSIS_BASIC_CONVERTER_H__</a>
+<a name="125"><span class="lineNum">     125 </span>            :   absl::Status ConvertTypeDefinition(const TypeDefinitionExpression&amp; expression,</a>
+<a name="126"><span class="lineNum">     126 </span>            :                                      ConvertState* state) const override;</a>
+<a name="127"><span class="lineNum">     127 </span>            : </a>
+<a name="128"><span class="lineNum">     128 </span>            :   std::string GetTypeString(const TypeSpec* type_spec,</a>
+<a name="129"><span class="lineNum">     129 </span>            :                             BasicConvertState* state) const;</a>
+<a name="130"><span class="lineNum">     130 </span>            :   absl::Status ConvertFunction(Function* fun, ConvertState* state) const;</a>
+<a name="131"><span class="lineNum">     131 </span>            :   absl::Status ConvertBindings(Function* fun, ConvertState* state) const;</a>
+<a name="132"><span class="lineNum">     132 </span>            : };</a>
+<a name="133"><span class="lineNum">     133 </span>            : </a>
+<a name="134"><span class="lineNum">     134 </span>            : }  // namespace analysis</a>
+<a name="135"><span class="lineNum">     135 </span>            : }  // namespace nudl</a>
+<a name="136"><span class="lineNum">     136 </span>            : </a>
+<a name="137"><span class="lineNum">     137 </span>            : #endif  // NUDL_ANALYSIS_BASIC_CONVERTER_H__</a>
 </pre>
       </td>
     </tr>
