@@ -1,6 +1,7 @@
 #include "nudl/analysis/named_object.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "absl/flags/flag.h"
 #include "absl/strings/str_cat.h"
@@ -33,6 +34,8 @@ absl::string_view ObjectKindName(pb::ObjectKind kind) {
       return "Function";
     case pb::ObjectKind::OBJ_METHOD:
       return "Method";
+    case pb::ObjectKind::OBJ_CONSTRUCTOR:
+      return "Constructor";
     case pb::ObjectKind::OBJ_LAMBDA:
       return "Lambda";
     case pb::ObjectKind::OBJ_MODULE:
@@ -41,6 +44,10 @@ absl::string_view ObjectKindName(pb::ObjectKind kind) {
       return "Type";
     case pb::ObjectKind::OBJ_FUNCTION_GROUP:
       return "FunctionGroup";
+    case pb::ObjectKind::OBJ_METHOD_GROUP:
+      return "MethodGroup";
+    case pb::ObjectKind::OBJ_TYPE_MEMBER_STORE:
+      return "TypeMemberStore";
   }
   return "Unknown";
 }
@@ -102,7 +109,7 @@ absl::StatusOr<NamedObject*> BaseNameStore::FindName(
     const ScopeName& lookup_scope, const ScopedName& scoped_name) {
   ASSIGN_OR_RETURN(auto store, FindChildStore(scoped_name.scope_name()),
                    _ << "Finding in :" << full_name());
-  return store->GetName(scoped_name.name());
+  return store->GetName(scoped_name.name(), false);
 }
 
 absl::Status BaseNameStore::AddName(absl::string_view local_name,
@@ -155,13 +162,14 @@ pb::NamedObject BaseNameStore::ToProtoObject() const {
   return proto;
 }
 
-bool BaseNameStore::HasName(absl::string_view local_name) const {
+bool BaseNameStore::HasName(absl::string_view local_name,
+                            bool in_self_only) const {
   return local_name.empty() ||
          named_objects_.contains(NormalizeLocalName(local_name));
 }
 
 absl::StatusOr<NamedObject*> BaseNameStore::GetName(
-    absl::string_view local_name) {
+    absl::string_view local_name, bool in_self_only) {
   if (local_name.empty()) {
     return this;
   }
@@ -188,6 +196,13 @@ absl::Status BaseNameStore::AddChildStore(absl::string_view local_name,
   child_name_stores_.emplace(std::string(NormalizeLocalName(local_name)),
                              store);
   return AddName(NormalizeLocalName(local_name), store);
+}
+
+absl::Status BaseNameStore::AddOwnedChildStore(
+    absl::string_view local_name, std::unique_ptr<NameStore> store) {
+  RETURN_IF_ERROR(AddChildStore(local_name, store.get()));
+  owned_stores_.emplace_back(std::move(store));
+  return absl::OkStatus();
 }
 
 absl::StatusOr<NameStore*> BaseNameStore::FindChildStore(
@@ -254,13 +269,15 @@ absl::Status WrappedNameStore::AddName(absl::string_view local_name,
   return absl::OkStatus();
 }
 
-bool WrappedNameStore::HasName(absl::string_view local_name) const {
-  return wrapped_store_->HasName(local_name);
+bool WrappedNameStore::HasName(absl::string_view local_name,
+                               bool in_self_only) const {
+  return wrapped_store_->HasName(local_name, in_self_only);
 }
 
 absl::StatusOr<NamedObject*> WrappedNameStore::GetName(
-    absl::string_view local_name) {
-  ASSIGN_OR_RETURN(auto object, wrapped_store_->GetName(local_name),
+    absl::string_view local_name, bool in_self_only) {
+  ASSIGN_OR_RETURN(auto object,
+                   wrapped_store_->GetName(local_name, in_self_only),
                    _ << "Finding in: " << full_name());
   return object;
 }
@@ -268,6 +285,14 @@ absl::StatusOr<NamedObject*> WrappedNameStore::GetName(
 absl::Status WrappedNameStore::AddChildStore(absl::string_view local_name,
                                              NameStore* store) {
   RETURN_IF_ERROR(wrapped_store_->AddChildStore(local_name, store))
+      << "Adding child to: " << full_name();
+  return absl::OkStatus();
+}
+
+absl::Status WrappedNameStore::AddOwnedChildStore(
+    absl::string_view local_name, std::unique_ptr<NameStore> store) {
+  RETURN_IF_ERROR(
+      wrapped_store_->AddOwnedChildStore(local_name, std::move(store)))
       << "Adding child to: " << full_name();
   return absl::OkStatus();
 }

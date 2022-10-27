@@ -85,6 +85,8 @@ class ScopeName {
 
   // Encodes this as a proto message.
   pb::ScopeName ToProto() const;
+  // Converts this to an Identifier proto.
+  pb::Identifier ToIdentifier() const;
 
   // Recomposes a name from components:
   static std::string Recompose(
@@ -112,7 +114,11 @@ class ScopedName {
   const ScopeName& scope_name() const;
   const std::string& name() const;
   std::string full_name() const;
+  // Converts this to various types of proto representation:
   pb::ScopedName ToProto() const;
+  // Parse side protos:
+  pb::Identifier ToIdentifier() const;
+  pb::TypeSpec ToTypeSpec() const;
 
  private:
   std::shared_ptr<ScopeName> scope_name_;

@@ -31,7 +31,7 @@ def MaxTermination(name: cdm.HumanName) =>
 
 // Returns the max len of a list of lists or so.
 // Also makes it a member of Iterable, so we can call it fluently:
-def method maxlen(l: Iterable<Iterable<{X}>>) => l.map(len).max()
+def method maxlen(l: Iterable<Container<{X}>>) => l.map(len).max()
 
 // Same as above but uses maxlen (in a fluent way):
 def MaxTermination2(name: cdm.HumanName) => {
@@ -57,4 +57,4 @@ z = submodule.area(10)
 
 import submodule.compute
 
-z2 = submodule.compute.sqare_circle_area(10)
+z2 = submodule.compute.square_circle_area(10)

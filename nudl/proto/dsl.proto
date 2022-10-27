@@ -107,6 +107,11 @@ message IfExpression {
   repeated ExpressionBlock expression_block = 2;
 }
 
+message WithExpression {
+  optional Expression with = 1;
+  optional ExpressionBlock expression_block = 2;
+}
+
 message ArrayDefinition {
   repeated Expression element = 1;
 }
@@ -120,8 +125,8 @@ message MapDefinition {
 }
 
 enum QualifierType {
-  NONE = 0;
-  PARAM = 1;  // module level param - like flag.
+  QUAL_NONE = 0;
+  QUAL_PARAM = 1;  // module level param - like flag.
 }
 
 // [<qualifier>] <identifier> [: <type_spec>] = <value>
@@ -172,6 +177,8 @@ message Expression {
     FunctionDefinition lambda_def = 6;
     // if (foo) { bar }
     IfExpression if_expr = 7;
+    // def f(a) => with(a) { x + 1 }
+    WithExpression with_expr = 20;
     // [1, 2, 3]
     ArrayDefinition array_def = 8;
     // [1: 2, 3: 4]
@@ -206,11 +213,17 @@ message NativeSnippet {
   optional string body = 2;
 }
 
+enum FunctionType {
+  FUN_NONE = 0;
+  FUN_METHOD = 1;
+  FUN_CONSTRUCTOR = 2;
+}
+
 message FunctionDefinition {
   // Name of the function, missing for lambdas.
   optional string name = 1;
   // If function is defined with `def method`
-  optional bool is_method = 5;
+  optional FunctionType fun_type = 5;
   // The parameters defined in the function, in their
   // definition order.
   repeated FunctionParameter param = 2;
@@ -246,6 +259,15 @@ message SchemaDefinition {
   repeated Field field = 2;
 }
 
+message TypeDefinition {
+  // Name of the defined type:
+  optional string name = 1;
+  // Specification of the type:
+  optional TypeSpec type_spec = 2;
+  // Native type definition:
+  optional NativeSnippet snippet = 3;
+};
+
 // An element in a module, can be one of the statement members:
 message ModuleElement {
   oneof statement {
@@ -254,6 +276,7 @@ message ModuleElement {
     FunctionDefinition function_def = 3;
     Assignment assignment = 4;
     PragmaExpression pragma_expr = 7;
+    TypeDefinition type_def = 8;
   }
   // Line number, column interval where the code for this element
   // is found in the sources.

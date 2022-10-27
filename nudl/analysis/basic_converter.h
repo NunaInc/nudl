@@ -122,6 +122,8 @@ class BasicConverter : public Converter {
   absl::Status ConvertSchemaDefinition(
       const SchemaDefinitionExpression& expression,
       ConvertState* state) const override;
+  absl::Status ConvertTypeDefinition(const TypeDefinitionExpression& expression,
+                                     ConvertState* state) const override;
 
   std::string GetTypeString(const TypeSpec* type_spec,
                             BasicConvertState* state) const;

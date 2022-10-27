@@ -164,7 +164,6 @@ absl::StatusOr<Module*> ModuleStore::ImportModule(
   if (existing_module.has_value()) {
     return existing_module.value();
   }
-  import_chain->emplace_back(std::string(module_name));
   ModuleFileReader::ModuleReadResult read_result;
   auto it_code = module_code_.find(module_name);
   if (it_code != module_code_.end()) {
@@ -176,11 +175,17 @@ absl::StatusOr<Module*> ModuleStore::ImportModule(
   }
   const std::string filename = read_result.file_name.native();
   const std::string code = read_result.content;
-  ASSIGN_OR_RETURN(
-      auto module,
-      Module::ParseAndImport(std::move(read_result), this, import_chain),
-      _ << "Importing module: " << module_name << ParseFileInfo{filename}
-        << ParseFileContent{code});
+  import_chain->emplace_back(std::string(module_name));
+  auto module_result =
+      Module::ParseAndImport(std::move(read_result), this, import_chain);
+  import_chain->pop_back();
+  if (!module_result.ok()) {
+    return status::StatusWriter(module_result.status())
+           << "Importing module: " << module_name << ParseFileInfo{filename}
+           << ParseFileContent{code};
+  }
+  auto module = std::move(module_result).value();
+
   modules_.emplace(std::string(module_name), module);
   return module;
 }
@@ -190,6 +195,10 @@ ModuleFileReader* ModuleStore::reader() const { return reader_.get(); }
 Scope* ModuleStore::built_in_scope() const { return built_in_scope_; }
 
 Module* ModuleStore::top_module() const { return top_module_.get(); }
+
+absl::Duration Module::parse_duration() const { return parse_duration_; }
+
+absl::Duration Module::analysis_duration() const { return analysis_duration_; }
 
 namespace {
 // TODO(catalin): hava an error reporter object here, that we use.
@@ -214,7 +223,9 @@ absl::StatusOr<std::unique_ptr<pb::Module>> ParseToProto(
 absl::StatusOr<Module*> Module::ParseAndImport(
     const ModuleFileReader::ModuleReadResult& read_result, ModuleStore* store,
     std::vector<std::string>* import_chain) {
+  absl::Time start_time = absl::Now();
   ASSIGN_OR_RETURN(auto parse_pb, ParseToProto(read_result));
+  absl::Time parse_time = absl::Now();
   ASSIGN_OR_RETURN(auto scope_name, ScopeName::Parse(read_result.module_name));
   auto pscope = std::make_shared<ScopeName>(std::move(scope_name));
   auto module = absl::WrapUnique(new Module(pscope, read_result.module_name,
@@ -223,6 +234,9 @@ absl::StatusOr<Module*> Module::ParseAndImport(
   RETURN_IF_ERROR(store->top_module()->AddSubScope(std::move(module)))
       << "Registering module: " << read_result.module_name;
   RETURN_IF_ERROR(pmodule->Import(*parse_pb, import_chain));
+  absl::Time analysis_time = absl::Now();
+  pmodule->parse_duration_ = parse_time - start_time;
+  pmodule->analysis_duration_ = analysis_time - parse_time;
   return pmodule;
 }
 
@@ -241,16 +255,14 @@ Module::Module(std_filesystem::path file_path)
     : Scope(),
       file_path_(std::move(file_path)),
       module_name_(kBuildtinModuleName),
-      module_type_(std::make_unique<TypeModule>(
-          type_store_,
-          std::make_shared<WrappedNameStore>(kBuildtinModuleName, this))),
+      module_type_(
+          std::make_unique<TypeModule>(type_store_, kBuildtinModuleName, this)),
       pragma_handler_(this) {}
 
 Module::Module(ModuleStore* module_store)
     : Scope(module_store->built_in_scope()),
       module_store_(module_store),
-      module_type_(std::make_unique<TypeModule>(
-          type_store_, std::make_shared<WrappedNameStore>("__top__", this))),
+      module_type_(std::make_unique<TypeModule>(type_store_, "__top__", this)),
       pragma_handler_(this) {}
 
 Module::Module(std::shared_ptr<ScopeName> scope_name, absl::string_view name,
@@ -259,8 +271,7 @@ Module::Module(std::shared_ptr<ScopeName> scope_name, absl::string_view name,
       file_path_(std::move(file_path)),
       module_name_(name),
       module_store_(module_store),
-      module_type_(std::make_unique<TypeModule>(
-          type_store_, std::make_shared<WrappedNameStore>(name, this))),
+      module_type_(std::make_unique<TypeModule>(type_store_, name, this)),
       pragma_handler_(this) {}
 
 const std_filesystem::path& Module::file_path() const { return file_path_; }
@@ -295,6 +306,8 @@ absl::Status Module::Import(const pb::Module& module,
                        status);
     } else if (element.has_pragma_expr()) {
       MergeErrorStatus(ProcessPragma(element.pragma_expr(), context), status);
+    } else if (element.has_type_def()) {
+      MergeErrorStatus(ProcessTypeDef(element.type_def(), context), status);
     }
   }
   return status;
@@ -313,9 +326,10 @@ absl::Status Module::ProcessImport(const pb::ImportStatement& element,
           local_name, NameUtil::ValidatedName(spec.alias()),
           _ << context.ToErrorInfo("Bad alias for import statement"));
     }
-    ASSIGN_OR_RETURN(auto module,
-                     module_store_->ImportModule(module_name, import_chain),
-                     _ << context.ToErrorInfo("Error importing module"));
+    ASSIGN_OR_RETURN(
+        auto module, module_store_->ImportModule(module_name, import_chain),
+        _ << "Importing: " << spec.DebugString() << ": " << module_name
+          << context.ToErrorInfo("Error importing module"));
     RETURN_IF_ERROR(AddChildStore(local_name, module))
         << "For module: " << module_name
         << context.ToErrorInfo("Registering imported module");
@@ -375,6 +389,29 @@ absl::Status Module::ProcessPragma(const pb::PragmaExpression& element,
   return absl::OkStatus();
 }
 
+absl::Status Module::ProcessTypeDef(const pb::TypeDefinition& element,
+                                    const CodeContext& context) {
+  ASSIGN_OR_RETURN(
+      auto type_name, NameUtil::ValidatedName(element.name()),
+      _ << "Invalid type name" << context.ToErrorInfo("In type definition"));
+  ASSIGN_OR_RETURN(auto type_spec,
+                   type_store_->FindType(scope_name(), element.type_spec()),
+                   _ << "Processing type expression"
+                     << context.ToErrorInfo("In type definition"));
+  ASSIGN_OR_RETURN(
+      auto declared_type,
+      type_store_->DeclareType(scope_name(), type_name, type_spec->Clone()),
+      _ << "Declaring type: " << type_spec->full_name() << " as " << type_name
+        << " in " << full_name() << context.ToErrorInfo("In type definition"));
+  auto expression = std::make_unique<TypeDefinitionExpression>(this, type_name,
+                                                               declared_type);
+  ASSIGN_OR_RETURN(auto negotiated_type, expression->type_spec(),
+                   _ << "Negotiating type definition spec" << kBugNotice);
+  RET_CHECK(negotiated_type == declared_type);
+  expressions_.emplace_back(std::move(expression));
+  return absl::OkStatus();
+}
+
 absl::StatusOr<VarBase*> Module::ValidateAssignment(const ScopedName& name,
                                                     NamedObject* object) const {
   ASSIGN_OR_RETURN(auto var_base, Scope::ValidateAssignment(name, object));
@@ -425,9 +462,13 @@ absl::StatusOr<std::unique_ptr<Environment>> Environment::Build(
       auto read_result,
       reader.ReadFile(file_path, ModuleFileReader::ModuleReadResult{
                                      "", file_path, file_path, ""}));
+  absl::Time start_time = absl::Now();
   ASSIGN_OR_RETURN(auto module_pb, ParseToProto(read_result));
+  absl::Time parse_time = absl::Now();
   ASSIGN_OR_RETURN(auto builtin_module,
                    Module::ParseBuiltin(file_path, *module_pb));
+  builtin_module->analysis_duration_ = absl::Now() - parse_time;
+  builtin_module->parse_duration_ = parse_time - start_time;
   auto module_store = std::make_unique<ModuleStore>(
       std::make_unique<PathBasedFileReader>(reader), builtin_module.get());
   builtin_module->set_module_store(module_store.get());

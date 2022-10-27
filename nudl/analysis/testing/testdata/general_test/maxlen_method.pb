@@ -9,7 +9,7 @@ expression {
     parameter {
       name: "l"
       type_spec {
-        name: "Iterable<Iterable<{ X : Any }>>"
+        name: "Iterable<Container<{ X : Any }>>"
       }
     }
     result_type {
@@ -36,7 +36,7 @@ expression {
             value {
               kind: EXPR_FUNCTION_CALL
               type_spec {
-                name: "Array<UInt>"
+                name: "Generator<UInt>"
               }
               call_spec {
                 call_name {
@@ -62,13 +62,13 @@ expression {
                   }
                 }
                 binding_type {
-                  name: "Function<Array<UInt>(l: Iterable<Iterable<{ X : Any }>>, f: Function<UInt(arg_1: Iterable<{ X : Any }>)>)>"
+                  name: "Function<Generator<UInt>(l: Iterable<Container<{ X : Any }>>, f: Function<UInt(arg_1: Container<{ X : Any }>)>)>"
                 }
               }
             }
           }
           binding_type {
-            name: "Function<UInt(l: Array<UInt>)>"
+            name: "Function<UInt(l: Generator<UInt>)>"
           }
         }
       }
@@ -108,7 +108,7 @@ expression {
               value {
                 kind: EXPR_FUNCTION_CALL
                 type_spec {
-                  name: "Array<UInt>"
+                  name: "Generator<UInt>"
                 }
                 call_spec {
                   call_name {
@@ -134,13 +134,13 @@ expression {
                     }
                   }
                   binding_type {
-                    name: "Function<Array<UInt>(l: Array<Array<String>>, f: Function<UInt(arg_1: Array<String>)>)>"
+                    name: "Function<Generator<UInt>(l: Array<Array<String>>, f: Function<UInt(arg_1: Array<String>)>)>"
                   }
                 }
               }
             }
             binding_type {
-              name: "Function<UInt(l: Array<UInt>)>"
+              name: "Function<UInt(l: Generator<UInt>)>"
             }
           }
         }

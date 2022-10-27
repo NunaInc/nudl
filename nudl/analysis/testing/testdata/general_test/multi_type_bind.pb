@@ -101,7 +101,7 @@ expression {
             value {
               kind: EXPR_LITERAL
               literal {
-                int_value: 1
+                uint_value: 1
               }
             }
           }

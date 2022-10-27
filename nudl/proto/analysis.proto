@@ -40,9 +40,12 @@ enum TypeId {
   DATASET_ID = 31;
   TYPE_ID = 32;
   MODULE_ID = 33;
+  CONTAINER_ID = 34;
+  INTEGRAL_ID = 35;
+  GENERATOR_ID = 36;
 
   // Update this as you add new types.
-  NEXT_TYPE_ID = 34;
+  NEXT_TYPE_ID = 37;
 
   FIRST_CUSTOM_ID = 10000;
 }
@@ -63,6 +66,8 @@ enum ObjectKind {
   OBJ_FUNCTION = 6;
   // A named member function for a type, which is implicitly a scope.
   OBJ_METHOD = 7;
+  // A named constructor function for a type, which is implicitly a scope.
+  OBJ_CONSTRUCTOR = 13;
   // An unnamed lambda function, which is implicitly a scope.
   OBJ_LAMBDA = 8;
   // A module, which is implicitly a scope.
@@ -71,6 +76,10 @@ enum ObjectKind {
   OBJ_TYPE = 10;
   // A group of functions with the same name.
   OBJ_FUNCTION_GROUP = 11;
+  // A group of functions with the same name - that are methods.
+  OBJ_METHOD_GROUP = 12;
+  // A store of member function and fields of a type.
+  OBJ_TYPE_MEMBER_STORE = 14;
 }
 
 enum FunctionResultKind {
@@ -123,6 +132,8 @@ enum ExpressionKind {
   EXPR_SCHEMA_DEF = 17;
   // A no-operation expression - for now used for pragmas.
   EXPR_NOP = 18;
+  // A type definition expressions - this appears only in modules.
+  EXPR_TYPE_DEFINITION = 19;
 };
 
 // Name of a scope: composed of module name & function name:
@@ -150,7 +161,10 @@ message ScopedName {
 // Type of an expression:
 message ExpressionTypeSpec {
   // The identifier of a type - from above.
+  // this is set if we have a built-in type:
   optional TypeId type_id = 1;
+  // This is set if we have a custom-defined types:
+  optional int64 custom_type_id = 7;
   // Defined name of the type - for most of type_ids is just
   // standard (e.g. TypeId.INT_ID => "Int"), but sometimes
   // different (e.g. for TypeId.STRUCT_ID)
@@ -292,6 +306,8 @@ message ExpressionSpec {
     FunctionCallSpec call_spec = 13;
     // Set for import statements.
     ImportSpec import_spec = 14;
+    // Name of the type in type definition
+    string type_def_name = 15;
   }
 }
 

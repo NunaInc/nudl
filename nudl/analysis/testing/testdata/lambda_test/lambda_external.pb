@@ -38,7 +38,7 @@ expression {
             value {
               kind: EXPR_FUNCTION_CALL
               type_spec {
-                name: "Array<UInt>"
+                name: "Generator<UInt>"
               }
               call_spec {
                 left_expression {
@@ -150,13 +150,13 @@ expression {
                   }
                 }
                 binding_type {
-                  name: "Function<Array<UInt>(l: Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>, f: Function<UInt(arg_1: { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> })>)>"
+                  name: "Function<Generator<UInt>(l: Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>, f: Function<UInt(arg_1: { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> })>)>"
                 }
               }
             }
           }
           binding_type {
-            name: "Function<UInt(l: Array<UInt>)>"
+            name: "Function<UInt(l: Generator<UInt>)>"
           }
         }
       }

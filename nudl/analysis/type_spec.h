@@ -7,6 +7,8 @@
 #include <tuple>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/status/statusor.h"
 #include "absl/types/variant.h"
 #include "nudl/analysis/named_object.h"
@@ -23,26 +25,76 @@ class TypeMemberStore : public BaseNameStore {
  public:
   TypeMemberStore(const TypeSpec* type_spec,
                   std::shared_ptr<NameStore> ancestor);
+  ~TypeMemberStore();
 
+  // The base class for the underlying type:
   NameStore* ancestor() const;
+  std::shared_ptr<NameStore> ancestor_ptr() const;
 
+  // Usual NamedObject interface:
   pb::ObjectKind kind() const override;
   std::string full_name() const override;
   const TypeSpec* type_spec() const override;
 
-  bool HasName(absl::string_view local_name) const override;
-  absl::StatusOr<NamedObject*> GetName(absl::string_view local_name) override;
+  // Usual NameStore interface, overriden to lookup in binding_parent
+  // or ancestor if not found in here:
+  bool HasName(absl::string_view local_name, bool in_self_only) const override;
+  absl::StatusOr<NamedObject*> GetName(absl::string_view local_name,
+                                       bool in_self_only) override;
   absl::Status AddName(absl::string_view local_name,
                        NamedObject* object) override;
   absl::Status AddChildStore(absl::string_view local_name,
                              NameStore* store) override;
 
+  // Returns a vector of stores in which order to find members of this
+  // type for binding.
+  std::vector<NameStore*> FindBindingOrder();
+  std::vector<const NameStore*> FindConstBindingOrder() const;
+
+  // This is the type member store for the main instance of a type.
+  // E.g. for Array<Int> this would point to Array<Any> (note for now not to
+  //  Array<Integral> or so, because may become complicated for multiple param
+  //  types)
+  // TODO(catalin): fix this maybe or see how we can alleviate the possible
+  // issues.
+  absl::optional<TypeMemberStore*> binding_parent() const;
+  // The signature under which this type is bound to
+  const std::string& binding_signature() const;
+  // The children bindings of this store. E.g. for Array<Any> this would contain
+  // the stores of Array<Int> etc.
+  const absl::flat_hash_map<std::string, std::shared_ptr<TypeMemberStore>>&
+  bound_children() const;
+
+  // Adds a child binding, under a type signature.
+  std::shared_ptr<TypeMemberStore> AddBinding(absl::string_view signature,
+                                              const TypeSpec* type_spec);
+  // Removes the child binding for the signature.
+  void RemoveBinding(absl::string_view signature);
+  // Sets up the binding_parent, which we are register to under provided
+  // signature.
+  void SetupBindingParent(absl::string_view signature,
+                          TypeMemberStore* binding_parent);
+  // Signal from binding_parent to remove itself, during destruction sequence.
+  void RemoveBindingParent();
+
+  // Adds a type that uses us as a type member store.
+  void AddMemberType(const TypeSpec* member_type);
+  // Removes a type that uses us as a type member store.
+  void RemoveMemberType(const TypeSpec* member_type);
+
  protected:
+  friend class TypeSpec;
+
   absl::Status CheckAddedObject(absl::string_view local_name,
                                 NamedObject* object);
 
-  const TypeSpec* type_spec_;
+  absl::optional<const TypeSpec*> type_spec_;
   std::shared_ptr<NameStore> const ancestor_;
+  absl::optional<TypeMemberStore*> binding_parent_;
+  std::string binding_signature_;
+  absl::flat_hash_map<std::string, std::shared_ptr<TypeMemberStore>>
+      bound_children_;
+  absl::flat_hash_set<const TypeSpec*> member_types_;
 };
 
 // Structure that represents a type.
@@ -57,15 +109,14 @@ class TypeMemberStore : public BaseNameStore {
 //  - parameters - type parameter for this type. Eg. for Array < T > is the T.
 class TypeSpec : public NamedObject {
  public:
-  TypeSpec(pb::TypeId type_id, absl::string_view name,
-           std::shared_ptr<NameStore> type_member_store,
+  TypeSpec(int type_id, absl::string_view name,
+           std::shared_ptr<TypeMemberStore> type_member_store,
            bool is_bound_type = false, const TypeSpec* ancestor = nullptr,
            std::vector<const TypeSpec*> parameters = {});
-
-  virtual ~TypeSpec() {}
+  ~TypeSpec() override;
 
   // The unique identifier of this type.
-  pb::TypeId type_id() const;
+  int type_id() const;
   // If the type in itself is bound.
   bool is_bound_type() const;
   // Base type(s) for this.
@@ -73,8 +124,8 @@ class TypeSpec : public NamedObject {
   // Parameters that fully define the type.
   const std::vector<const TypeSpec*>& parameters() const;
   // Associated name store for members.
-  NameStore* type_member_store() const;
-  std::shared_ptr<NameStore> type_member_store_ptr() const;
+  TypeMemberStore* type_member_store() const;
+  std::shared_ptr<TypeMemberStore> type_member_store_ptr() const;
   // Local name of the type in the store.
   const std::string& local_name() const;
   // The scope in which the type is defined:
@@ -120,14 +171,18 @@ class TypeSpec : public NamedObject {
   bool IsBasicType() const;
 
   // If provided type_id is of a basic type.
-  static bool IsBasicTypeId(pb::TypeId type_id);
+  static bool IsBasicTypeId(int type_id);
 
   // Binds the parameters of this type to other types.
   virtual absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
       const std::vector<TypeBindingArg>& bindings) const;
 
-  // Produces a clone of this type specification.
+  // Creates a copy of this type:
   virtual std::unique_ptr<TypeSpec> Clone() const = 0;
+
+  // Returns a composed string from a type binding:
+  static std::string TypeBindingSignature(
+      const std::vector<TypeBindingArg>& type_arguments);
 
   // Sets the name of a type - this can be done only onece.
   absl::Status set_name(absl::string_view name);
@@ -138,6 +193,9 @@ class TypeSpec : public NamedObject {
       absl::optional<size_t> minimum_parameters = {}) const;
 
  protected:
+  // Updates the type_member_store per provided bindings.
+  absl::Status UpdateBindingStore(const std::vector<TypeBindingArg>& bindings);
+
   // Checks parameters of this and type_spec for ancestry.
   bool HasAncestorParameters(const TypeSpec& type_spec) const;
   // Checks parameters of this and type_spec for convertible.
@@ -148,9 +206,9 @@ class TypeSpec : public NamedObject {
   // Wraps the provided type name in the local_name_(if set):
   std::string wrap_local_name(std::string s) const;
 
-  static size_t NextTypeId();
-  const pb::TypeId type_id_;
-  std::shared_ptr<NameStore> type_member_store_;
+  static int NextTypeId();
+  const int type_id_;  // pb::TypeId values reserved for builtins.
+  std::shared_ptr<TypeMemberStore> type_member_store_;
   const bool is_bound_type_;
   bool is_name_set_ = false;
 

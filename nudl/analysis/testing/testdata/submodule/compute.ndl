@@ -4,3 +4,7 @@ import submodule
 def square_circle_area(radius: Float64) => {
   submodule.area(radius) + radius * radius
 }
+
+typedef RadiusArray = Array<Float64>
+def sum_area(radii: RadiusArray) =>
+  radii.map(submodule.area).sum()

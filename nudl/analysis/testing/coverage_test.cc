@@ -40,14 +40,14 @@ param a: Int = 20;
             pb::TypeId::MODULE_ID);
   EXPECT_EQ(module.value()->parent(), module.value()->top_scope());
   EXPECT_FALSE(module.value()->FindFunctionAncestor().has_value());
-  ASSERT_OK_AND_ASSIGN(auto x, module.value()->GetName("x"));
+  ASSERT_OK_AND_ASSIGN(auto x, module.value()->GetName("x", true));
   EXPECT_EQ(x->type_spec()->type_id(), pb::TypeId::STRUCT_ID);
   EXPECT_EQ(x->kind(), pb::ObjectKind::OBJ_VARIABLE);
   auto x_var = static_cast<VarBase*>(x);
   EXPECT_EQ(x_var->assignments().size(), 1);
   EXPECT_EQ(x_var->assign_types().size(), 1);
-  ASSERT_OK_AND_ASSIGN(auto given, x_var->GetName("given"));
-  ASSERT_OK_AND_ASSIGN(auto given2, x_var->GetName("given"));
+  ASSERT_OK_AND_ASSIGN(auto given, x_var->GetName("given", true));
+  ASSERT_OK_AND_ASSIGN(auto given2, x_var->GetName("given", true));
   EXPECT_EQ(given, given2);
   EXPECT_EQ(given->kind(), pb::ObjectKind::OBJ_FIELD);
   auto given_var = static_cast<VarBase*>(given);
@@ -62,19 +62,19 @@ param a: Int = 20;
   EXPECT_FALSE(given_copy->full_name().empty());
   EXPECT_EQ(given_copy->kind(), pb::ObjectKind::OBJ_FIELD);
   EXPECT_EQ(given_copy->kind(), pb::ObjectKind::OBJ_FIELD);
-  ASSERT_OK_AND_ASSIGN(auto a, module.value()->GetName("a"));
+  ASSERT_OK_AND_ASSIGN(auto a, module.value()->GetName("a", true));
   auto a_var = static_cast<VarBase*>(a);
   EXPECT_EQ(a_var->kind(), pb::ObjectKind::OBJ_PARAMETER);
   EXPECT_EQ(a_var->Clone(a_var->parent_store().value())->kind(),
             pb::ObjectKind::OBJ_PARAMETER);
-  ASSERT_OK_AND_ASSIGN(auto g, module.value()->GetName("g"));
+  ASSERT_OK_AND_ASSIGN(auto g, module.value()->GetName("g", true));
   EXPECT_EQ(g->kind(), pb::ObjectKind::OBJ_FUNCTION_GROUP);
   auto gg = static_cast<FunctionGroup*>(g);
   EXPECT_FALSE(gg->DebugString().empty());
-  ASSERT_OK_AND_ASSIGN(auto gf, gg->GetName("g"));
+  ASSERT_OK_AND_ASSIGN(auto gf, gg->GetName("g", true));
   EXPECT_EQ(gf->kind(), pb::ObjectKind::OBJ_FUNCTION);
   auto gfun = static_cast<Function*>(gf);
-  ASSERT_OK_AND_ASSIGN(auto xarg, gfun->GetName("x"));
+  ASSERT_OK_AND_ASSIGN(auto xarg, gfun->GetName("x", true));
   EXPECT_EQ(xarg->kind(), pb::ObjectKind::OBJ_ARGUMENT);
   EXPECT_EQ(xarg->parent_store().value(), gf);
   EXPECT_EQ(static_cast<Argument*>(xarg)->Clone(gfun)->kind(),
@@ -125,6 +125,9 @@ TEST_F(AnalysisTest, ObjectNames) {
   EXPECT_EQ(ObjectKindName(pb::ObjectKind::OBJ_TYPE), "Type");
   EXPECT_EQ(ObjectKindName(pb::ObjectKind::OBJ_FUNCTION_GROUP),
             "FunctionGroup");
+  EXPECT_EQ(ObjectKindName(pb::ObjectKind::OBJ_METHOD_GROUP), "MethodGroup");
+  EXPECT_EQ(ObjectKindName(pb::ObjectKind::OBJ_TYPE_MEMBER_STORE),
+            "TypeMemberStore");
   EXPECT_EQ(ObjectKindName(static_cast<pb::ObjectKind>(1000)), "Unknown");
 }
 
@@ -203,3 +206,7 @@ TEST_F(AnalysisTest, ScopeBuild) {
 
 }  // namespace analysis
 }  // namespace nudl
+
+int main(int argc, char** argv) {
+  return nudl::analysis::AnalysisTest::Main(argc, argv);
+}

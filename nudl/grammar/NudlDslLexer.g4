@@ -13,7 +13,10 @@ KW_IMPORT: 'import';
 KW_PASS: 'pass';
 KW_PARAM: 'param';
 KW_METHOD: 'method';
+KW_CONSTRUCTOR: 'constructor';
+KW_TYPEDEF: 'typedef';
 KW_PRAGMA: 'pragma';
+KW_WITH: 'with';
 
 // Reserved Literals
 KW_NULL: 'null';
@@ -46,6 +49,7 @@ fragment KW_TIMEINTERVAL_NAMES
 fragment IDENTIFIER_KEYWORDS
     : KW_TIMEINTERVAL_NAMES
     | KW_METHOD
+    | KW_CONSTRUCTOR
     | KW_PARAM
     | KW_SCHEMA
     ;
@@ -57,8 +61,7 @@ fragment HEX_DIGIT: [0-9a-fA-F];
 
 IDENTIFIER
     : IDENTIFIER_NON_DIGIT (IDENTIFIER_NON_DIGIT | DEC_DIGIT)*
-    | KW_TIMEINTERVAL_NAMES
-    | KW_METHOD | KW_PARAM | KW_SCHEMA
+    | IDENTIFIER_KEYWORDS
     ;
 
 fragment

@@ -35,15 +35,16 @@ class TypesTest : public ::testing::Test {
 };
 
 static const char* const kBaseTypeNames[] = {
-    "Any",          "Null",      "Numeric", "Int",      "Int8",   "Int16",
-    "Int32",        "UInt",      "UInt8",   "UInt16",   "UInt32", "String",
-    "Bytes",        "Bool",      "Float32", "Float64",  "Date",   "DateTime",
-    "TimeInterval", "Timestamp", "Decimal", "Iterable", "Array",  "Tuple",
-    "Set",          "Map",       "Struct",  "Function"};
+    "Any",          "Null",      "Numeric", "Int",      "Int8",      "Int16",
+    "Int32",        "UInt",      "UInt8",   "UInt16",   "UInt32",    "String",
+    "Bytes",        "Bool",      "Float32", "Float64",  "Date",      "DateTime",
+    "TimeInterval", "Timestamp", "Decimal", "Iterable", "Array",     "Tuple",
+    "Set",          "Map",       "Struct",  "Function", "Generator", "Integral",
+    "Container"};
 
 static const char* const kNumericTypeNames[] = {
-    "Int",    "Int8",   "Int16",   "Int32",   "UInt",   "UInt8",
-    "UInt16", "UInt32", "Float32", "Float64", "Decimal"};
+    "Int",    "Int8",   "Int16",   "Int32",   "UInt",    "UInt8",
+    "UInt16", "UInt32", "Float32", "Float64", "Decimal", "Integral"};
 
 absl::string_view BoolValue(bool value) {
   if (value) {
@@ -97,9 +98,9 @@ void TypesTest::CheckTypes(absl::Span<const absl::string_view> names,
 
 TEST_F(TypesTest, BaseTypes) {
   ASSERT_OK_AND_ASSIGN(auto any_type, FindType("Any"));
-  std::set<std::string> kUnBoundTypes({"Any", "Numeric", "Decimal", "Iterable",
-                                       "Array", "Set", "Map", "Struct",
-                                       "Function"});
+  std::set<std::string> kUnBoundTypes(
+      {"Any", "Numeric", "Decimal", "Iterable", "Array", "Set", "Map", "Struct",
+       "Function", "Container", "Integral", "Generator"});
   for (absl::string_view name : kBaseTypeNames) {
     ASSERT_OK_AND_ASSIGN(auto typespec, FindType(name));
     // std::cout << "Found type : `" << typespec->full_name() << "` - "
@@ -545,11 +546,16 @@ TEST_F(TypesTest, TypeMemberStore) {
   EXPECT_THAT(type_int->ToProto(),
               EqualsProto(R"pb(type_id: INT_ID name: "Int")pb"));
   auto type_numeric = const_cast<TypeSpec*>(FindType("Numeric").value());
+  auto type_integral = const_cast<TypeSpec*>(FindType("Integral").value());
   EXPECT_EQ(type_int->type_member_store()->type_spec(), type_int);
   EXPECT_EQ(
       static_cast<TypeMemberStore*>(type_int->type_member_store())->ancestor(),
-      type_numeric->type_member_store());
-  EXPECT_EQ(type_int->type_member_store()->kind(), pb::ObjectKind::OBJ_TYPE);
+      type_integral->type_member_store());
+  EXPECT_EQ(static_cast<TypeMemberStore*>(type_integral->type_member_store())
+                ->ancestor(),
+            type_numeric->type_member_store());
+  EXPECT_EQ(type_int->type_member_store()->kind(),
+            pb::ObjectKind::OBJ_TYPE_MEMBER_STORE);
   EXPECT_RAISES_WITH_MESSAGE_THAT(
       type_int->type_member_store()->AddName("foo", type_numeric),
       InvalidArgument, testing::HasSubstr("only be fields or methods"));
@@ -787,5 +793,17 @@ TEST_F(TypesTest, TypesFromBindings) {
   EXPECT_RAISES_WITH_MESSAGE_THAT(f->TypesFromBindings({}), InvalidArgument,
                                   testing::HasSubstr("Expecting 3 arguments"));
 }
+TEST_F(TypesTest, FunctionAncestry) {
+  ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar"));
+  ASSERT_OK(store_.AddScope(std::make_shared<ScopeName>(scope_name)));
+  ASSERT_OK_AND_ASSIGN(auto f1,
+                       FindType("Function<Union<Integral, String>, Bool>"));
+  ASSERT_OK_AND_ASSIGN(
+      auto f2, FindType("Function<Nullable<Union<Integral, String>>, Bool>"));
+  EXPECT_TRUE(f2->IsAncestorOf(*f1));
+  EXPECT_FALSE(f1->IsAncestorOf(*f2));
+  EXPECT_FALSE(f1->IsEqual(*f2));
+}
+
 }  // namespace analysis
 }  // namespace nudl

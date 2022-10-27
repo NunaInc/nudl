@@ -1,7 +1,7 @@
 package(default_visibility = ["//nudl/analysis:__subpackages__"])
 
 exports_files(
-    glob(["*.ndl"]) + glob(["submodule/*.ndl"]),    
+    glob(["*.ndl"]) + glob(["submodule/*.ndl"]),
 )
 
 filegroup(
@@ -17,4 +17,9 @@ filegroup(
 filegroup(
     name="coverage_test",
     srcs = glob(["coverage_test/*.pb"])
+)
+
+filegroup(
+    name="constructors_test",
+    srcs = glob(["constructors_test/*.pb"])
 )

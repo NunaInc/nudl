@@ -97,7 +97,9 @@ class Scope : public BaseNameStore {
   // Adds a child scope to this one. We expect our scope name to
   // be a prefix in the provided scope_name.
   absl::Status AddSubScope(std::unique_ptr<Scope> scope);
-
+  // Adds a general child - specializes for scopes.
+  absl::Status AddOwnedChildStore(absl::string_view local_name,
+                                  std::unique_ptr<NameStore> store) override;
   // Creates and adds a new local scope with a name rooted on
   // provided local_name.
   absl::StatusOr<Scope*> AddNewLocalScope(absl::string_view local_name);
@@ -147,6 +149,7 @@ class Scope : public BaseNameStore {
   const TypeSpec* FindTypeBool();
   const TypeSpec* FindTypeInt();
   const TypeSpec* FindTypeUnion();
+  const TypeSpec* FindTypeGenerator();
 
   static bool IsScopeKind(const NamedObject& object);
 

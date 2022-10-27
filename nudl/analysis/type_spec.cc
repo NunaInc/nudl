@@ -1,12 +1,15 @@
 #include "nudl/analysis/type_spec.h"
 
+#include <deque>
 #include <utility>
 
 #include "absl/container/flat_hash_set.h"
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_join.h"
 #include "glog/logging.h"
+#include "nudl/analysis/function.h"
 #include "nudl/analysis/names.h"
 #include "nudl/proto/analysis.pb.h"
 #include "nudl/status/status.h"
@@ -20,24 +23,162 @@ TypeMemberStore::TypeMemberStore(const TypeSpec* spec,
                                  std::shared_ptr<NameStore> ancestor)
     : BaseNameStore(CHECK_NOTNULL(spec)->name()),
       type_spec_(spec),
-      ancestor_(std::move(ancestor)) {}
+      ancestor_(std::move(ancestor)) {
+  AddMemberType(spec);
+}
 
-const TypeSpec* TypeMemberStore::type_spec() const { return type_spec_; }
+TypeMemberStore::~TypeMemberStore() {
+  for (const auto& it : bound_children_) {
+    CHECK(it.second->binding_parent().has_value() &&
+          it.second->binding_parent().value() == this);
+    it.second->RemoveBindingParent();
+  }
+}
+
+const TypeSpec* TypeMemberStore::type_spec() const {
+  // We need to return a value here:
+  if (type_spec_.has_value()) {
+    return type_spec_.value();  // most of the time this holds:
+  }
+  if (binding_parent_.has_value()) {
+    return binding_parent_.value()->type_spec();
+  }
+  if (ancestor_) {
+    return ancestor_->type_spec();
+  }
+  return TypeUnknown::Instance();
+}
 
 NameStore* TypeMemberStore::ancestor() const { return ancestor_.get(); }
 
+absl::optional<TypeMemberStore*> TypeMemberStore::binding_parent() const {
+  return binding_parent_;
+}
+
+const std::string& TypeMemberStore::binding_signature() const {
+  return binding_signature_;
+}
+
+std::shared_ptr<NameStore> TypeMemberStore::ancestor_ptr() const {
+  return ancestor_;
+}
+
+const absl::flat_hash_map<std::string, std::shared_ptr<TypeMemberStore>>&
+TypeMemberStore::bound_children() const {
+  return bound_children_;
+}
+
 pb::ObjectKind TypeMemberStore::kind() const {
-  return pb::ObjectKind::OBJ_TYPE;
+  return pb::ObjectKind::OBJ_TYPE_MEMBER_STORE;
 }
 
 std::string TypeMemberStore::full_name() const {
-  return absl::StrCat("Members of ", type_spec_->full_name());
+  return absl::StrCat("Members of ", type_spec()->full_name());
+}
+
+std::vector<const NameStore*> TypeMemberStore::FindConstBindingOrder() const {
+  auto result = const_cast<TypeMemberStore*>(this)->FindBindingOrder();
+  return std::vector<const NameStore*>(result.begin(), result.end());
+}
+
+std::vector<NameStore*> TypeMemberStore::FindBindingOrder() {
+  const TypeSpec* spec = type_spec();
+  std::vector<NameStore*> result;
+  absl::flat_hash_set<const NameStore*> traversed;
+  std::deque<TypeMemberStore*> stack;
+  stack.push_back(this);
+  traversed.emplace(this);
+  while (!stack.empty()) {
+    TypeMemberStore* crt = stack.front();
+    stack.pop_front();
+    for (const auto& it : crt->bound_children_) {
+      if (it.second->type_spec()->IsAncestorOf(*spec)) {
+        result.emplace_back(it.second.get());
+      }
+    }
+    if (crt->type_spec()->IsAncestorOf(*spec)) {
+      result.emplace_back(crt);
+    }
+    if (crt->binding_parent_.has_value() &&
+        crt->binding_parent_.value()->type_spec()->IsAncestorOf(*spec) &&
+        !traversed.contains(crt->binding_parent_.value())) {
+      stack.emplace_back(crt->binding_parent_.value());
+      traversed.emplace(crt->binding_parent_.value());
+    }
+    if (crt->ancestor_ && crt->ancestor_->type_spec()->IsAncestorOf(*spec) &&
+        !traversed.contains(crt->ancestor_.get())) {
+      traversed.emplace(crt->ancestor_.get());
+      if (crt->ancestor_->kind() == pb::ObjectKind::OBJ_TYPE_MEMBER_STORE) {
+        auto store_ancestor =
+            static_cast<TypeMemberStore*>(crt->ancestor_.get());
+        stack.emplace_back(store_ancestor);
+      } else {
+        result.emplace_back(crt->ancestor_.get());
+      }
+    }
+  }
+  return result;
+}
+
+std::shared_ptr<TypeMemberStore> TypeMemberStore::AddBinding(
+    absl::string_view signature, const TypeSpec* type_spec) {
+  if (binding_parent_.has_value()) {
+    return binding_parent_.value()->AddBinding(std::move(signature), type_spec);
+  }
+  auto it = bound_children_.find(signature);
+  if (it != bound_children_.end()) {
+    it->second->AddMemberType(type_spec);
+    return it->second;
+  }
+  auto new_child = std::make_shared<TypeMemberStore>(type_spec, ancestor_);
+  new_child->SetupBindingParent(signature, this);
+  bound_children_.emplace(signature, new_child);
+  return new_child;
+}
+
+void TypeMemberStore::RemoveBinding(absl::string_view signature) {
+  auto it = bound_children_.find(signature);
+  if (it != bound_children_.end()) {
+    it->second->RemoveBindingParent();
+    bound_children_.erase(it);
+  }
+}
+
+void TypeMemberStore::SetupBindingParent(absl::string_view signature,
+                                         TypeMemberStore* binding_parent) {
+  CHECK(!binding_parent_.has_value());
+  binding_parent_ = binding_parent;
+  binding_signature_ = std::string(signature);
+}
+
+void TypeMemberStore::RemoveBindingParent() {
+  CHECK(binding_parent_.has_value());
+  binding_parent_.reset();
+  binding_signature_.clear();
+}
+
+void TypeMemberStore::AddMemberType(const TypeSpec* member_type) {
+  member_types_.emplace(member_type);
+  if (!type_spec_.has_value()) {
+    type_spec_ = member_type;
+  }
+}
+
+void TypeMemberStore::RemoveMemberType(const TypeSpec* member_type) {
+  member_types_.erase(member_type);
+  if (type_spec_.has_value() && member_type == type_spec_.value()) {
+    if (member_types_.empty()) {
+      type_spec_.reset();
+    } else {
+      type_spec_ = *member_types_.begin();
+    }
+  }
 }
 
 absl::Status TypeMemberStore::CheckAddedObject(absl::string_view local_name,
                                                NamedObject* object) {
   pb::ObjectKind kind = CHECK_NOTNULL(object)->kind();
-  if (kind != pb::ObjectKind::OBJ_FIELD && kind != pb::ObjectKind::OBJ_METHOD) {
+  if (!Function::IsMethodKind(*object) && kind != pb::ObjectKind::OBJ_FIELD) {
     return status::InvalidArgumentErrorBuilder()
            << "Type members can only be fields or methods. "
            << "Got: " << object->full_name() << " to be added "
@@ -52,23 +193,39 @@ absl::Status TypeMemberStore::CheckAddedObject(absl::string_view local_name,
   return absl::OkStatus();
 }
 
-bool TypeMemberStore::HasName(absl::string_view local_name) const {
-  if (BaseNameStore::HasName(local_name)) {
+bool TypeMemberStore::HasName(absl::string_view local_name,
+                              bool in_self_only) const {
+  if (BaseNameStore::HasName(local_name, in_self_only)) {
     return true;
   }
-  if (ancestor_) {
-    return ancestor_->HasName(local_name);
+  if (!in_self_only) {
+    for (auto store : FindConstBindingOrder()) {
+      if (store != this && store->HasName(local_name, true)) {
+        return true;
+      }
+    }
   }
   return false;
 }
 
 absl::StatusOr<NamedObject*> TypeMemberStore::GetName(
-    absl::string_view local_name) {
-  auto result = BaseNameStore::GetName(local_name);
-  if (result.ok() || !ancestor_ || !ancestor_->HasName(local_name)) {
+    absl::string_view local_name, bool in_self_only) {
+  auto result = BaseNameStore::GetName(local_name, in_self_only);
+  if (result.ok() || in_self_only) {
     return result;
   }
-  return ancestor_->GetName(local_name);
+  std::vector<absl::Status> result_status;
+  result_status.emplace_back(result.status());
+  for (auto store : FindBindingOrder()) {
+    if (store != this) {
+      result = store->GetName(local_name, true);
+      if (result.ok()) {
+        return result;
+      }
+      result_status.emplace_back(result.status());
+    }
+  }
+  return status::JoinStatus(result_status);
 }
 
 absl::Status TypeMemberStore::AddName(absl::string_view local_name,
@@ -83,13 +240,13 @@ absl::Status TypeMemberStore::AddChildStore(absl::string_view local_name,
   return BaseNameStore::AddChildStore(local_name, store);
 }
 
-size_t TypeSpec::NextTypeId() {
-  static std::atomic<size_t> next_id{pb::TypeId::FIRST_CUSTOM_ID};
+int TypeSpec::NextTypeId() {
+  static std::atomic<int> next_id{pb::TypeId::FIRST_CUSTOM_ID};
   return next_id.fetch_add(std::memory_order_relaxed);
 }
 
-TypeSpec::TypeSpec(pb::TypeId type_id, absl::string_view name,
-                   std::shared_ptr<NameStore> type_member_store,
+TypeSpec::TypeSpec(int type_id, absl::string_view name,
+                   std::shared_ptr<TypeMemberStore> type_member_store,
                    bool is_bound_type, const TypeSpec* ancestor,
                    std::vector<const TypeSpec*> parameters)
     : NamedObject(name),
@@ -101,10 +258,14 @@ TypeSpec::TypeSpec(pb::TypeId type_id, absl::string_view name,
   if (!type_member_store_) {
     type_member_store_ = std::make_shared<TypeMemberStore>(
         this, ancestor ? ancestor->type_member_store_ptr() : nullptr);
+  } else {
+    type_member_store_->AddMemberType(this);
   }
 }
 
-pb::TypeId TypeSpec::type_id() const { return type_id_; }
+TypeSpec::~TypeSpec() { type_member_store_->RemoveMemberType(this); }
+
+int TypeSpec::type_id() const { return type_id_; }
 
 bool TypeSpec::is_bound_type() const { return is_bound_type_; }
 
@@ -114,11 +275,11 @@ const std::vector<const TypeSpec*>& TypeSpec::parameters() const {
   return parameters_;
 }
 
-NameStore* TypeSpec::type_member_store() const {
+TypeMemberStore* TypeSpec::type_member_store() const {
   return type_member_store_.get();
 }
 
-std::shared_ptr<NameStore> TypeSpec::type_member_store_ptr() const {
+std::shared_ptr<TypeMemberStore> TypeSpec::type_member_store_ptr() const {
   return type_member_store_;
 }
 
@@ -155,7 +316,11 @@ pb::ExpressionTypeSpec TypeSpec::ToProto() const {
     proto.set_name(full_name());
     return proto;
   }
-  proto.set_type_id(type_id());
+  if (type_id() < 0 || type_id() >= pb::TypeId::FIRST_CUSTOM_ID) {
+    proto.set_custom_type_id(type_id());
+  } else {
+    proto.set_type_id(static_cast<pb::TypeId>(type_id()));
+  }
   proto.set_name(name());
   for (auto param : parameters_) {
     *proto.add_parameter() = param->ToProto();
@@ -290,7 +455,41 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeSpec::Bind(
   ASSIGN_OR_RETURN(auto types, TypesFromBindings(bindings));
   auto result = Clone();
   result->parameters_ = types;
+  RETURN_IF_ERROR(result->UpdateBindingStore(bindings));
   return {std::move(result)};
+}
+
+absl::Status TypeSpec::UpdateBindingStore(
+    const std::vector<TypeBindingArg>& bindings) {
+  size_t num_non_any = 0;
+  for (const auto& binding : bindings) {
+    if (std::holds_alternative<const TypeSpec*>(binding) &&
+        std::get<const TypeSpec*>(binding)->type_id() != pb::TypeId::ANY_ID) {
+      ++num_non_any;
+    }
+  }
+  if (!num_non_any) {
+    return absl::OkStatus();
+  }
+  std::string signature = TypeBindingSignature(bindings);
+  auto bound_store = type_member_store_->AddBinding(signature, this);
+  type_member_store_->RemoveMemberType(this);
+  type_member_store_ = std::move(bound_store);
+  return absl::OkStatus();
+}
+
+std::string TypeSpec::TypeBindingSignature(
+    const std::vector<TypeBindingArg>& type_arguments) {
+  std::vector<std::string> components;
+  components.reserve(type_arguments.size());
+  for (const auto& ta : type_arguments) {
+    if (std::holds_alternative<const TypeSpec*>(ta)) {
+      components.emplace_back(std::get<const TypeSpec*>(ta)->full_name());
+    } else {
+      components.emplace_back(absl::StrCat("_i_", std::get<int>(ta)));
+    }
+  }
+  return absl::StrCat("Signature(", absl::StrJoin(components, "|"), ")");
 }
 
 absl::StatusOr<std::vector<const TypeSpec*>> TypeSpec::TypesFromBindings(
@@ -348,8 +547,8 @@ absl::Status TypeSpec::set_name(absl::string_view name) {
   return absl::OkStatus();
 }
 
-bool TypeSpec::IsBasicTypeId(pb::TypeId type_id) {
-  static auto kBasicTypeIds = new absl::flat_hash_set<pb::TypeId>({
+bool TypeSpec::IsBasicTypeId(int type_id) {
+  static auto kBasicTypeIds = new absl::flat_hash_set<int>({
       pb::TypeId::NUMERIC_ID,
       pb::TypeId::INT_ID,
       pb::TypeId::INT8_ID,
@@ -406,13 +605,13 @@ absl::Status LocalNamesRebinder::RecordLocalName(const TypeSpec* src_param,
     if (type_spec->IsBound() &&
         (!it->second->IsBound() || it->second->IsAncestorOf(*type_spec))) {
       it->second = type_spec;
+    } else if (!it->second->IsConvertibleFrom(*type_spec) &&
+               !type_spec->IsConvertibleFrom(*it->second)) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Named type: " << it->first
+             << " is bound to two incompatible argument types: "
+             << it->second->full_name() << " and " << type_spec->full_name();
     }
-  } else if (!it->second->IsConvertibleFrom(*type_spec)) {
-    return status::InvalidArgumentErrorBuilder()
-           << "Named type: " << it->first
-           << " is bound to "
-              "two incompatible argument types: "
-           << it->second->full_name() << " and " << type_spec->full_name();
   }
   return absl::OkStatus();
 }

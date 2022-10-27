@@ -38,7 +38,7 @@ def MaxTermination(name: cdm.HumanName) =>
   CheckCode("general_test", "maxlen_method", R"(
 // Returns the max len of a list of lists or so.
 // Also makes it a member of Iterable, so we can call it fluently:
-def method maxlen(l: Iterable<Iterable<{X}>>) => l.map(len).max()
+def method maxlen(l: Iterable<Container<{X}>>) => l.map(len).max()
 
 // Same as above but uses maxlen (in a fluent way):
 def MaxTermination(name: cdm.HumanName) => {
@@ -169,6 +169,12 @@ z = submodule.area(10)
   CheckCode("general_test", "submodule_module", R"(
 import submodule.compute
 z = submodule.compute.square_circle_area(10)
+)");
+  CheckCode("general_test", "submodule_module2", R"(
+import submodule
+z = submodule.area(10)
+import submodule.compute
+zz = submodule.compute.square_circle_area(10)
 )");
   ASSERT_TRUE(env()->module_store()->HasModule("submodule_init"));
   ASSERT_TRUE(env()->module_store()->HasModule("submodule"));
@@ -366,7 +372,7 @@ def foo(x: Int) : Int => { z }
              "Cannot return: String");
   CheckCode("general_test", "multi_type_bind", R"(
 def f(x: Int) => { x - 1 }
-def f(x: UInt) => { x + 1 }
+def f(x: UInt) => { x + 1u }
 z = f(10)
 w = f(10u)
 )");
@@ -395,7 +401,7 @@ def foo(x: cdm.HumanName, y: cdm.HumanName) => {
 def method foo(x: Int) => 0
 def method foo(x: Int) => 1
 )",
-             "already contains local object");
+             "the same name and signature already exists");
   CheckError("re_assign_type", R"(
 def f() => {
   x: Union<Int, String> = 10;
@@ -445,10 +451,6 @@ schema Foo = {
 }
 def g(x: Foo) => x.name.subname.len()
 )");
-  CheckError("not_yet_ready_constructor", R"(
-x = Array<Int>([1,2,3])
-)",
-             "Cannot find local name: `__init__` in Members of Array<Any>");
   CheckCode("general_test", "late_default_bind", R"(
 def f(x: {X}, y: X = 20) => x + y
 def g(a: Int) => f(a)
@@ -465,7 +467,7 @@ def g(a: Int) => f(y=a)
 def f(x: {X} = 10, y: X = "Foo") => x + y
 def g(a: Int) => f(a)
 )",
-             "String is not compatible with inferred type");
+             "two incompatible argument types: Int and String");
   CheckCode("general_test", "default_bind_on_funtype", R"(
 def f() => (x: Int = 10, y: Int = 20) => x + y
 def g(a: Int) => f()(a)
@@ -657,3 +659,7 @@ TEST_F(AnalysisTest, JustPrepare) {
 
 }  // namespace analysis
 }  // namespace nudl
+
+int main(int argc, char** argv) {
+  return nudl::analysis::AnalysisTest::Main(argc, argv);
+}

@@ -496,3 +496,7 @@ TEST_F(AnalysisTest, BadReturns) {
 
 }  // namespace analysis
 }  // namespace nudl
+
+int main(int argc, char** argv) {
+  return nudl::analysis::AnalysisTest::Main(argc, argv);
+}

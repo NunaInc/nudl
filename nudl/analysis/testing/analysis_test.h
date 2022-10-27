@@ -60,6 +60,11 @@ namespace analysis {
 //   as first argument.
 //
 class AnalysisTest : public ::testing::Test {
+ public:
+  // To be used as a main function in the tests:
+  static int Main(int argc, char** argv);
+  ~AnalysisTest() override;
+
  protected:
   void SetUp() override;
   Environment* env() const;
@@ -69,7 +74,7 @@ class AnalysisTest : public ::testing::Test {
   // Normal mode of operation: used to check an existing
   // prepared proto file test agains code.
   void CheckCode(absl::string_view test_name, absl::string_view module_name,
-                 absl::string_view code) const;
+                 absl::string_view code);
   // Development mode: used to visually check the conversion
   // of a piece of code and preparing a proto file for it.
   void PrepareCode(absl::string_view test_name, absl::string_view module_name,
@@ -79,10 +84,24 @@ class AnalysisTest : public ::testing::Test {
   void CheckError(absl::string_view module_name, absl::string_view code,
                   absl::string_view expected_error) const;
 
+  // Writes the prepare proto code to the corresponding test file.
+  void WritePreparedCode(Module* module, const pb::ModuleSpec& proto,
+                         absl::string_view test_name,
+                         absl::string_view module_name, absl::string_view code,
+                         bool skip_write) const;
+
   std::unique_ptr<Environment> env_;
   std::string builtin_file_{"nudl/analysis/testing/testdata/builtin.ndl"};
   std::string search_path_{"nudl/analysis/testing/testdata"};
   size_t next_id_ = 0;
+  absl::Duration setup_duration_ = absl::ZeroDuration();
+  absl::Duration parse_duration_ = absl::ZeroDuration();
+  absl::Duration analysis_duration_ = absl::ZeroDuration();
+  absl::Duration convert_duration_ = absl::ZeroDuration();
+  absl::Duration read_file_duration_ = absl::ZeroDuration();
+  absl::Duration compare_duration_ = absl::ZeroDuration();
+  absl::Duration regenerate_duration_ = absl::ZeroDuration();
+  absl::Duration total_duration_ = absl::ZeroDuration();
 };
 
 }  // namespace analysis

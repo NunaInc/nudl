@@ -39,7 +39,8 @@ class VarBase : public WrappedNameStore {
 
   // We override this, to create local instances of the field/var
   // based names in the get.
-  absl::StatusOr<NamedObject*> GetName(absl::string_view local_name) override;
+  absl::StatusOr<NamedObject*> GetName(absl::string_view local_name,
+                                       bool in_self_only) override;
 
   // Override these: we don't support - they should be added to types.
   absl::Status AddName(absl::string_view local_name,

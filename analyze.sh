@@ -10,4 +10,5 @@ fi
 ./bazel-bin/nudl/analysis/convert \
     --builtin_path=${dir}/builtin.ndl \
     --search_paths=${dir}/ \
+    --lang=python \
     --input=${module}

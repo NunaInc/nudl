@@ -1,0 +1,18 @@
+bazel_build:
+  stage: bazel_build
+
+  variables:
+    BUILD_IMAGE: local-docker-release.artifactory.nuna.cloud/infrasec/build/trustdb:1.1.1
+    BAZEL_OPTS: "--show_timestamps
+                 --test_summary=detailed --test_output=errors"
+
+  image:
+    name: "$BUILD_IMAGE"
+
+  script:
+    - "echo starting build and test: $(date)"
+    - "bazel build ${BAZEL_OPTS} //..."
+    - "bazel test ${BAZEL_OPTS} //..."
+
+  after_script:
+    - "echo build and test complete: $(date)"

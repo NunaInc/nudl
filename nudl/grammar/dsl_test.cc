@@ -218,7 +218,7 @@ module(moduleAssignment(param assignExpression(FOO = 20)))
 element { assignment {
   identifier { name: "FOO" }
   value { literal { int_value: 20 original: "20" } }
-  qualifier: PARAM
+  qualifier: QUAL_PARAM
 } })");
 }
 
@@ -963,7 +963,7 @@ TEST(Parser, FunctionDefNative) {
 def f(x) =>
 $$pyimpl
     y = x + 1
-    return x // y
+    return x ** y
 $$end
     )",
                R"(
@@ -971,7 +971,7 @@ module(
   functionDefinition(def f ( x ) =>
     $$pyimpl
     y = x + 1
-    return x // y
+    return x ** y
 $$end
   )
 )
@@ -983,7 +983,7 @@ element {
     param { name: "x" }
     snippet {
       name: "pyimpl"
-      body: "    y = x + 1\n    return x // y"
+      body: "    y = x + 1\n    return x ** y"
     }
   }
 }
@@ -2368,6 +2368,66 @@ element {
 )");
 }
 
+TEST(Paser, WithExpression) {
+  CheckOkParse("def f(a) => with(a) { x = 1 + 1 }",
+               R"(
+module(
+  functionDefinition(def f ( a ) =>
+    withExpression(with ( a )
+      expressionBlock({ assignExpression(x = additiveExpression(1 + 1)) })
+    )
+  )
+)
+)",
+               R"(
+element {
+  function_def {
+    name: "f"
+    param {
+      name: "a"
+    }
+    expression_block {
+      expression {
+        with_expr {
+          with {
+            identifier {
+              name: "a"
+            }
+          }
+          expression_block {
+            expression {
+              assignment {
+                identifier {
+                  name: "x"
+                }
+                value {
+                  operator_expr {
+                    op: "+"
+                    argument {
+                      literal {
+                        int_value: 1
+                        original: "1"
+                      }
+                    }
+                    argument {
+                      literal {
+                        int_value: 1
+                        original: "1"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+)");
+}
+
 TEST(Parser, Imports) {
   CheckOkParse("import foo",
                R"(
@@ -3112,6 +3172,128 @@ element {
     }
   }
 })");
+}
+
+TEST(Parser, TypeDefinition) {
+  CheckOkParse(R"(
+typedef Foobar = Function<Array<Int>, Map<{X}, String>, Other>;
+x : Foober = z
+)",
+               R"(
+module(
+  moduleElement(
+    typeDefinition(typedef Foobar =
+      typeExpression(Function
+        typeTemplate(< typeExpression(Array typeTemplate(< Int >)) ,
+          typeExpression(Map typeTemplate(< typeNamedArgument({ X }) , String >))
+          , Other >
+        )
+      )
+    ) ;
+  ) assignExpression(x typeAssignment(: Foober) = z)
+)
+)",
+               R"(
+element {
+  type_def {
+    name: "Foobar"
+    type_spec {
+      identifier { name: "Function" }
+      argument {
+        type_spec {
+          identifier { name: "Array" }
+          argument { type_spec { identifier { name: "Int" } } }
+        }
+      }
+      argument {
+        type_spec {
+          identifier { name: "Map" }
+          argument {
+            type_spec { identifier { name: "X" } is_local_type: true }
+          }
+          argument { type_spec { identifier { name: "String" } } }
+        }
+      }
+      argument {
+        type_spec { identifier { name: "Other" } }
+      }
+    }
+  }
+}
+element {
+  assignment {
+    identifier { name: "x" }
+    type_spec { identifier { name: "Foober" } }
+    value {
+      identifier { name: "z" }
+    }
+  }
+})");
+  CheckOkParse(R"(
+typedef Foobar = Array<Int>
+$$pyimport
+import nudl.types
+$$end
+$$pytype
+nudl.Foobar
+$$end
+x = Foobar(232)
+)",
+               R"(
+module(
+  typeDefinition(typedef Foobar = typeExpression(Array typeTemplate(< Int >))
+    $$pyimport
+import nudl.types
+$$end
+    $$pytype
+nudl.Foobar
+$$end
+  ) assignExpression(x = postfixExpression(Foobar postfixValue(( 232 ))))
+)
+)",
+               R"(
+element {
+  type_def {
+    name: "Foobar"
+    type_spec {
+      identifier {
+        name: "Array"
+      }
+      argument {
+        type_spec {
+          identifier {
+            name: "Int"
+          }
+        }
+      }
+    }
+  }
+}
+element {
+  assignment {
+    identifier {
+      name: "x"
+    }
+    value {
+      function_call {
+        expr_spec {
+          identifier {
+            name: "Foobar"
+          }
+        }
+        argument {
+          value {
+            literal {
+              int_value: 232
+              original: "232"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+)");
 }
 
 }  // namespace grammar

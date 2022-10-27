@@ -79,12 +79,14 @@ bool VarBase::IsVarKind(const NamedObject& object) {
   return kVarKinds->contains(object.kind());
 }
 
-absl::StatusOr<NamedObject*> VarBase::GetName(absl::string_view local_name) {
+absl::StatusOr<NamedObject*> VarBase::GetName(absl::string_view local_name,
+                                              bool in_self_only) {
   auto it = local_fields_map_.find(local_name);
   if (it != local_fields_map_.end()) {
     return it->second;
   }
-  ASSIGN_OR_RETURN(auto base_object, WrappedNameStore::GetName(local_name));
+  ASSIGN_OR_RETURN(auto base_object,
+                   WrappedNameStore::GetName(local_name, in_self_only));
   if (!IsVarKind(*(CHECK_NOTNULL(base_object)))) {
     return base_object;
   }
