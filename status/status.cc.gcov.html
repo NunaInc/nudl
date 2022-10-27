@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-27 04:16:00</td>
+            <td class="headerValue">2022-10-27 04:28:41</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">8</td>
@@ -72,21 +72,21 @@
 <a name="10"><span class="lineNum">      10 </span>            : namespace nudl {</a>
 <a name="11"><span class="lineNum">      11 </span>            : namespace status {</a>
 <a name="12"><span class="lineNum">      12 </span>            : </a>
-<a name="13"><span class="lineNum">      13 </span><span class="lineCov">       8262 : absl::Status Annotate(const absl::Status&amp; status, absl::string_view message) {</span></a>
-<a name="14"><span class="lineNum">      14 </span><span class="lineCov">       8262 :   if (message.empty()) {</span></a>
+<a name="13"><span class="lineNum">      13 </span><span class="lineCov">       8266 : absl::Status Annotate(const absl::Status&amp; status, absl::string_view message) {</span></a>
+<a name="14"><span class="lineNum">      14 </span><span class="lineCov">       8266 :   if (message.empty()) {</span></a>
 <a name="15"><span class="lineNum">      15 </span><span class="lineCov">         33 :     return status;</span></a>
 <a name="16"><span class="lineNum">      16 </span>            :   }</a>
 <a name="17"><span class="lineNum">      17 </span>            :   absl::Status result(</a>
 <a name="18"><span class="lineNum">      18 </span>            :       status.code(),</a>
-<a name="19"><span class="lineNum">      19 </span><span class="lineCov">       8229 :       status.message().empty()</span></a>
+<a name="19"><span class="lineNum">      19 </span><span class="lineCov">       8233 :       status.message().empty()</span></a>
 <a name="20"><span class="lineNum">      20 </span>            :           ? message</a>
-<a name="21"><span class="lineNum">      21 </span><span class="lineCov">      16290 :           : absl::StrCat(status.message(),</span></a>
-<a name="22"><span class="lineNum">      22 </span><span class="lineCov">      32748 :                          absl::GetFlag(FLAGS_status_annotate_joiner), message));</span></a>
-<a name="23"><span class="lineNum">      23 </span><span class="lineCov">       8229 :   status.ForEachPayload(</span></a>
+<a name="21"><span class="lineNum">      21 </span><span class="lineCov">      16294 :           : absl::StrCat(status.message(),</span></a>
+<a name="22"><span class="lineNum">      22 </span><span class="lineCov">      32760 :                          absl::GetFlag(FLAGS_status_annotate_joiner), message));</span></a>
+<a name="23"><span class="lineNum">      23 </span><span class="lineCov">       8233 :   status.ForEachPayload(</span></a>
 <a name="24"><span class="lineNum">      24 </span><span class="lineCov">        666 :       [&amp;result](absl::string_view name, const absl::Cord&amp; payload) {</span></a>
 <a name="25"><span class="lineNum">      25 </span><span class="lineCov">        666 :         result.SetPayload(name, payload);</span></a>
 <a name="26"><span class="lineNum">      26 </span><span class="lineCov">        666 :       });</span></a>
-<a name="27"><span class="lineNum">      27 </span><span class="lineCov">       8229 :   return result;</span></a>
+<a name="27"><span class="lineNum">      27 </span><span class="lineCov">       8233 :   return result;</span></a>
 <a name="28"><span class="lineNum">      28 </span>            : }</a>
 <a name="29"><span class="lineNum">      29 </span>            : </a>
 <a name="30"><span class="lineNum">      30 </span><span class="lineCov">       4753 : absl::Status&amp; UpdateOrAnnotate(absl::Status&amp; status,</span></a>
