@@ -65,6 +65,9 @@ absl::string_view TypeUtils::BaseTypeName(pb::TypeId type_id) {
           {pb::TypeId::DATASET_ID, std::string(kTypeNameDataset)},
           {pb::TypeId::TYPE_ID, std::string(kTypeNameType)},
           {pb::TypeId::MODULE_ID, std::string(kTypeNameModule)},
+          {pb::TypeId::INTEGRAL_ID, std::string(kTypeNameIntegral)},
+          {pb::TypeId::CONTAINER_ID, std::string(kTypeNameContainer)},
+          {pb::TypeId::GENERATOR_ID, std::string(kTypeNameGenerator)},
       });
   auto it = kTypeNames->find(type_id);
   if (it == kTypeNames->end()) {
@@ -73,17 +76,17 @@ absl::string_view TypeUtils::BaseTypeName(pb::TypeId type_id) {
   return it->second;
 }
 
-bool TypeUtils::IsUIntType(pb::TypeId type_id) {
+bool TypeUtils::IsUIntType(size_t type_id) {
   return (type_id == pb::TypeId::UINT_ID || type_id == pb::TypeId::UINT8_ID ||
           type_id == pb::TypeId::UINT16_ID || type_id == pb::TypeId::UINT32_ID);
 }
 
-bool TypeUtils::IsIntType(pb::TypeId type_id) {
+bool TypeUtils::IsIntType(size_t type_id) {
   return (type_id == pb::TypeId::INT_ID || type_id == pb::TypeId::INT8_ID ||
           type_id == pb::TypeId::INT16_ID || type_id == pb::TypeId::INT32_ID);
 }
 
-bool TypeUtils::IsFloatType(pb::TypeId type_id) {
+bool TypeUtils::IsFloatType(size_t type_id) {
   return (type_id == pb::TypeId::FLOAT32_ID ||
           type_id == pb::TypeId::FLOAT64_ID);
 }
@@ -162,6 +165,9 @@ void BaseTypesStore::CreateBaseTypes() {
   CHECK_OK(DeclareType(*scope_name_, "",
                        std::make_unique<TypeNumeric>(this, nullptr))
                .status());
+  CHECK_OK(DeclareType(*scope_name_, "",
+                       std::make_unique<TypeIntegral>(this, nullptr))
+               .status());
   CHECK_OK(
       DeclareType(*scope_name_, "", std::make_unique<TypeInt>(this, nullptr))
           .status());
@@ -219,6 +225,12 @@ void BaseTypesStore::CreateBaseTypes() {
   CHECK_OK(DeclareType(*scope_name_, "",
                        std::make_unique<TypeIterable>(this, nullptr))
                .status());
+  CHECK_OK(DeclareType(*scope_name_, "",
+                       std::make_unique<TypeContainer>(this, nullptr))
+               .status());
+  CHECK_OK(DeclareType(*scope_name_, "",
+                       std::make_unique<TypeGenerator>(this, nullptr))
+               .status());
   CHECK_OK(
       DeclareType(*scope_name_, "", std::make_unique<TypeArray>(this, nullptr))
           .status());
@@ -245,11 +257,10 @@ void BaseTypesStore::CreateBaseTypes() {
                .status());
 }
 
-StoredTypeSpec::StoredTypeSpec(TypeStore* type_store, pb::TypeId type_id,
-                               absl::string_view name,
-                               std::shared_ptr<NameStore> type_member_store,
-                               bool is_bound_type, const TypeSpec* ancestor,
-                               std::vector<const TypeSpec*> parameters)
+StoredTypeSpec::StoredTypeSpec(
+    TypeStore* type_store, int type_id, absl::string_view name,
+    std::shared_ptr<TypeMemberStore> type_member_store, bool is_bound_type,
+    const TypeSpec* ancestor, std::vector<const TypeSpec*> parameters)
     : TypeSpec(type_id, name, std::move(type_member_store), is_bound_type,
                ancestor, std::move(parameters)),
       type_store_(CHECK_NOTNULL(type_store)),
@@ -278,7 +289,7 @@ void StoredTypeSpec::set_scope_name(ScopeName scope_name) {
 }
 
 TypeType::TypeType(TypeStore* type_store,
-                   std::shared_ptr<NameStore> type_member_store)
+                   std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::TYPE_ID, kTypeNameType,
                      std::move(type_member_store)) {}
 
@@ -287,24 +298,30 @@ std::unique_ptr<TypeSpec> TypeType::Clone() const {
 }
 
 TypeAny::TypeAny(TypeStore* type_store,
-                 std::shared_ptr<NameStore> type_member_store)
+                 std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::ANY_ID, kTypeNameAny,
                      std::move(type_member_store)) {}
 std::unique_ptr<TypeSpec> TypeAny::Clone() const {
   return CloneType<TypeAny>();
 }
 
-TypeModule::TypeModule(TypeStore* type_store,
-                       std::shared_ptr<NameStore> type_member_store)
+TypeModule::TypeModule(TypeStore* type_store, absl::string_view module_name,
+                       NameStore* module)
     : StoredTypeSpec(type_store, pb::TypeId::MODULE_ID, kTypeNameModule,
-                     std::move(type_member_store)) {}
+                     TypeUtils::EnsureType(type_store, kTypeNameAny)
+                         ->type_member_store_ptr()),
+      module_name_(module_name),
+      module_(module) {
+  type_member_store_ = std::make_shared<TypeMemberStore>(
+      this, std::make_shared<WrappedNameStore>(module_name, module));
+}
 
 std::unique_ptr<TypeSpec> TypeModule::Clone() const {
-  return CloneType<TypeModule>();
+  return std::make_unique<TypeModule>(type_store_, module_name_, module_);
 }
 
 TypeNull::TypeNull(TypeStore* type_store,
-                   std::shared_ptr<NameStore> type_member_store)
+                   std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::NULL_ID, kTypeNameNull,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameAny)) {}
@@ -313,7 +330,7 @@ std::unique_ptr<TypeSpec> TypeNull::Clone() const {
 }
 
 TypeNumeric::TypeNumeric(TypeStore* type_store,
-                         std::shared_ptr<NameStore> type_member_store)
+                         std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::NUMERIC_ID, kTypeNameNumeric,
                      std::move(type_member_store), false,
                      TypeUtils::EnsureType(type_store, kTypeNameAny)) {}
@@ -321,11 +338,20 @@ std::unique_ptr<TypeSpec> TypeNumeric::Clone() const {
   return CloneType<TypeNumeric>();
 }
 
+TypeIntegral::TypeIntegral(TypeStore* type_store,
+                           std::shared_ptr<TypeMemberStore> type_member_store)
+    : StoredTypeSpec(type_store, pb::TypeId::INTEGRAL_ID, kTypeNameIntegral,
+                     std::move(type_member_store), false,
+                     TypeUtils::EnsureType(type_store, kTypeNameNumeric)) {}
+std::unique_ptr<TypeSpec> TypeIntegral::Clone() const {
+  return CloneType<TypeIntegral>();
+}
+
 TypeInt::TypeInt(TypeStore* type_store,
-                 std::shared_ptr<NameStore> type_member_store)
+                 std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::INT_ID, kTypeNameInt,
                      std::move(type_member_store), true,
-                     TypeUtils::EnsureType(type_store, kTypeNameNumeric)) {}
+                     TypeUtils::EnsureType(type_store, kTypeNameIntegral)) {}
 std::unique_ptr<TypeSpec> TypeInt::Clone() const {
   return CloneType<TypeInt>();
 }
@@ -334,7 +360,7 @@ bool TypeInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeInt8::TypeInt8(TypeStore* type_store,
-                   std::shared_ptr<NameStore> type_member_store)
+                   std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::INT8_ID, kTypeNameInt8,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
@@ -346,7 +372,7 @@ bool TypeInt8::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeInt16::TypeInt16(TypeStore* type_store,
-                     std::shared_ptr<NameStore> type_member_store)
+                     std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::INT16_ID, kTypeNameInt16,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
@@ -358,7 +384,7 @@ bool TypeInt16::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeInt32::TypeInt32(TypeStore* type_store,
-                     std::shared_ptr<NameStore> type_member_store)
+                     std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::INT32_ID, kTypeNameInt32,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameInt)) {}
@@ -370,10 +396,10 @@ bool TypeInt32::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeUInt::TypeUInt(TypeStore* type_store,
-                   std::shared_ptr<NameStore> type_member_store)
+                   std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::UINT_ID, kTypeNameUInt,
                      std::move(type_member_store), true,
-                     TypeUtils::EnsureType(type_store, kTypeNameNumeric)) {}
+                     TypeUtils::EnsureType(type_store, kTypeNameIntegral)) {}
 std::unique_ptr<TypeSpec> TypeUInt::Clone() const {
   return CloneType<TypeUInt>();
 }
@@ -382,7 +408,7 @@ bool TypeUInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeUInt8::TypeUInt8(TypeStore* type_store,
-                     std::shared_ptr<NameStore> type_member_store)
+                     std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::UINT8_ID, kTypeNameUInt8,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameUInt)) {}
@@ -394,7 +420,7 @@ bool TypeUInt8::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeUInt16::TypeUInt16(TypeStore* type_store,
-                       std::shared_ptr<NameStore> type_member_store)
+                       std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::UINT16_ID, kTypeNameUInt16,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameUInt)) {}
@@ -406,7 +432,7 @@ bool TypeUInt16::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeUInt32::TypeUInt32(TypeStore* type_store,
-                       std::shared_ptr<NameStore> type_member_store)
+                       std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::UINT32_ID, kTypeNameUInt32,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameUInt)) {}
@@ -418,7 +444,7 @@ bool TypeUInt32::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeFloat64::TypeFloat64(TypeStore* type_store,
-                         std::shared_ptr<NameStore> type_member_store)
+                         std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::FLOAT64_ID, kTypeNameFloat64,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameNumeric)) {}
@@ -432,7 +458,7 @@ bool TypeFloat64::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeFloat32::TypeFloat32(TypeStore* type_store,
-                         std::shared_ptr<NameStore> type_member_store)
+                         std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::FLOAT32_ID, kTypeNameFloat32,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameFloat64)) {}
@@ -446,7 +472,7 @@ bool TypeFloat32::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeString::TypeString(TypeStore* type_store,
-                       std::shared_ptr<NameStore> type_member_store)
+                       std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::STRING_ID, kTypeNameString,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameAny)) {}
@@ -455,7 +481,7 @@ std::unique_ptr<TypeSpec> TypeString::Clone() const {
 }
 
 TypeBytes::TypeBytes(TypeStore* type_store,
-                     std::shared_ptr<NameStore> type_member_store)
+                     std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::BYTES_ID, kTypeNameBytes,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameAny)) {}
@@ -464,7 +490,7 @@ std::unique_ptr<TypeSpec> TypeBytes::Clone() const {
 }
 
 TypeBool::TypeBool(TypeStore* type_store,
-                   std::shared_ptr<NameStore> type_member_store)
+                   std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::BOOL_ID, kTypeNameBool,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameAny)) {}
@@ -473,7 +499,7 @@ std::unique_ptr<TypeSpec> TypeBool::Clone() const {
 }
 
 TypeTimestamp::TypeTimestamp(TypeStore* type_store,
-                             std::shared_ptr<NameStore> type_member_store)
+                             std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::TIMESTAMP_ID, kTypeNameTimestamp,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameAny)) {}
@@ -482,7 +508,7 @@ std::unique_ptr<TypeSpec> TypeTimestamp::Clone() const {
 }
 
 TypeDate::TypeDate(TypeStore* type_store,
-                   std::shared_ptr<NameStore> type_member_store)
+                   std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::DATE_ID, kTypeNameDate,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameTimestamp)) {}
@@ -491,7 +517,7 @@ std::unique_ptr<TypeSpec> TypeDate::Clone() const {
 }
 
 TypeDateTime::TypeDateTime(TypeStore* type_store,
-                           std::shared_ptr<NameStore> type_member_store)
+                           std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::DATETIME_ID, kTypeNameDateTime,
                      std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameTimestamp)) {}
@@ -499,8 +525,8 @@ std::unique_ptr<TypeSpec> TypeDateTime::Clone() const {
   return CloneType<TypeDateTime>();
 }
 
-TypeTimeInterval::TypeTimeInterval(TypeStore* type_store,
-                                   std::shared_ptr<NameStore> type_member_store)
+TypeTimeInterval::TypeTimeInterval(
+    TypeStore* type_store, std::shared_ptr<TypeMemberStore> type_member_store)
     : StoredTypeSpec(type_store, pb::TypeId::TIMEINTERVAL_ID,
                      kTypeNameTimeInterval, std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameAny)) {}
@@ -509,7 +535,7 @@ std::unique_ptr<TypeSpec> TypeTimeInterval::Clone() const {
 }
 
 TypeDecimal::TypeDecimal(TypeStore* type_store,
-                         std::shared_ptr<NameStore> type_member_store,
+                         std::shared_ptr<TypeMemberStore> type_member_store,
                          int precision, int scale)
     : StoredTypeSpec(type_store, pb::TypeId::DECIMAL_ID, kTypeNameDecimal,
                      std::move(type_member_store), precision > 0 && scale >= 0,
@@ -567,7 +593,7 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeDecimal::Bind(
 }
 
 TypeIterable::TypeIterable(TypeStore* type_store,
-                           std::shared_ptr<NameStore> type_member_store,
+                           std::shared_ptr<TypeMemberStore> type_member_store,
                            const TypeSpec* param)
     : StoredTypeSpec(type_store, pb::TypeId::ITERABLE_ID, kTypeNameIterable,
                      std::move(type_member_store), false,
@@ -583,12 +609,42 @@ std::unique_ptr<TypeSpec> TypeIterable::Clone() const {
 
 bool TypeIterable::IsIterable() const { return true; }
 
+TypeContainer::TypeContainer(TypeStore* type_store,
+                             std::shared_ptr<TypeMemberStore> type_member_store,
+                             const TypeSpec* param)
+    : StoredTypeSpec(type_store, pb::TypeId::CONTAINER_ID, kTypeNameContainer,
+                     std::move(type_member_store), false,
+                     TypeUtils::EnsureType(type_store, kTypeNameIterable),
+                     {TypeUtils::EnsureType(type_store, kTypeNameAny, param)}) {
+}
+
+std::unique_ptr<TypeSpec> TypeContainer::Clone() const {
+  CHECK(!parameters_.empty());
+  return std::make_unique<TypeContainer>(type_store_, type_member_store_,
+                                         parameters_.front());
+}
+
+TypeGenerator::TypeGenerator(TypeStore* type_store,
+                             std::shared_ptr<TypeMemberStore> type_member_store,
+                             const TypeSpec* param)
+    : StoredTypeSpec(type_store, pb::TypeId::GENERATOR_ID, kTypeNameGenerator,
+                     std::move(type_member_store), true,
+                     TypeUtils::EnsureType(type_store, kTypeNameIterable),
+                     {TypeUtils::EnsureType(type_store, kTypeNameAny, param)}) {
+}
+
+std::unique_ptr<TypeSpec> TypeGenerator::Clone() const {
+  CHECK(!parameters_.empty());
+  return std::make_unique<TypeGenerator>(type_store_, type_member_store_,
+                                         parameters_.front());
+}
+
 TypeArray::TypeArray(TypeStore* type_store,
-                     std::shared_ptr<NameStore> type_member_store,
+                     std::shared_ptr<TypeMemberStore> type_member_store,
                      const TypeSpec* param)
     : StoredTypeSpec(type_store, pb::TypeId::ARRAY_ID, kTypeNameArray,
                      std::move(type_member_store), true,
-                     TypeUtils::EnsureType(type_store, kTypeNameIterable),
+                     TypeUtils::EnsureType(type_store, kTypeNameContainer),
                      {TypeUtils::EnsureType(type_store, kTypeNameAny, param)}) {
 }
 
@@ -613,11 +669,11 @@ std::unique_ptr<TypeSpec> TypeArray::Clone() const {
 }
 
 TypeSet::TypeSet(TypeStore* type_store,
-                 std::shared_ptr<NameStore> type_member_store,
+                 std::shared_ptr<TypeMemberStore> type_member_store,
                  const TypeSpec* param)
     : StoredTypeSpec(type_store, pb::TypeId::SET_ID, kTypeNameSet,
                      std::move(type_member_store), true,
-                     TypeUtils::EnsureType(type_store, kTypeNameIterable),
+                     TypeUtils::EnsureType(type_store, kTypeNameContainer),
                      {TypeUtils::EnsureType(type_store, kTypeNameAny, param)}),
       bool_type_(TypeUtils::EnsureType(type_store, kTypeNameBool)) {}
 
@@ -774,7 +830,7 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeStruct::Bind(
 }
 
 StructMemberStore::StructMemberStore(const TypeSpec* type_spec,
-                                     std::shared_ptr<NameStore> ancestor)
+                                     std::shared_ptr<TypeMemberStore> ancestor)
     : TypeMemberStore(type_spec, std::move(ancestor)) {
   CHECK(type_spec->type_id() == pb::TypeId::STRUCT_ID   // normally
         || type_spec->type_id() == pb::TypeId::ANY_ID)  // first build
@@ -791,20 +847,19 @@ absl::Status StructMemberStore::AddFields(
     const std::vector<TypeStruct::Field>& fields) {
   RET_CHECK(fields_.empty())
       << "Should not add twice the fields to a struct member store";
-  CHECK_NOTNULL(type_spec_);
   fields_.reserve(fields.size());
   field_vars_.reserve(fields.size());
   for (const auto& field : fields) {
     if (!NameUtil::IsValidName(field.name)) {
       return status::InvalidArgumentErrorBuilder()
              << "Invalid field name: " << field.name
-             << " in type: " << type_spec_->full_name();
+             << " in type: " << type_spec()->full_name();
     }
     auto field_var = std::make_unique<Field>(
-        field.name, CHECK_NOTNULL(field.type_spec), type_spec_, this);
+        field.name, CHECK_NOTNULL(field.type_spec), type_spec(), this);
     RETURN_IF_ERROR(AddChildStore(field.name, field_var.get()))
         << "Adding field: " << field.name
-        << " to type: " << type_spec_->full_name();
+        << " to type: " << type_spec()->full_name();
     field_vars_.emplace_back(std::move(field_var));
     fields_.emplace_back(field);
   }
@@ -818,11 +873,11 @@ void StructMemberStore::set_type_spec(const TypeSpec* type_spec) {
 }
 
 TypeMap::TypeMap(TypeStore* type_store,
-                 std::shared_ptr<NameStore> type_member_store,
+                 std::shared_ptr<TypeMemberStore> type_member_store,
                  const TypeSpec* key, const TypeSpec* val)
     : StoredTypeSpec(type_store, pb::TypeId::MAP_ID, kTypeNameMap,
                      std::move(type_member_store), true,
-                     TypeUtils::EnsureType(type_store, kTypeNameIterable),
+                     TypeUtils::EnsureType(type_store, kTypeNameContainer),
                      {TypeUtils::EnsureType(type_store, kTypeNameAny, key),
                       TypeUtils::EnsureType(type_store, kTypeNameAny, val)}),
       // TODO(catalin): TBD if we want a structure or a tuple as values.
@@ -866,12 +921,14 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeMap::Bind(
     const std::vector<TypeBindingArg>& bindings) const {
   ASSIGN_OR_RETURN(auto types, TypesFromBindings(bindings));
   CHECK_EQ(types.size(), 2ul);
-  return {std::make_unique<TypeMap>(type_store_, type_member_store_,
-                                    types.front(), types.back())};
+  auto new_map = std::make_unique<TypeMap>(type_store_, type_member_store_,
+                                           types.front(), types.back());
+  RETURN_IF_ERROR(new_map->UpdateBindingStore(bindings));
+  return {std::move(new_map)};
 }
 
 TypeTuple::TypeTuple(TypeStore* type_store,
-                     std::shared_ptr<NameStore> type_member_store,
+                     std::shared_ptr<TypeMemberStore> type_member_store,
                      std::vector<const TypeSpec*> parameters)
     : StoredTypeSpec(type_store, pb::TypeId::TUPLE_ID, kTypeNameTuple,
                      std::move(type_member_store), true,
@@ -898,12 +955,14 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeTuple::Bind(
   ASSIGN_OR_RETURN(auto types, TypesFromBindings(bindings, false),
                    _ << "Extracting types from bindings");
   CHECK_EQ(bindings.size(), types.size());
-  return std::make_unique<TypeTuple>(type_store_, type_member_store_,
-                                     std::move(types));
+  auto new_tuple = std::make_unique<TypeTuple>(type_store_, type_member_store_,
+                                               std::move(types));
+  RETURN_IF_ERROR(new_tuple->UpdateBindingStore(bindings));
+  return {std::move(new_tuple)};
 }
 
 TypeFunction::TypeFunction(TypeStore* type_store,
-                           std::shared_ptr<NameStore> type_member_store,
+                           std::shared_ptr<TypeMemberStore> type_member_store,
                            absl::string_view name,
                            std::vector<Argument> arguments,
                            const TypeSpec* result,
@@ -1016,6 +1075,7 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeFunction::Bind(
     }
     result_type = types.back();
   }
+  // For functions we keep the same store:
   return {std::make_unique<TypeFunction>(type_store_, type_member_store_,
                                          name(), std::move(arguments),
                                          result_type)};
@@ -1143,7 +1203,7 @@ std::vector<const TypeSpec*> UnionSortTypes(
 }  // namespace
 
 TypeUnion::TypeUnion(TypeStore* type_store,
-                     std::shared_ptr<NameStore> type_member_store,
+                     std::shared_ptr<TypeMemberStore> type_member_store,
                      std::vector<const TypeSpec*> parameters)
     : StoredTypeSpec(type_store, pb::TypeId::UNION_ID, kTypeNameUnion,
                      std::move(type_member_store), false,
@@ -1180,8 +1240,11 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeUnion::Bind(
            << "Cannot build a Union with less than two type parameters: "
            << types.size() << " vs: " << bindings.size();
   }
-  return {std::make_unique<TypeUnion>(type_store_, type_member_store_,
-                                      std::move(types))};
+  // TODO(catalin): should probably sort types for binding..
+  auto new_union = std::make_unique<TypeUnion>(type_store_, type_member_store_,
+                                               std::move(types));
+  RETURN_IF_ERROR(new_union->UpdateBindingStore(bindings));
+  return {std::move(new_union)};
 }
 
 bool TypeUnion::IsAncestorOf(const TypeSpec& type_spec) const {
@@ -1209,7 +1272,7 @@ bool TypeUnion::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeNullable::TypeNullable(TypeStore* type_store,
-                           std::shared_ptr<NameStore> type_member_store,
+                           std::shared_ptr<TypeMemberStore> type_member_store,
                            const TypeSpec* type_spec)
     : StoredTypeSpec(type_store, pb::TypeId::NULLABLE_ID, kTypeNameNullable,
                      std::move(type_member_store), true,
@@ -1250,8 +1313,12 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeNullable::Bind(
       return status::InvalidArgumentErrorBuilder()
              << "Cannot bind type Null as an argument to a Nullable type";
     }
-    return std::make_unique<TypeNullable>(type_store_, type_member_store_,
-                                          types.front());
+    auto nullable_type = std::make_unique<TypeNullable>(
+        type_store_, type_member_store_, types.front());
+    std::vector<TypeBindingArg> update_bindings;
+    update_bindings.emplace_back(TypeBindingArg{types.front()});
+    RETURN_IF_ERROR(nullable_type->UpdateBindingStore(update_bindings));
+    return {std::move(nullable_type)};
   }
   const TypeSpec* arg_type = nullable_bind ? nullable_bind : types.front();
   if (!IsAncestorOf(*arg_type)) {
@@ -1265,8 +1332,12 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeNullable::Bind(
   if (nullable_bind->type_id() == pb::TypeId::NULL_ID) {
     return nullable_bind->Clone();
   }
-  return std::make_unique<TypeNullable>(type_store_, type_member_store_,
-                                        nullable_bind);
+  std::vector<TypeBindingArg> update_bindings;
+  update_bindings.emplace_back(TypeBindingArg{nullable_bind});
+  auto nullable_type = std::make_unique<TypeNullable>(
+      type_store_, type_member_store_, nullable_bind);
+  RETURN_IF_ERROR(nullable_type->UpdateBindingStore(update_bindings));
+  return {std::move(nullable_type)};
 }
 
 std::unique_ptr<TypeSpec> TypeNullable::Clone() const {
@@ -1298,7 +1369,7 @@ bool TypeNullable::IsConvertibleFrom(const TypeSpec& type_spec) const {
 }
 
 TypeDataset::TypeDataset(TypeStore* type_store,
-                         std::shared_ptr<NameStore> type_member_store,
+                         std::shared_ptr<TypeMemberStore> type_member_store,
                          absl::string_view name, const TypeSpec* type_spec)
     : StoredTypeSpec(
           type_store, pb::TypeId::DATASET_ID,
@@ -1334,15 +1405,17 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeDataset::Bind(
            << "Cannot bind " << types.front()->full_name() << " to "
            << full_name();
   }
-  return std::make_unique<TypeDataset>(type_store_, type_member_store_, name_,
-                                       types.front());
+  auto new_dataset = std::make_unique<TypeDataset>(
+      type_store_, type_member_store_, name_, types.front());
+  RETURN_IF_ERROR(new_dataset->UpdateBindingStore(bindings));
+  return {std::move(new_dataset)};
 }
 
 std::unique_ptr<TypeSpec> TypeUnknown::Clone() const {
   return std::make_unique<TypeUnknown>(type_member_store_ptr());
 }
 
-TypeUnknown::TypeUnknown(std::shared_ptr<NameStore> type_member_store)
+TypeUnknown::TypeUnknown(std::shared_ptr<TypeMemberStore> type_member_store)
     : TypeSpec(pb::TypeId::UNKNOWN_ID, kTypeNameUnknown,
                std::move(type_member_store)) {}
 

@@ -35,6 +35,9 @@ cc_library(
         "//nudl/analysis",
         "//nudl/status:testing",
         "//nudl/testing:protobuf_matchers",
+        "@com_google_absl//absl/debugging:failure_signal_handler",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest",
@@ -47,7 +50,7 @@ cc_test(
     srcs = ["lambda_test.cc"],
     deps = [
         ":analysis_test",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_googletest//:gtest",
     ],
     data = [
         "//nudl/analysis/testing/testdata:lambda_test",
@@ -60,7 +63,7 @@ cc_test(
     srcs = ["general_test.cc"],
     deps = [
         ":analysis_test",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_googletest//:gtest",
     ],
     data = [
         "//nudl/analysis/testing/testdata:general_test",
@@ -75,7 +78,7 @@ cc_test(
     srcs = ["coverage_test.cc"],
     deps = [
         ":analysis_test",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_googletest//:gtest",
     ],
     data = [
         "//nudl/analysis/testing/testdata:coverage_test",
@@ -88,7 +91,7 @@ cc_test(
     srcs = ["expression_test.cc"],
     deps = [
         ":analysis_test",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_googletest//:gtest",
     ],
     data = [
         "//nudl/analysis/testing/testdata:coverage_test",
@@ -96,5 +99,19 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "constructors_test",
+    srcs = ["constructors_test.cc"],
+    deps = [
+        ":analysis_test",
+        "@com_google_googletest//:gtest",
+    ],
+    data = [
+        "//nudl/analysis/testing/testdata:constructors_test",
+        "//nudl/analysis/testing/testdata:cdm.ndl",
+        "//nudl/analysis/testing/testdata:submodule/__init__.ndl",
+        "//nudl/analysis/testing/testdata:submodule/compute.ndl",
+    ],
+)
 
 cpplint()

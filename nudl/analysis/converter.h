@@ -81,6 +81,9 @@ class Converter {
   virtual absl::Status ConvertSchemaDefinition(
       const SchemaDefinitionExpression& expression,
       ConvertState* state) const = 0;
+  virtual absl::Status ConvertTypeDefinition(
+      const TypeDefinitionExpression& expression,
+      ConvertState* state) const = 0;
 };
 
 }  // namespace analysis

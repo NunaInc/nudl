@@ -413,9 +413,9 @@ absl::Status BasicConverter::ConvertFunctionDefinition(
     const FunctionDefinitionExpression& expression, ConvertState* state) const {
   // Here we need to lookup the module to all functions w/ this name
   // and convert them all:
-  ASSIGN_OR_RETURN(
-      auto fun_object,
-      state->module()->GetName(expression.def_function()->function_name()));
+  ASSIGN_OR_RETURN(auto fun_object,
+                   state->module()->GetName(
+                       expression.def_function()->function_name(), true));
   if (FunctionGroup::IsFunctionGroup(*fun_object)) {
     auto function_group = static_cast<FunctionGroup*>(fun_object);
     for (Function* fun : function_group->functions()) {
@@ -438,6 +438,15 @@ absl::Status BasicConverter::ConvertSchemaDefinition(
                   << GetTypeString(field.type_spec, bstate) << ";" << std::endl;
   }
   bstate->out() << "}" << std::endl;
+  return absl::OkStatus();
+}
+
+absl::Status BasicConverter::ConvertTypeDefinition(
+    const TypeDefinitionExpression& expression, ConvertState* state) const {
+  auto bstate = static_cast<BasicConvertState*>(state);
+  bstate->out() << "typedef " << expression.type_name() << " = "
+                << GetTypeString(expression.defined_type_spec(), bstate)
+                << std::endl;
   return absl::OkStatus();
 }
 

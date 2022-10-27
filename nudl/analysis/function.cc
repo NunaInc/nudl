@@ -16,12 +16,15 @@ namespace nudl {
 namespace analysis {
 
 FunctionGroup::FunctionGroup(std::shared_ptr<ScopeName> scope_name,
-                             Scope* parent)
-    : Scope(std::move(scope_name), parent) {
+                             Scope* parent, bool is_method_group)
+    : Scope(std::move(scope_name), parent), is_method_group_(is_method_group) {
   types_.emplace_back(TypeUnknown::Instance()->Clone());
 }
 
 pb::ObjectKind FunctionGroup::kind() const {
+  if (is_method_group_) {
+    return pb::ObjectKind::OBJ_METHOD_GROUP;
+  }
   return pb::ObjectKind::OBJ_FUNCTION_GROUP;
 }
 
@@ -35,7 +38,8 @@ const std::vector<Function*> FunctionGroup::functions() const {
 }
 
 bool FunctionGroup::IsFunctionGroup(const NamedObject& object) {
-  return object.kind() == pb::ObjectKind::OBJ_FUNCTION_GROUP;
+  return (object.kind() == pb::ObjectKind::OBJ_FUNCTION_GROUP ||
+          object.kind() == pb::ObjectKind::OBJ_METHOD_GROUP);
 }
 
 std::string FunctionGroup::DebugString() const {
@@ -49,6 +53,12 @@ std::string FunctionGroup::DebugString() const {
 }
 
 absl::Status FunctionGroup::AddFunction(Function* fun) {
+  if (is_method_group_ && !Function::IsMethodKind(*fun)) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Functions added as object members can only be methods "
+              "or constructor. Adding function: "
+           << fun->full_name();
+  }
   std::vector<TypeBindingArg> function_types;
   function_types.reserve(functions_.size() + 1);
   for (Function* child_fun : functions_) {
@@ -116,6 +126,16 @@ FunctionGroup::TryBindFunction(
       } else if (binding->IsAncestorOf(*spec)) {
         skip_current = spec.get();
       }
+    } else {
+      // Binding types are equal - we decide on original functions:
+      if (spec->fun.value()->type_spec()->IsAncestorOf(
+              *binding->fun.value()->type_spec())) {
+        add_current = spec.get();
+        skip_spec = true;
+      } else if (binding->fun.value()->type_spec()->IsAncestorOf(
+                     *spec->fun.value()->type_spec())) {
+        skip_current = spec.get();
+      }
     }
     if (!skip_spec) {
       new_bindings.emplace_back(std::move(spec));
@@ -136,7 +156,7 @@ FunctionGroup::TryBindFunction(
 }
 
 absl::StatusOr<std::unique_ptr<FunctionBinding>> FunctionGroup::FindSignature(
-    const std::vector<FunctionCallArgument>& arguments) {
+    const std::vector<FunctionCallArgument>& arguments) const {
   std::vector<absl::Status> bind_status;
   std::vector<std::unique_ptr<FunctionBinding>> matching_specs;
   for (auto function : functions_) {
@@ -154,12 +174,13 @@ absl::StatusOr<std::unique_ptr<FunctionBinding>> FunctionGroup::FindSignature(
   }
   if (matching_specs.size() > 1) {
     std::vector<std::string> result_status;
-    result_status.emplace_back(
-        "Found too many functions matching the provided call signature");
+    result_status.reserve(matching_specs.size());
     for (const auto& spec : matching_specs) {
       result_status.emplace_back(spec->full_name());
     }
-    return absl::InvalidArgumentError(absl::StrJoin(result_status, ", "));
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Found too many functions matching the provided call signature: ",
+        absl::StrJoin(result_status, ", ")));
   }
   return {std::move(matching_specs.front())};
 }
@@ -170,20 +191,21 @@ bool IsFunctionObjectKind(pb::ObjectKind kind) {
       new absl::flat_hash_set<pb::ObjectKind>({
           pb::ObjectKind::OBJ_FUNCTION,
           pb::ObjectKind::OBJ_METHOD,
+          pb::ObjectKind::OBJ_CONSTRUCTOR,
           pb::ObjectKind::OBJ_LAMBDA,
       });
   return kFunctionKinds->contains(kind);
 }
-
-std::string TypeSignature(const std::vector<TypeBindingArg>& type_arguments) {
-  std::vector<std::string> components;
-  components.reserve(type_arguments.size());
-  for (const auto& ta : type_arguments) {
-    CHECK(std::holds_alternative<const TypeSpec*>(ta));
-    components.emplace_back(std::get<const TypeSpec*>(ta)->full_name());
-  }
-  return absl::StrCat("Signature(", absl::StrJoin(components, "|"), ")");
+bool IsMethodObjectKind(pb::ObjectKind kind) {
+  static const auto* const kFunctionKinds =
+      new absl::flat_hash_set<pb::ObjectKind>({
+          pb::ObjectKind::OBJ_METHOD,
+          pb::ObjectKind::OBJ_CONSTRUCTOR,
+          pb::ObjectKind::OBJ_METHOD_GROUP,
+      });
+  return kFunctionKinds->contains(kind);
 }
+
 }  // namespace
 
 Function::Function(std::shared_ptr<ScopeName> scope_name,
@@ -229,7 +251,8 @@ ScopedName Function::qualified_call_name() const {
 std::string Function::full_name() const {
   // TODO(catalin): May want to reduce the details here:
   return absl::StrCat("Function ", function_name_, " [", call_name(),
-                      "] result: ", ResultKindName(result_kind_),
+                      "] kind: ", kind_name(),
+                      " result: ", ResultKindName(result_kind_),
                       ", type: ", type_spec_->full_name());
 }
 
@@ -297,6 +320,39 @@ bool Function::IsFunctionKind(const NamedObject& object) {
   return IsFunctionObjectKind(object.kind());
 }
 
+bool Function::IsMethodKind(const NamedObject& object) {
+  return IsMethodObjectKind(object.kind());
+}
+
+namespace {
+absl::StatusOr<FunctionGroup*> PrepareFunctionGroup(
+    NameStore* store, Scope* parent, const ScopeName& scope_name,
+    absl::string_view local_name) {
+  FunctionGroup* function_group = nullptr;
+  ASSIGN_OR_RETURN(auto store_name, ScopeName::Parse(store->name()));
+  ASSIGN_OR_RETURN(ScopeName fg_name, store_name.Subfunction(local_name));
+  if (store->HasName(local_name, true)) {
+    ASSIGN_OR_RETURN(auto local_object, store->GetName(local_name, true),
+                     _ << "Finding existing name" << kBugNotice);
+    if (!FunctionGroup::IsFunctionGroup(*local_object)) {
+      return status::AlreadyExistsErrorBuilder()
+             << "An object named: " << local_name
+             << " already defined in: " << store->full_name()
+             << " and is not a function, but: " << local_object->full_name();
+    }
+    function_group = static_cast<FunctionGroup*>(local_object);
+  } else {
+    auto function_group_ptr = std::make_unique<FunctionGroup>(
+        std::make_shared<ScopeName>(std::move(fg_name)), parent,
+        parent != store);
+    function_group = function_group_ptr.get();
+    RETURN_IF_ERROR(
+        store->AddOwnedChildStore(local_name, std::move(function_group_ptr)));
+  }
+  return function_group;
+}
+}  // namespace
+
 absl::StatusOr<Function*> Function::BuildInScope(
     Scope* parent, const pb::FunctionDefinition& element,
     absl::string_view lambda_name, const CodeContext& context) {
@@ -305,45 +361,34 @@ absl::StatusOr<Function*> Function::BuildInScope(
   if (!lambda_name.empty()) {
     RET_CHECK(element.name().empty())
         << "Don't provide a name in function definition for lambdas";
-    RET_CHECK(!element.is_method())
-        << "Cannot have lambdas declared as methods";  // for now at least :)
+    RET_CHECK(element.fun_type() == pb::FunctionType::FUN_NONE)
+        // for now at least :)
+        << "Cannot have lambdas declared as methods and such";
     object_kind = pb::ObjectKind::OBJ_LAMBDA;
     function_name = lambda_name;
   } else {
     RET_CHECK(lambda_name.empty());
     function_name = element.name();
-    if (element.is_method()) {
+    if (element.fun_type() == pb::FunctionType::FUN_METHOD) {
       object_kind = pb::ObjectKind::OBJ_METHOD;
+    } else if (element.fun_type() == pb::FunctionType::FUN_CONSTRUCTOR) {
+      object_kind = pb::ObjectKind::OBJ_CONSTRUCTOR;
     }
   }
   if (!NameUtil::IsValidName(function_name)) {
     return status::InvalidArgumentErrorBuilder()
            << "Invalid function name: `" << function_name << "`";
   }
-  ASSIGN_OR_RETURN(ScopeName function_group_scope_name,
-                   parent->scope_name().Subfunction(function_name));
-  ScopedName group_name(parent->scope_name_ptr(), function_name);
-  FunctionGroup* function_group = nullptr;
-  auto fun_group_result = parent->FindName(parent->scope_name(), group_name);
-  if (fun_group_result.ok()) {
-    if (!FunctionGroup::IsFunctionGroup(*fun_group_result.value())) {
-      return status::AlreadyExistsErrorBuilder()
-             << "An object named: " << function_name
-             << " already defined in: " << parent->full_name()
-             << " and is not a function, but: "
-             << fun_group_result.value()->full_name()
-             << context.ToErrorInfo("In function definition");
-    }
-    function_group = static_cast<FunctionGroup*>(fun_group_result.value());
-  } else {
-    auto function_group_ptr = std::make_unique<FunctionGroup>(
-        std::make_shared<ScopeName>(std::move(function_group_scope_name)),
-        parent);
-    function_group = function_group_ptr.get();
-    RETURN_IF_ERROR(parent->AddSubScope(std::move(function_group_ptr)))
-        << "Adding function group to scope"
-        << context.ToErrorInfo("In function definition");
+  if (element.fun_type() != pb::FunctionType::FUN_CONSTRUCTOR &&
+      function_name == kConstructorName) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Cannot name non-constructor functions as `" << function_name
+           << "`";
   }
+  ASSIGN_OR_RETURN(
+      FunctionGroup * function_group,
+      PrepareFunctionGroup(parent, parent, parent->scope_name(), function_name),
+      _ << context.ToErrorInfo("Registering function definition"));
   ASSIGN_OR_RETURN(auto function_scope_name,
                    function_group->GetNextFunctionName());
   auto fun = absl::WrapUnique(new Function(  // using new per protected.
@@ -424,7 +469,7 @@ absl::Status Function::InitializeDefinition(
        element.expression_block().expression().empty()) &&
       element.snippet().empty()) {
     return status::InvalidArgumentErrorBuilder()
-           << "No body defined in function: " << name()
+           << "No body defined in function: " << function_name()
            << context.ToErrorInfo("In function definition");
   }
   absl::Status param_status;
@@ -441,9 +486,17 @@ absl::Status Function::InitializeDefinition(
   if (element.has_result_type()) {
     ASSIGN_OR_RETURN(
         result_type, FindType(element.result_type()),
-        _ << "Finding return type of function: " << name()
+        _ << "Finding return type of function: " << function_name()
           << context.ToErrorInfo("In function return type definition"));
+  } else if (element.fun_type() == pb::FunctionType::FUN_CONSTRUCTOR) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Function declared as constructor, needs to be declared "
+              "with a result type, which is the type that it constructs. "
+              "For function: "
+           << function_name()
+           << context.ToErrorInfo("In constructor definition");
   }
+
   // TODO(catalin): we may ease this, but for now I see only potential trouble
   //   if we allow returning union.
   // For now commenting out - the bindings will have a check.
@@ -476,7 +529,11 @@ absl::Status Function::InitializeDefinition(
   }
   if (kind_ == pb::ObjectKind::OBJ_METHOD) {
     RETURN_IF_ERROR(InitializeAsMethod())
-        << "Setting up function: " << name() << " as a type method"
+        << "Setting up function: " << function_name() << " as a method"
+        << context.ToErrorInfo("In function definition");
+  } else if (kind_ == pb::ObjectKind::OBJ_CONSTRUCTOR) {
+    RETURN_IF_ERROR(InitializeAsConstructor(result_type))
+        << "Setting up function: " << function_name() << " as a constructor"
         << context.ToErrorInfo("In function definition");
   }
   return absl::OkStatus();
@@ -504,8 +561,17 @@ absl::Status Function::UpdateFunctionType(const TypeSpec* result_type) {
     bindings.push_back(CHECK_NOTNULL(arg->type_spec()));
   }
   if (type_signature_.empty()) {
-    type_signature_ = TypeSignature(bindings);
+    type_signature_ = TypeSpec::TypeBindingSignature(bindings);
     bindings_map_.emplace(type_signature_, this);
+  }
+  if (result_kind_ == pb::FunctionResultKind::RESULT_YIELD ||
+      result_kind_ == pb::FunctionResultKind::RESULT_PASS) {
+    ASSIGN_OR_RETURN(
+        auto generator_type,
+        FindTypeGenerator()->Bind({TypeBindingArg{result_type}}),
+        _ << "Creating generator type for " << result_type->full_name());
+    result_type = generator_type.get();
+    created_type_specs_.emplace_back(std::move(generator_type));
   }
   bindings.push_back(result_type);
   ASSIGN_OR_RETURN(
@@ -547,8 +613,12 @@ absl::StatusOr<VarBase*> Function::ValidateAssignment(
 
 absl::Status Function::AddAsMethod(const TypeSpec* member_type) {
   auto type_member_store = CHECK_NOTNULL(member_type->type_member_store());
-  RETURN_IF_ERROR(type_member_store->AddName(function_name(), this))
-      << "Adding defined function " << name()
+  ASSIGN_OR_RETURN(
+      FunctionGroup * function_group,
+      PrepareFunctionGroup(type_member_store, definition_scope_,
+                           member_type->scope_name(), function_name()));
+  RETURN_IF_ERROR(function_group->AddFunction(this))
+      << "Adding defined function " << function_name()
       << " as a method of type: " << member_type->full_name();
   return absl::OkStatus();
 }
@@ -568,6 +638,24 @@ absl::Status Function::InitializeAsMethod() {
   } else {
     RETURN_IF_ERROR(AddAsMethod(member_type));
   }
+  return absl::OkStatus();
+}
+
+absl::Status Function::InitializeAsConstructor(const TypeSpec* result_type) {
+  CHECK_EQ(kind_, pb::ObjectKind::OBJ_CONSTRUCTOR);
+  if (result_type->type_id() == pb::TypeId::UNION_ID) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Cannot define constructors for Union types: " << function_name()
+           << " with result: " << result_type->full_name();
+  }
+  auto type_member_store = CHECK_NOTNULL(result_type->type_member_store());
+  ASSIGN_OR_RETURN(
+      FunctionGroup * function_group,
+      PrepareFunctionGroup(type_member_store, definition_scope_,
+                           result_type->scope_name(), kConstructorName));
+  RETURN_IF_ERROR(function_group->AddFunction(this))
+      << "Adding defined function " << function_name()
+      << " as a constructor of type: " << result_type->full_name();
   return absl::OkStatus();
 }
 
@@ -636,6 +724,13 @@ absl::Status Function::RegisterResultExpression(
     bool accept_unknown_type) {
   ASSIGN_OR_RETURN(auto coerced_result_kind, RegisterResultKind(result_kind),
                    _ << "Checking result expression for: " << full_name());
+  if ((coerced_result_kind == pb::FunctionResultKind::RESULT_PASS ||
+       coerced_result_kind == pb::FunctionResultKind::RESULT_YIELD) &&
+      kind_ == pb::ObjectKind::OBJ_CONSTRUCTOR) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Cannot `yield` or `pass` in constructor functions. For: "
+           << function_name();
+  }
   if (coerced_result_kind == pb::FunctionResultKind::RESULT_PASS) {
     result_expressions_.push_back({result_kind});
     return absl::OkStatus();
@@ -674,7 +769,8 @@ absl::Status Function::RegisterResultExpression(
       type_spec->type_id() != pb::TypeId::FUNCTION_ID) {
     return status::InvalidArgumentErrorBuilder()
            << "The provided result type: " << type_spec->full_name()
-           << " of returned expression is unbound and not a function";
+           << " of returned expression is unbound and not a function "
+           << " with type hint: " << result_type->full_name();
   }
   // If result type declared for this function is not bound, we
   // expect that return values on all paths to be compatible
@@ -1066,19 +1162,21 @@ absl::Status FunctionBinding::BindArgument(absl::string_view arg_name,
   // call_type->IsAncestorOf(*arg_type) && !call_type->IsEqual(*arg_type);
   const TypeSpec* rebuilt_type = arg_type;
   if (!is_function) {
-    if (!arg_type->IsAncestorOf(*call_type)) {
-      return status::InvalidArgumentErrorBuilder()
-             << "Provided value for argument " << arg_name << " of "
-             << FunctionNameForLog() << ": `" << call_type->full_name()
-             << "` is incompatible with declared type of argument: `"
-             << arg_type->full_name() << "`";
-    }
     RETURN_IF_ERROR(rebinder->ProcessType(arg_type, call_type))
         << "Rebinding argument type for: " << arg_name
         << " from declared type: `" << arg_type->full_name() << "`"
         << " to call value type: `" << call_type->full_name() << "`";
     ASSIGN_OR_RETURN(rebuilt_type, rebinder->RebuildType(arg_type, call_type),
                      _ << "Rebuilding argument type for: " << arg_name);
+    if (!rebuilt_type->IsAncestorOf(*call_type) &&
+        !call_type->IsAncestorOf(*rebuilt_type)) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Provided value for argument " << arg_name << " of "
+             << FunctionNameForLog() << ": `" << call_type->full_name()
+             << "` is incompatible with declared type of argument: `"
+             << arg_type->full_name() << "` binded as: `"
+             << rebuilt_type->full_name() << "`";
+    }
     LOG_IF(INFO, pragmas->log_bindings())
         << "BIND LOG: " << FunctionNameForLog()
         << " Non function argument: " << arg_name
@@ -1186,7 +1284,8 @@ absl::StatusOr<std::unique_ptr<FunctionBinding>> Function::BindArguments(
                      _ << "Obtaining type for call argument " << i);
     type_arguments.emplace_back(TypeBindingArg{call_type});
   }
-  const std::string type_signature = TypeSignature(type_arguments);
+  const std::string type_signature =
+      TypeSpec::TypeBindingSignature(type_arguments);
   auto it = bindings_map_.find(type_signature);
   if (it == bindings_map_.end()) {
     if (binding_parent_.has_value()) {
@@ -1219,7 +1318,8 @@ absl::Status Function::Bind(FunctionBinding* binding) {
     return absl::OkStatus();
   }
 
-  const std::string type_signature = TypeSignature(binding->type_arguments);
+  const std::string type_signature =
+      TypeSpec::TypeBindingSignature(binding->type_arguments);
 
   // TODO(catalin): this method of binding is partly annoying, because
   //   we basically produce a new function that needs to be defined in
@@ -1289,7 +1389,7 @@ absl::Status Function::InitBindInstance(absl::string_view type_signature,
   first_default_value_index_ =
       binding->fun.value()->first_default_value_index();
   // For now just bind the source function return type:
-  RETURN_IF_ERROR(UpdateFunctionType(binding->fun.value()->result_type()));
+  RETURN_IF_ERROR(UpdateFunctionType(binding->type_spec->ResultType()));
   function_body_ = binding->fun.value()->function_body();
 
   return absl::OkStatus();
@@ -1358,6 +1458,9 @@ std::string Function::DebugString() const {
       break;
     case pb::ObjectKind::OBJ_METHOD:
       prefix = absl::StrCat("def method ", call_name());
+      break;
+    case pb::ObjectKind::OBJ_CONSTRUCTOR:
+      prefix = absl::StrCat("def constructor ", call_name());
       break;
     case pb::ObjectKind::OBJ_LAMBDA:
       break;

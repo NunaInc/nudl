@@ -13,7 +13,7 @@ expression {
       }
     }
     result_type {
-      name: "Int"
+      name: "Generator<Int>"
     }
     function_name: "f"
     qualified_name {

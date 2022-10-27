@@ -82,6 +82,10 @@ pb::ExpressionSpec Expression::ToProto() const {
   return expression;
 }
 
+bool Expression::is_default_return() const { return is_default_return_; }
+
+void Expression::set_is_default_return() { is_default_return_ = true; }
+
 NopExpression::NopExpression(Scope* scope,
                              absl::optional<std::unique_ptr<Expression>> child)
     : Expression(scope) {
@@ -280,7 +284,7 @@ pb::ExpressionSpec Literal::ToProto() const {
       break;
     default:
       LOG(FATAL) << "Invalid type id for literal: "
-                 << type_spec_.value()->full_name() << kBugNotice;
+                 << build_type_spec_->full_name() << kBugNotice;
   }
   return proto;
 }
@@ -1077,5 +1081,44 @@ std::string SchemaDefinitionExpression::DebugString() const {
   return absl::StrCat("schema ", def_schema_->name(), " = {\n",
                       absl::StrJoin(elements, "\n"), "\n}\n");
 }
+
+TypeDefinitionExpression::TypeDefinitionExpression(
+    Scope* scope, absl::string_view type_name,
+    const TypeSpec* defined_type_spec)
+    : Expression(scope),
+      type_name_(type_name),
+      defined_type_spec_(defined_type_spec) {}
+
+pb::ExpressionKind TypeDefinitionExpression::expr_kind() const {
+  return pb::ExpressionKind::EXPR_TYPE_DEFINITION;
+}
+
+const std::string& TypeDefinitionExpression::type_name() const {
+  return type_name_;
+}
+
+const TypeSpec* TypeDefinitionExpression::defined_type_spec() const {
+  return defined_type_spec_;
+}
+
+absl::StatusOr<const TypeSpec*> TypeDefinitionExpression::NegotiateType(
+    absl::optional<const TypeSpec*> type_hint) {
+  return defined_type_spec_;
+}
+
+std::string TypeDefinitionExpression::DebugString() const {
+  return absl::StrCat("typedef ", type_name_, " = ",
+                      defined_type_spec_->full_name());
+}
+
+pb::ExpressionSpec TypeDefinitionExpression::ToProto() const {
+  auto proto = Expression::ToProto();
+  proto.set_type_def_name(type_name_);
+  if (!proto.has_type_spec()) {
+    *proto.mutable_type_spec() = defined_type_spec_->ToProto();
+  }
+  return proto;
+}
+
 }  // namespace analysis
 }  // namespace nudl

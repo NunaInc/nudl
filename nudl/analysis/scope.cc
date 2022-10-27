@@ -145,6 +145,15 @@ absl::Status Scope::AddSubScope(std::unique_ptr<Scope> scope) {
   return absl::OkStatus();
 }
 
+absl::Status Scope::AddOwnedChildStore(absl::string_view local_name,
+                                       std::unique_ptr<NameStore> store) {
+  if (IsScopeKind(*store)) {
+    return AddSubScope(
+        std::unique_ptr<Scope>(static_cast<Scope*>(store.release())));
+  }
+  return BaseNameStore::AddOwnedChildStore(local_name, std::move(store));
+}
+
 absl::Status Scope::AddDefinedVar(std::unique_ptr<VarBase> var_base) {
   CHECK_EQ(var_base->parent_store().value_or(nullptr), this)
       << " Parent store of: " << var_base->full_name()
@@ -173,18 +182,19 @@ absl::StatusOr<Scope*> Scope::AddNewLocalScope(absl::string_view local_name) {
 
 absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
                                              const ScopedName& scoped_name) {
-  absl::Status find_status;
+  std::vector<absl::Status> find_status;
   absl::optional<Function*> local_function;
+  std::vector<NamedObject*> result;
   if (lookup_scope.name() == name()) {
     local_function = FindFunctionAncestor();
     if (scoped_name.scope_name().empty()) {
-      if (HasName(scoped_name.name())) {
-        return GetName(scoped_name.name());
+      if (HasName(scoped_name.name(), false)) {
+        return GetName(scoped_name.name(), false);
+      } else {
+        find_status.emplace_back(status::StatusWriter(absl::NotFoundError(""))
+                                 << "Cannot find name: `" << scoped_name.name()
+                                 << "` in local " << name());
       }
-      status::UpdateOrAnnotate(find_status,
-                               absl::NotFoundError(absl::StrCat(
-                                   "Cannot find name: `", scoped_name.name(),
-                                   "` in local ", name())));
     } else {
       // Finally search it here:
       auto scope_result = FindChildStore(scoped_name.scope_name());
@@ -193,34 +203,31 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
             (Function::IsFunctionKind(*scope_result.value()) &&
              (!local_function.has_value() ||
               local_function.value() != scope_result.value()));
-        if (scope_result.value()->HasName(scoped_name.name())) {
+        if (scope_result.value()->HasName(scoped_name.name(), false)) {
           if (!is_unaccessible_function || scope_result.value() == this) {
-            return scope_result.value()->GetName(scoped_name.name());
+            return scope_result.value()->GetName(scoped_name.name(), false);
           } else {
-            status::UpdateOrAnnotate(
-                find_status,
-                absl::NotFoundError(absl::StrCat(
-                    "Found name: ", scoped_name.name(),
-                    " in function: ", scope_result.value()->name(),
-                    " cannot be accessed from scope: ", lookup_scope.name())));
+            find_status.emplace_back(
+                status::StatusWriter(absl::NotFoundError(""))
+                << "Found name: " << scoped_name.name()
+                << " in function: " << scope_result.value()->name()
+                << " cannot be accessed from scope: " << lookup_scope.name());
           }
         }
         if (!is_unaccessible_function) {
           // TODO(catalin): Here find closest names, 'Did you mean ...'
-          status::UpdateOrAnnotate(
-              find_status,
-              absl::NotFoundError(absl::StrCat(
-                  "Cannot find name: `", scoped_name.name(),
-                  "` in child name store ", scope_result.value()->name(),
-                  "; Available names: ",
-                  absl::StrJoin(scope_result.value()->DefinedNames(), ", "))));
+          find_status.emplace_back(
+              status::StatusWriter(absl::NotFoundError(""))
+              << "Cannot find name: `" << scoped_name.name()
+              << "` in child name store " << scope_result.value()->name()
+              << "; Available names: "
+              << absl::StrJoin(scope_result.value()->DefinedNames(), ", "));
         }
       } else {
-        status::UpdateOrAnnotate(
-            find_status,
-            absl::NotFoundError(absl::StrCat("Cannot find name store: `",
-                                             scoped_name.scope_name().name(),
-                                             "` in local ", name())));
+        find_status.emplace_back(status::StatusWriter(absl::NotFoundError(""))
+                                 << "Cannot find name store: `"
+                                 << scoped_name.scope_name().name()
+                                 << "` in local " << name());
       }
     }
   }
@@ -238,27 +245,25 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
           (Function::IsFunctionKind(*result.value()) &&
            (!local_function.has_value() ||
             local_function.value() != result.value()));
-      if (result.value()->HasName(scoped_name.name())) {
+      if (result.value()->HasName(scoped_name.name(), false)) {
         if (!is_unaccessible_function || result.value() == this) {
-          return result.value()->GetName(scoped_name.name());
+          return result.value()->GetName(scoped_name.name(), false);
         } else {
-          status::UpdateOrAnnotate(
-              find_status,
-              absl::NotFoundError(absl::StrCat(
-                  "Found name: ", scoped_name.name(),
-                  " in function: ", result.value()->name(),
-                  " cannot be accessed from scope: ", lookup_scope.name())));
+          find_status.emplace_back(status::StatusWriter(absl::NotFoundError(""))
+                                   << "Found name: " << scoped_name.name()
+                                   << " in function: " << result.value()->name()
+                                   << " cannot be accessed from scope: "
+                                   << lookup_scope.name());
         }
       } else if (!result.value()->name().empty() &&
                  (!is_unaccessible_function || result.value() == this)) {
         // TODO(catalin): Here find closest names, 'Did you mean ...'
-        status::UpdateOrAnnotate(
-            find_status,
-            absl::NotFoundError(absl::StrCat(
-                "Cannot find name: `", scoped_name.name(), "` in name store ",
-                result.value()->name(), " from: ", crt_name.name(),
-                " available names: ",
-                absl::StrJoin(result.value()->DefinedNames(), ", "))));
+        find_status.emplace_back(
+            status::StatusWriter(absl::NotFoundError(""))
+            << "Cannot find name: `" << scoped_name.name() << "` in name store "
+            << result.value()->name() << " from: " << crt_name.name()
+            << " available names: "
+            << absl::StrJoin(result.value()->DefinedNames(), ", "));
       }
     }
   }
@@ -268,15 +273,23 @@ absl::StatusOr<NamedObject*> Scope::FindName(const ScopeName& lookup_scope,
       return result;
     }
   }
-  // TODO(catalin): should we allow finding types as well, treating them
-  //    as normal scoped names?
-  if (find_status.ok()) {
-    status::UpdateOrAnnotate(
-        find_status, absl::NotFoundError(absl::StrCat(
-                         "Cannot find name: `", scoped_name.full_name(),
-                         "` looked up in scope: `", lookup_scope.name(), "`")));
+  if (find_status.empty()) {
+    find_status.emplace_back(status::StatusWriter(absl::NotFoundError(""))
+                             << "Cannot find name: `" << scoped_name.full_name()
+                             << "` looked up in scope: `" << lookup_scope.name()
+                             << "`");
   }
-  return find_status;
+  if (scoped_name.scope_name().function_names().empty()) {
+    auto type_result =
+        type_store_->FindType(lookup_scope, scoped_name.ToTypeSpec());
+    if (type_result.ok()) {
+      return {const_cast<TypeSpec*>(type_result.value())};
+    }
+    find_status.emplace_back(status::StatusWriter(absl::NotFoundError(""))
+                             << "Cannot find type name: `"
+                             << scoped_name.full_name() << "` either");
+  }
+  return status::JoinStatus(find_status);
 }
 
 absl::StatusOr<const TypeSpec*> Scope::FindType(const pb::TypeSpec& type_spec) {
@@ -325,13 +338,22 @@ const TypeSpec* Scope::FindTypeUnion() {
   return result.value();
 }
 
+const TypeSpec* Scope::FindTypeGenerator() {
+  auto result = FindTypeByName(kTypeNameGenerator);
+  CHECK_OK(result.status())
+      << "Cannot find type `Generator` - Badly initialized scope" << kBugNotice;
+  return result.value();
+}
+
 namespace {
 bool IsScopeObjectKind(pb::ObjectKind kind) {
   static const auto* const kFunctionKinds =
       new absl::flat_hash_set<pb::ObjectKind>({
           pb::ObjectKind::OBJ_SCOPE,
-          pb::ObjectKind::OBJ_MODULE,
+          pb::ObjectKind::OBJ_METHOD,
+          pb::ObjectKind::OBJ_CONSTRUCTOR,
           pb::ObjectKind::OBJ_FUNCTION,
+          pb::ObjectKind::OBJ_FUNCTION_GROUP,
           pb::ObjectKind::OBJ_MODULE,
           pb::ObjectKind::OBJ_LAMBDA,
       });
@@ -384,27 +406,42 @@ absl::StatusOr<std::unique_ptr<FunctionBinding>> FindFunctionInStore(
 absl::StatusOr<std::unique_ptr<FunctionBinding>> Scope::FindFunctionByName(
     const ScopedName& name, const TypeSpec* type_spec,
     const std::vector<FunctionCallArgument>& arguments) {
-  absl::Status find_status;
+  std::vector<absl::Status> find_status;
+  std::vector<absl::Status> bind_status;
   if (type_spec && type_spec->type_member_store()) {
-    auto find_result = FindFunctionInStore(type_spec->type_member_store(),
-                                           scope_name(), name, arguments);
-    if (find_result.ok()) {
-      return find_result;
+    auto type_stores = type_spec->type_member_store()->FindBindingOrder();
+    for (auto type_store : type_stores) {
+      auto find_result =
+          FindFunctionInStore(type_store, scope_name(), name, arguments);
+      if (find_result.ok()) {
+        return find_result;
+      }
+      if (absl::IsNotFound(find_result.status())) {
+        find_status.emplace_back(std::move(find_result).status());
+      } else {
+        bind_status.emplace_back(std::move(find_result).status());
+      }
     }
-    find_status = std::move(find_result).status();
   }
   auto find_result = FindFunctionInStore(this, scope_name(), name, arguments);
   if (find_result.ok()) {
     return find_result;
   }
-  status::UpdateOrAnnotate(find_status, find_result.status());
-  return find_status;
+  if (absl::IsNotFound(find_result.status())) {
+    find_status.emplace_back(std::move(find_result).status());
+  } else {
+    bind_status.emplace_back(std::move(find_result).status());
+  }
+  if (!bind_status.empty()) {
+    return status::JoinStatus(bind_status);
+  }
+  return status::JoinStatus(find_status);
 }
 
 namespace {
 bool IsParameterDefined(const pb::Assignment& element) {
   for (auto qualifier : element.qualifier()) {
-    if (qualifier == pb::QualifierType::PARAM) {
+    if (qualifier == pb::QualifierType::QUAL_PARAM) {
       return true;
     }
   }
@@ -540,6 +577,10 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpression(
     return status::FailedPreconditionErrorBuilder()
            << "Parse error detected: " << expression.error().description()
            << context.ToErrorInfo("In expression");
+  } else if (expression.has_with_expr()) {
+    return status::UnimplementedErrorBuilder()
+           << "`with` expression not implemented yet"
+           << context.ToErrorInfo("In with expression");
   }
   return status::InvalidArgumentErrorBuilder()
          << "Improper expression built"
@@ -592,7 +633,7 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildIdentifier(
   ASSIGN_OR_RETURN(auto named_object, FindName(scope_name(), scoped_name),
                    _ << context.ToErrorInfo("Finding identifier in scope"));
   RET_CHECK(named_object->type_spec()) << kBugNotice;
-  if (named_object->kind() == pb::ObjectKind::OBJ_METHOD) {
+  if (Function::IsMethodKind(*named_object)) {
     if (element.name().size() > 1) {
       pb::Identifier object_identifier(element);
       object_identifier.mutable_name()->RemoveLast();
@@ -935,6 +976,11 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpressionBlock(
     RETURN_IF_ERROR(parent_function.value()->RegisterResultExpression(
         pb::FunctionResultKind::RESULT_NONE, last_expression, contains_return))
         << context.ToErrorInfo("Registering default function return");
+    if (last_expression->stored_type_spec().has_value() &&
+        (last_expression->stored_type_spec().value()->type_id() !=
+         pb::TypeId::UNKNOWN_ID)) {
+      last_expression->set_is_default_return();
+    }
   }
   return {std::make_unique<ExpressionBlock>(this, std::move(expressions))};
 }
@@ -1112,7 +1158,8 @@ class FunctionCallHelper {
           function_binding,
           FindFunctionInStore(
               call_type_constructor_->type_member_store(), scope_->scope_name(),
-              ScopedName::Parse("__init__").value(), arguments_));
+              ScopedName::Parse(kConstructorName).value(), arguments_));
+      is_method_call_ = true;
     } else if (call_object_) {
       ASSIGN_OR_RETURN(
           function_binding, BindingFromCallObject(),
@@ -1222,7 +1269,7 @@ class FunctionCallHelper {
       call_type_constructor_ = static_cast<const TypeSpec*>(call_object_);
       call_object_ = nullptr;
     }
-    if (call_object_ && call_object_->kind() == pb::ObjectKind::OBJ_METHOD) {
+    if (call_object_ && Function::IsMethodKind(*call_object_)) {
       // TODO(catalin): work out this case if becomes a problem
       if (method_source_expression_) {
         arguments_.emplace_back(

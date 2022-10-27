@@ -1,6 +1,7 @@
 #ifndef NUDL_ANALYSIS_NAMED_OBJECT_H__
 #define NUDL_ANALYSIS_NAMED_OBJECT_H__
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -81,15 +82,19 @@ class NameStore : public NamedObject {
                                NamedObject* object) = 0;
 
   // If this store contains the provided local name.
-  virtual bool HasName(absl::string_view local_name) const = 0;
+  virtual bool HasName(absl::string_view local_name,
+                       bool in_self_only) const = 0;
 
   // Returns directly the name in this store, w/o lookup rules and such.
-  virtual absl::StatusOr<NamedObject*> GetName(
-      absl::string_view local_name) = 0;
+  virtual absl::StatusOr<NamedObject*> GetName(absl::string_view local_name,
+                                               bool in_self_only) = 0;
 
   // Adds a child substore to this name store.
   virtual absl::Status AddChildStore(absl::string_view local_name,
                                      NameStore* store) = 0;
+  // Adds a child sub-store that is owned by this store.
+  virtual absl::Status AddOwnedChildStore(absl::string_view local_name,
+                                          std::unique_ptr<NameStore> store) = 0;
 
   // Finds a underlying store in this one.
   virtual absl::StatusOr<NameStore*> FindChildStore(
@@ -115,10 +120,13 @@ class BaseNameStore : public NameStore {
                                         const ScopedName& scoped_name) override;
   absl::Status AddName(absl::string_view local_name,
                        NamedObject* object) override;
-  bool HasName(absl::string_view local_name) const override;
-  absl::StatusOr<NamedObject*> GetName(absl::string_view local_name) override;
+  bool HasName(absl::string_view local_name, bool in_self_only) const override;
+  absl::StatusOr<NamedObject*> GetName(absl::string_view local_name,
+                                       bool in_self_only) override;
   absl::Status AddChildStore(absl::string_view local_name,
                              NameStore* store) override;
+  absl::Status AddOwnedChildStore(absl::string_view local_name,
+                                  std::unique_ptr<NameStore> store) override;
   absl::StatusOr<NameStore*> FindChildStore(
       const ScopeName& lookup_scope) override;
 
@@ -130,6 +138,7 @@ class BaseNameStore : public NameStore {
  protected:
   absl::flat_hash_map<std::string, NameStore*> child_name_stores_;
   absl::flat_hash_map<std::string, NamedObject*> named_objects_;
+  std::vector<std::unique_ptr<NameStore>> owned_stores_;
 };
 
 // An implementation that uses an underlying name store
@@ -144,10 +153,13 @@ class WrappedNameStore : public NameStore {
                                         const ScopedName& scoped_name) override;
   absl::Status AddName(absl::string_view local_name,
                        NamedObject* object) override;
-  bool HasName(absl::string_view local_name) const override;
-  absl::StatusOr<NamedObject*> GetName(absl::string_view local_name) override;
+  bool HasName(absl::string_view local_name, bool in_self_only) const override;
+  absl::StatusOr<NamedObject*> GetName(absl::string_view local_name,
+                                       bool in_self_only) override;
   absl::Status AddChildStore(absl::string_view local_name,
                              NameStore* store) override;
+  absl::Status AddOwnedChildStore(absl::string_view local_name,
+                                  std::unique_ptr<NameStore> store) override;
   absl::StatusOr<NameStore*> FindChildStore(
       const ScopeName& lookup_scope) override;
 

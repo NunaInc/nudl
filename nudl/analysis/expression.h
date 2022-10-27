@@ -52,6 +52,11 @@ class Expression {
   // Returns a string that describes the expression - for debug purposes.
   virtual std::string DebugString() const = 0;
 
+  // This marks the expression as the last in the function and a
+  // nominal "return"
+  bool is_default_return() const;
+  void set_is_default_return();
+
  protected:
   const std::any& value() const;
   virtual absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -62,6 +67,7 @@ class Expression {
   absl::optional<const TypeSpec*> type_spec_;
   absl::optional<const TypeSpec*> type_hint_;
   absl::optional<NamedObject*> named_object_;
+  bool is_default_return_ = false;
 };
 
 // A no-operation expression - usually created on pragmas.
@@ -430,6 +436,24 @@ class SchemaDefinitionExpression : public Expression {
   absl::StatusOr<const TypeSpec*> NegotiateType(
       absl::optional<const TypeSpec*> type_hint) override;
   TypeStruct* const def_schema_;
+};
+
+class TypeDefinitionExpression : public Expression {
+ public:
+  TypeDefinitionExpression(Scope* scope, absl::string_view type_name,
+                           const TypeSpec* defined_type_spec);
+
+  pb::ExpressionKind expr_kind() const override;
+  const std::string& type_name() const;
+  const TypeSpec* defined_type_spec() const;
+  std::string DebugString() const override;
+  pb::ExpressionSpec ToProto() const override;
+
+ protected:
+  absl::StatusOr<const TypeSpec*> NegotiateType(
+      absl::optional<const TypeSpec*> type_hint) override;
+  std::string type_name_;
+  const TypeSpec* const defined_type_spec_;
 };
 
 }  // namespace analysis

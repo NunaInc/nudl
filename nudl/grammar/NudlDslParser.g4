@@ -62,6 +62,11 @@ elseExpression
     : KW_ELSE expressionBlock
     ;
 
+withExpression
+    : KW_WITH LPAREN computeExpression RPAREN
+        expressionBlock
+    ;
+
 returnExpression
     : KW_RETURN computeExpression
     ;
@@ -96,6 +101,11 @@ typeNamedArgument
     : LBRACE IDENTIFIER typeAssignment? RBRACE
     ;
 
+typeDefinition
+    : KW_TYPEDEF IDENTIFIER EQ_SINGLE typeExpression
+    inlineBody*
+    ;
+
 assignExpression
     : composedIdentifier typeAssignment? EQ_SINGLE computeExpression
     ;
@@ -104,8 +114,12 @@ inlineBody
     : INLINE_BODY
     ;
 
+functionAnnotation
+    : KW_METHOD | KW_CONSTRUCTOR
+    ;
+
 functionDefinition
-    : KW_DEF KW_METHOD? IDENTIFIER LPAREN paramsList? RPAREN
+    : KW_DEF functionAnnotation? IDENTIFIER LPAREN paramsList? RPAREN
         typeAssignment? PASS_TO (expressionBlock | inlineBody+)
       SEMICOLON*
     ;
@@ -280,6 +294,7 @@ pragmaExpression
 blockElement
     : (computeExpression
     | ifExpression
+    | withExpression
     | returnExpression
     | yieldExpression
     | passExpression
@@ -331,6 +346,8 @@ moduleElement
     | functionDefinition
     | moduleAssignment
     | pragmaExpression
+    | typeDefinition
+    SEMICOLON*
     ;
 
 module

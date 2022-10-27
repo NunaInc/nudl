@@ -139,6 +139,10 @@ class Module : public Scope {
   const TypeSpec* type_spec() const override;
   const std::string& module_name() const;
   PragmaHandler* pragma_handler();
+  // ANTLR4 parse time:
+  absl::Duration parse_duration() const;
+  // Type and binding analysis type:
+  absl::Duration analysis_duration() const;
 
   // Imports the definitions in this module from proto.
   absl::Status Import(const pb::Module& module,
@@ -170,12 +174,17 @@ class Module : public Scope {
                                  const CodeContext& context);
   absl::Status ProcessPragma(const pb::PragmaExpression& element,
                              const CodeContext& context);
+  absl::Status ProcessTypeDef(const pb::TypeDefinition& element,
+                              const CodeContext& context);
 
   std_filesystem::path file_path_;
   const std::string module_name_;
   ModuleStore* module_store_ = nullptr;
   std::unique_ptr<TypeSpec> module_type_;
   PragmaHandler pragma_handler_;
+  absl::Duration parse_duration_;
+  absl::Duration analysis_duration_;
+  friend class Environment;
 };
 
 class Environment {

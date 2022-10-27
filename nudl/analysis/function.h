@@ -86,7 +86,8 @@ class FunctionGroup : public Scope {
  public:
   // This groups together functions defined with the same name,
   // but different argument signature.
-  FunctionGroup(std::shared_ptr<ScopeName> scope_name, Scope* parent);
+  FunctionGroup(std::shared_ptr<ScopeName> scope_name, Scope* parent,
+                bool is_method_group);
 
   pb::ObjectKind kind() const override;
   const TypeSpec* type_spec() const override;
@@ -96,7 +97,7 @@ class FunctionGroup : public Scope {
   absl::StatusOr<ScopeName> GetNextFunctionName();
 
   absl::StatusOr<std::unique_ptr<FunctionBinding>> FindSignature(
-      const std::vector<FunctionCallArgument>& arguments);
+      const std::vector<FunctionCallArgument>& arguments) const;
 
   // Find the function in this group that is, or binds the provided
   // Function object.
@@ -111,9 +112,12 @@ class FunctionGroup : public Scope {
       Function* function, const std::vector<FunctionCallArgument>& arguments,
       std::vector<std::unique_ptr<FunctionBinding>>* existing) const;
 
+  const bool is_method_group_;
   std::vector<Function*> functions_;
   std::vector<std::unique_ptr<TypeSpec>> types_;
 };
+
+inline constexpr absl::string_view kConstructorName = "__init__";
 
 class Function : public Scope {
  public:
@@ -188,6 +192,7 @@ class Function : public Scope {
 
   // If provided named object is a function.
   static bool IsFunctionKind(const NamedObject& object);
+  static bool IsMethodKind(const NamedObject& object);
   // Returns a name for a result kind of a function.
   static absl::string_view ResultKindName(pb::FunctionResultKind result_kind);
 
@@ -222,6 +227,8 @@ class Function : public Scope {
       const pb::FunctionParameter& param);
   // Initializes this function as a method of the first argument type.
   absl::Status InitializeAsMethod();
+  // Initializes this function as a constructor for result_type.
+  absl::Status InitializeAsConstructor(const TypeSpec* result_type);
 
   // Another way to initialize a function, as a bind instance from
   // the function in binding->fun; type_signature provided as a shortcut.

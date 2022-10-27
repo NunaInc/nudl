@@ -82,6 +82,9 @@ absl::Status Converter::ConvertExpression(const Expression& expression,
           static_cast<const SchemaDefinitionExpression&>(expression), state);
     case pb::ExpressionKind::EXPR_NOP:
       return absl::OkStatus();
+    case pb::ExpressionKind::EXPR_TYPE_DEFINITION:
+      return ConvertTypeDefinition(
+          static_cast<const TypeDefinitionExpression&>(expression), state);
   }
   return absl::InvalidArgumentError(
       "Cannot determine the type of the generated expression");

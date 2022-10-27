@@ -257,6 +257,10 @@ TEST(SopeName, Protos) {
                 function_name: "baz"
                 function_name: "qux"
               )pb"));
+  EXPECT_THAT(scope_name.ToIdentifier(),
+              EqualsProto(R"pb(
+                name: "foo" name: "bar" name: "baz" name: "qux"
+              )pb"));
   ASSERT_OK_AND_ASSIGN(auto scope_name2, ScopeName::FromProto(proto));
   EXPECT_EQ(scope_name.name(), scope_name2.name());
   pb::ScopeName p;
@@ -278,6 +282,20 @@ TEST(SopeName, Protos) {
   EXPECT_EQ(name.name(), "some");
   EXPECT_EQ(name.full_name(), "foo.bar::baz::qux.some");
   EXPECT_THAT(name.ToProto(), EqualsProto(sproto));
+  EXPECT_THAT(name.ToIdentifier(), EqualsProto(R"pb(
+                name: "foo"
+                name: "bar"
+                name: "baz"
+                name: "qux"
+                name: "some")pb"));
+  EXPECT_THAT(name.ToTypeSpec(), EqualsProto(R"pb(
+                identifier {
+                  name: "foo"
+                  name: "bar"
+                  name: "baz"
+                  name: "qux"
+                  name: "some"
+                })pb"));
 
   ScopedName sempty(
       std::make_shared<ScopeName>(ScopeName::Parse("foo.bar").value()), "");

@@ -259,6 +259,18 @@ class DslVisitor : public NudlDslParserBaseVisitor {
     return std::make_any<pb::Expression>(std::move(expression));
   }
 
+  std::any visitWithExpression(
+      NudlDslParser::WithExpressionContext* context) override {
+    pb::Expression expression(emptyExpression(*context));
+    auto with_expr = expression.mutable_with_expr();
+
+    *with_expr->mutable_with() =
+        computeExpression(CHECK_NOTNULL(context->computeExpression()));
+    *with_expr->mutable_expression_block() = std::any_cast<pb::ExpressionBlock>(
+        visit(CHECK_NOTNULL(context->expressionBlock())));
+    return std::make_any<pb::Expression>(std::move(expression));
+  }
+
   std::any visitReturnExpression(
       NudlDslParser::ReturnExpressionContext* context) override {
     pb::Expression expression(emptyExpression(*context));
@@ -353,34 +365,43 @@ class DslVisitor : public NudlDslParserBaseVisitor {
     return std::make_any<pb::FunctionParameter>(std::move(param));
   }
 
+  std::any visitInlineBody(NudlDslParser::InlineBodyContext* context) override {
+    pb::NativeSnippet snippet;
+    std::string body_str(absl::StripPrefix(
+        absl::StripSuffix(CHECK_NOTNULL(context->INLINE_BODY())->toString(),
+                          "$$end"),
+        "$$"));
+    re2::StringPiece native_body(body_str);
+    std::string inline_name;
+    if (RE2::Consume(&native_body, R"(([a-zA-Z_][a-zA-Z0-9_]*))",
+                     &inline_name)) {
+      snippet.set_name(std::move(inline_name));
+      snippet.set_body(std::string(
+          absl::StripSuffix(absl::StripPrefix(native_body, "\n"), "\n")));
+    } else {
+      snippet.set_body(std::string(
+          absl::StripSuffix(absl::StripPrefix(body_str, "\n"), "\n")));
+    }
+    return std::make_any<pb::NativeSnippet>(std::move(snippet));
+  }
+
   std::any visitFunctionDefinition(
       NudlDslParser::FunctionDefinitionContext* context) override {
     pb::FunctionDefinition fundef;
     fundef.set_name(TreeUtil::Recompose(CHECK_NOTNULL(context->IDENTIFIER())));
-    if (context->KW_METHOD()) {
-      fundef.set_is_method(true);
+    if (context->functionAnnotation()) {
+      if (context->functionAnnotation()->KW_METHOD()) {
+        fundef.set_fun_type(pb::FunctionType::FUN_METHOD);
+      } else if (context->functionAnnotation()->KW_CONSTRUCTOR()) {
+        fundef.set_fun_type(pb::FunctionType::FUN_CONSTRUCTOR);
+      }
     }
     if (context->expressionBlock()) {
       *fundef.mutable_expression_block() =
           expressionBlock(CHECK_NOTNULL(context->expressionBlock()));
     } else {
       for (auto body : context->inlineBody()) {
-        std::string body_str(absl::StripPrefix(
-            absl::StripSuffix(CHECK_NOTNULL(body->INLINE_BODY())->toString(),
-                              "$$end"),
-            "$$"));
-        re2::StringPiece native_body(body_str);
-        auto snippet = fundef.add_snippet();
-        std::string inline_name;
-        if (RE2::Consume(&native_body, R"(([a-zA-Z_][a-zA-Z0-9_]*))",
-                         &inline_name)) {
-          snippet->set_name(std::move(inline_name));
-          snippet->set_body(std::string(
-              absl::StripSuffix(absl::StripPrefix(native_body, "\n"), "\n")));
-        } else {
-          snippet->set_body(std::string(
-              absl::StripSuffix(absl::StripPrefix(body_str, "\n"), "\n")));
-        }
+        *fundef.add_snippet() = std::any_cast<pb::NativeSnippet>(visit(body));
       }
     }
     if (context->typeAssignment()) {
@@ -727,7 +748,7 @@ class DslVisitor : public NudlDslParserBaseVisitor {
     auto assign = buildAssignment(CHECK_NOTNULL(context->assignExpression()));
     for (auto qualifier : context->assignQualifier()) {
       if (qualifier->KW_PARAM()) {
-        assign.add_qualifier(pb::QualifierType::PARAM);
+        assign.add_qualifier(pb::QualifierType::QUAL_PARAM);
       }
     }
     return std::make_any<pb::Assignment>(std::move(assign));
@@ -752,6 +773,16 @@ class DslVisitor : public NudlDslParserBaseVisitor {
     return std::make_any<pb::Expression>(std::move(expression));
   }
 
+  std::any visitTypeDefinition(
+      NudlDslParser::TypeDefinitionContext* context) override {
+    pb::TypeDefinition type_def;
+    type_def.set_name(
+        TreeUtil::Recompose(CHECK_NOTNULL(context->IDENTIFIER())));
+    *type_def.mutable_type_spec() =
+        typeSpec(CHECK_NOTNULL(context->typeExpression()));
+    return std::make_any<pb::TypeDefinition>(std::move(type_def));
+  }
+
   std::any visitModuleElement(
       NudlDslParser::ModuleElementContext* context) override {
     pb::ModuleElement element;
@@ -772,6 +803,9 @@ class DslVisitor : public NudlDslParserBaseVisitor {
           std::any_cast<pb::Assignment>(visit(context->moduleAssignment()));
     } else if (context->pragmaExpression()) {
       *element.mutable_pragma_expr() = buildPragma(context->pragmaExpression());
+    } else if (context->typeDefinition()) {
+      *element.mutable_type_def() =
+          std::any_cast<pb::TypeDefinition>(visit(context->typeDefinition()));
     }
     return std::make_any<pb::ModuleElement>(std::move(element));
   }

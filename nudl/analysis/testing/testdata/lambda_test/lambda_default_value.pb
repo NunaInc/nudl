@@ -32,7 +32,7 @@ expression {
         child {
           kind: EXPR_FUNCTION_CALL
           type_spec {
-            name: "Array<String>"
+            name: "Generator<String>"
           }
           call_spec {
             call_name {
@@ -192,7 +192,7 @@ expression {
               }
             }
             binding_type {
-              name: "Function<Array<String>(l: Array<String>, f: Function<Bool(arg_1: String)>)>"
+              name: "Function<Generator<String>(l: Array<String>, f: Function<Bool(arg_1: String)>)>"
             }
           }
         }
@@ -217,7 +217,7 @@ expression {
                 }
                 call_spec {
                   call_name {
-                    full_name: "empty"
+                    full_name: "empty__1__"
                   }
                   is_method: true
                   argument {
@@ -230,7 +230,7 @@ expression {
                     }
                   }
                   binding_type {
-                    name: "Function<Bool(l: Array<String>)>"
+                    name: "Function<Bool(l: Generator<String>)>"
                   }
                 }
               }

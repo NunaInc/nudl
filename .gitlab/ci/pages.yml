@@ -1,0 +1,22 @@
+pages:
+  stage: pages
+
+  variables:
+    BUILD_IMAGE: local-docker-release.artifactory.nuna.cloud/infrasec/build/trustdb:1.1.1
+    BAZEL_OPTS: "--show_timestamps
+                 --test_summary=detailed --test_output=errors"
+
+  image:
+    name: "$BUILD_IMAGE"
+
+  script:
+    - echo "Publishing GitLab pages"
+    - mkdir -p public
+    - apt-get install -y gcc
+    - apt-get install -y lcov
+    - bazel coverage --combined_report=lcov //...
+    - genhtml --output genhtml "$(bazel info output_path)/_coverage/_coverage_report.dat"
+    - cp -r genhtml/* public
+  artifacts:
+    paths:
+      - public

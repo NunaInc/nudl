@@ -18,9 +18,8 @@ namespace analysis {
 
 class StoredTypeSpec : public TypeSpec {
  public:
-  StoredTypeSpec(TypeStore* type_store, pb::TypeId type_id,
-                 absl::string_view name,
-                 std::shared_ptr<NameStore> type_member_store,
+  StoredTypeSpec(TypeStore* type_store, int type_id, absl::string_view name,
+                 std::shared_ptr<TypeMemberStore> type_member_store,
                  bool is_bound_type = false, const TypeSpec* ancestor = nullptr,
                  std::vector<const TypeSpec*> parameters = {});
 
@@ -85,6 +84,9 @@ inline constexpr absl::string_view kTypeNameNullable = "Nullable";
 inline constexpr absl::string_view kTypeNameDataset = "Dataset";
 inline constexpr absl::string_view kTypeNameType = "Type";
 inline constexpr absl::string_view kTypeNameModule = "Module";
+inline constexpr absl::string_view kTypeNameIntegral = "Integral";
+inline constexpr absl::string_view kTypeNameContainer = "Container";
+inline constexpr absl::string_view kTypeNameGenerator = "Generator";
 
 class TypeUtils {
  public:
@@ -106,9 +108,9 @@ class TypeUtils {
   static void FindUnboundTypes(const TypeSpec* type_spec,
                                absl::flat_hash_set<std::string>* type_names);
 
-  static bool IsIntType(pb::TypeId type_id);
-  static bool IsUIntType(pb::TypeId type_id);
-  static bool IsFloatType(pb::TypeId type_id);
+  static bool IsIntType(size_t type_id);
+  static bool IsUIntType(size_t type_id);
+  static bool IsFloatType(size_t type_id);
 
   // Builds and returns a union of int and uint.
   // This expects the provided store to be fully built and initialized
@@ -124,46 +126,62 @@ class TypeUtils {
 // Type that represents the type of a type named object.
 class TypeType : public StoredTypeSpec {
  public:
-  TypeType(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
+  TypeType(TypeStore* type_store,
+           std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeAny : public StoredTypeSpec {
  public:
-  TypeAny(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
+  TypeAny(TypeStore* type_store,
+          std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeModule : public StoredTypeSpec {
  public:
-  TypeModule(TypeStore* type_store,
-             std::shared_ptr<NameStore> type_member_store);
+  TypeModule(TypeStore* type_store, absl::string_view module_name,
+             NameStore* module);
   std::unique_ptr<TypeSpec> Clone() const override;
+
+ protected:
+  std::string module_name_;
+  NameStore* const module_;
 };
 
 class TypeNull : public StoredTypeSpec {
  public:
-  TypeNull(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
+  TypeNull(TypeStore* type_store,
+           std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const;
 };
 
 class TypeNumeric : public StoredTypeSpec {
  public:
   TypeNumeric(TypeStore* type_store,
-              std::shared_ptr<NameStore> type_member_store);
+              std::shared_ptr<TypeMemberStore> type_member_store);
+  std::unique_ptr<TypeSpec> Clone() const override;
+};
+
+class TypeIntegral : public StoredTypeSpec {
+ public:
+  TypeIntegral(TypeStore* type_store,
+               std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeInt : public StoredTypeSpec {
  public:
-  TypeInt(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
+  TypeInt(TypeStore* type_store,
+          std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeInt8 : public StoredTypeSpec {
  public:
-  TypeInt8(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
+  TypeInt8(TypeStore* type_store,
+           std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
@@ -171,7 +189,7 @@ class TypeInt8 : public StoredTypeSpec {
 class TypeInt16 : public StoredTypeSpec {
  public:
   TypeInt16(TypeStore* type_store,
-            std::shared_ptr<NameStore> type_member_store);
+            std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
@@ -179,14 +197,15 @@ class TypeInt16 : public StoredTypeSpec {
 class TypeInt32 : public StoredTypeSpec {
  public:
   TypeInt32(TypeStore* type_store,
-            std::shared_ptr<NameStore> type_member_store);
+            std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
 
 class TypeUInt : public StoredTypeSpec {
  public:
-  TypeUInt(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
+  TypeUInt(TypeStore* type_store,
+           std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
@@ -194,7 +213,7 @@ class TypeUInt : public StoredTypeSpec {
 class TypeUInt8 : public StoredTypeSpec {
  public:
   TypeUInt8(TypeStore* type_store,
-            std::shared_ptr<NameStore> type_member_store);
+            std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
@@ -202,7 +221,7 @@ class TypeUInt8 : public StoredTypeSpec {
 class TypeUInt16 : public StoredTypeSpec {
  public:
   TypeUInt16(TypeStore* type_store,
-             std::shared_ptr<NameStore> type_member_store);
+             std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
@@ -210,7 +229,7 @@ class TypeUInt16 : public StoredTypeSpec {
 class TypeUInt32 : public StoredTypeSpec {
  public:
   TypeUInt32(TypeStore* type_store,
-             std::shared_ptr<NameStore> type_member_store);
+             std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
@@ -218,7 +237,7 @@ class TypeUInt32 : public StoredTypeSpec {
 class TypeFloat64 : public StoredTypeSpec {
  public:
   TypeFloat64(TypeStore* type_store,
-              std::shared_ptr<NameStore> type_member_store);
+              std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
@@ -226,7 +245,7 @@ class TypeFloat64 : public StoredTypeSpec {
 class TypeFloat32 : public StoredTypeSpec {
  public:
   TypeFloat32(TypeStore* type_store,
-              std::shared_ptr<NameStore> type_member_store);
+              std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 };
@@ -234,55 +253,57 @@ class TypeFloat32 : public StoredTypeSpec {
 class TypeString : public StoredTypeSpec {
  public:
   TypeString(TypeStore* type_store,
-             std::shared_ptr<NameStore> type_member_store);
+             std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeBytes : public StoredTypeSpec {
  public:
   TypeBytes(TypeStore* type_store,
-            std::shared_ptr<NameStore> type_member_store);
+            std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeBool : public StoredTypeSpec {
  public:
-  TypeBool(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
+  TypeBool(TypeStore* type_store,
+           std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeTimestamp : public StoredTypeSpec {
  public:
   TypeTimestamp(TypeStore* type_store,
-                std::shared_ptr<NameStore> type_member_store);
+                std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeDate : public StoredTypeSpec {
  public:
-  TypeDate(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store);
+  TypeDate(TypeStore* type_store,
+           std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeDateTime : public StoredTypeSpec {
  public:
   TypeDateTime(TypeStore* type_store,
-               std::shared_ptr<NameStore> type_member_store);
+               std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeTimeInterval : public StoredTypeSpec {
  public:
   TypeTimeInterval(TypeStore* type_store,
-                   std::shared_ptr<NameStore> type_member_store);
+                   std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class TypeDecimal : public StoredTypeSpec {
  public:
   TypeDecimal(TypeStore* type_store,
-              std::shared_ptr<NameStore> type_member_store, int precision = -1,
-              int scale = -1);
+              std::shared_ptr<TypeMemberStore> type_member_store,
+              int precision = -1, int scale = -1);
   std::unique_ptr<TypeSpec> Clone() const override;
   std::string full_name() const override;
   pb::ExpressionTypeSpec ToProto() const override;
@@ -298,15 +319,32 @@ class TypeDecimal : public StoredTypeSpec {
 class TypeIterable : public StoredTypeSpec {
  public:
   TypeIterable(TypeStore* type_store,
-               std::shared_ptr<NameStore> type_member_store,
+               std::shared_ptr<TypeMemberStore> type_member_store,
                const TypeSpec* param = nullptr);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsIterable() const override;
 };
 
+class TypeGenerator : public StoredTypeSpec {
+ public:
+  TypeGenerator(TypeStore* type_store,
+                std::shared_ptr<TypeMemberStore> type_member_store,
+                const TypeSpec* param = nullptr);
+  std::unique_ptr<TypeSpec> Clone() const override;
+};
+
+class TypeContainer : public StoredTypeSpec {
+ public:
+  TypeContainer(TypeStore* type_store,
+                std::shared_ptr<TypeMemberStore> type_member_store,
+                const TypeSpec* param = nullptr);
+  std::unique_ptr<TypeSpec> Clone() const override;
+};
+
 class TypeArray : public StoredTypeSpec {
  public:
-  TypeArray(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store,
+  TypeArray(TypeStore* type_store,
+            std::shared_ptr<TypeMemberStore> type_member_store,
             const TypeSpec* param = nullptr);
   const TypeSpec* IndexType() const override;
   const TypeSpec* IndexedType() const override;
@@ -319,7 +357,8 @@ class TypeArray : public StoredTypeSpec {
 
 class TypeSet : public StoredTypeSpec {
  public:
-  TypeSet(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store,
+  TypeSet(TypeStore* type_store,
+          std::shared_ptr<TypeMemberStore> type_member_store,
           const TypeSpec* param = nullptr);
   const TypeSpec* IndexType() const override;
   const TypeSpec* IndexedType() const override;
@@ -331,7 +370,8 @@ class TypeSet : public StoredTypeSpec {
 
 class TypeTuple : public StoredTypeSpec {
  public:
-  TypeTuple(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store,
+  TypeTuple(TypeStore* type_store,
+            std::shared_ptr<TypeMemberStore> type_member_store,
             std::vector<const TypeSpec*> parameters = {});
   absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
       const std::vector<TypeBindingArg>& bindings) const override;
@@ -384,7 +424,7 @@ class TypeStruct : public StoredTypeSpec {
 class StructMemberStore : public TypeMemberStore {
  public:
   StructMemberStore(const TypeSpec* type_spec,
-                    std::shared_ptr<NameStore> ancestor);
+                    std::shared_ptr<TypeMemberStore> ancestor);
   ~StructMemberStore() override;
 
   // Adds a set of fields to this store.
@@ -401,7 +441,8 @@ class StructMemberStore : public TypeMemberStore {
 
 class TypeMap : public StoredTypeSpec {
  public:
-  TypeMap(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store,
+  TypeMap(TypeStore* type_store,
+          std::shared_ptr<TypeMemberStore> type_member_store,
           const TypeSpec* key = nullptr, const TypeSpec* val = nullptr);
   std::unique_ptr<TypeSpec> Clone() const override;
   const TypeSpec* ResultType() const override;
@@ -424,7 +465,7 @@ class TypeFunction : public StoredTypeSpec {
     std::string ToString() const;
   };
   TypeFunction(TypeStore* type_store,
-               std::shared_ptr<NameStore> type_member_store,
+               std::shared_ptr<TypeMemberStore> type_member_store,
                absl::string_view name = kTypeNameFunction,
                std::vector<Argument> arguments = {},
                const TypeSpec* result = nullptr,
@@ -460,7 +501,8 @@ class TypeFunction : public StoredTypeSpec {
 
 class TypeUnion : public StoredTypeSpec {
  public:
-  TypeUnion(TypeStore* type_store, std::shared_ptr<NameStore> type_member_store,
+  TypeUnion(TypeStore* type_store,
+            std::shared_ptr<TypeMemberStore> type_member_store,
             std::vector<const TypeSpec*> parameters = {});
   bool IsBound() const override;
   std::unique_ptr<TypeSpec> Clone() const override;
@@ -473,7 +515,7 @@ class TypeUnion : public StoredTypeSpec {
 class TypeNullable : public StoredTypeSpec {
  public:
   TypeNullable(TypeStore* type_store,
-               std::shared_ptr<NameStore> type_member_store,
+               std::shared_ptr<TypeMemberStore> type_member_store,
                const TypeSpec* type_spec = nullptr);
   std::string full_name() const override;
   std::unique_ptr<TypeSpec> Clone() const override;
@@ -486,7 +528,7 @@ class TypeNullable : public StoredTypeSpec {
 class TypeDataset : public StoredTypeSpec {
  public:
   TypeDataset(TypeStore* type_store,
-              std::shared_ptr<NameStore> type_member_store,
+              std::shared_ptr<TypeMemberStore> type_member_store,
               absl::string_view name = "", const TypeSpec* type_spec = nullptr);
   std::unique_ptr<TypeSpec> Clone() const override;
   const TypeSpec* ResultType() const override;
@@ -498,7 +540,7 @@ class TypeDataset : public StoredTypeSpec {
 // from any type store.
 class TypeUnknown : public TypeSpec {
  public:
-  explicit TypeUnknown(std::shared_ptr<NameStore> type_member_store);
+  explicit TypeUnknown(std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   const TypeSpec* type_spec() const override;
   const ScopeName& scope_name() const override;

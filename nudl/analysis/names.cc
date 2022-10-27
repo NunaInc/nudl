@@ -121,6 +121,18 @@ pb::ScopeName ScopeName::ToProto() const {
   return proto;
 }
 
+pb::Identifier ScopeName::ToIdentifier() const {
+  pb::Identifier identifier;
+  identifier.mutable_name()->Reserve(size() + 1);
+  for (const auto& name : module_names_) {
+    identifier.add_name(name);
+  }
+  for (const auto& name : function_names_) {
+    identifier.add_name(name);
+  }
+  return identifier;
+}
+
 absl::StatusOr<ScopeName> ScopeName::Submodule(absl::string_view name) const {
   if (!NameUtil::IsValidName(name)) {
     return status::InvalidArgumentErrorBuilder()
@@ -312,6 +324,18 @@ pb::ScopedName ScopedName::ToProto() const {
   }
   proto.set_name(name_);
   return proto;
+}
+
+pb::Identifier ScopedName::ToIdentifier() const {
+  pb::Identifier identifier = scope_name_->ToIdentifier();
+  identifier.add_name(name_);
+  return identifier;
+}
+
+pb::TypeSpec ScopedName::ToTypeSpec() const {
+  pb::TypeSpec type_spec;
+  *type_spec.mutable_identifier() = ToIdentifier();
+  return type_spec;
 }
 
 absl::StatusOr<ScopedName> ScopedName::FromIdentifier(

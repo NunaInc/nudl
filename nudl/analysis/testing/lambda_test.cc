@@ -110,7 +110,7 @@ def g(x: Int, y: Int = 1) => x + y
 def g(x: Float64, y: Float64 = 1.2) => x + y
 def h(x: Int) => f(g, x)
 )",
-             "is incompatible with declared type of argument");
+             "Cannot process type for rebinding");
   CheckError("signature_redefined", R"(
 def f(x: Function<{X}, X>, val: {X}) => x(val)
 def g(x: Int, y: Int = 1) => x + y
@@ -122,3 +122,7 @@ def h(x: Int) => f(g, x)
 
 }  // namespace analysis
 }  // namespace nudl
+
+int main(int argc, char** argv) {
+  return nudl::analysis::AnalysisTest::Main(argc, argv);
+}

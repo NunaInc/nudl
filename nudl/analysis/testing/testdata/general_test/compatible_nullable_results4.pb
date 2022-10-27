@@ -13,7 +13,7 @@ expression {
       }
     }
     result_type {
-      name: "Nullable<Int>"
+      name: "Generator<Nullable<Int>>"
     }
     function_name: "foo"
     qualified_name {
