@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-30 01:18:33</td>
+            <td class="headerValue">2022-10-30 01:22:14</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">63</td>
@@ -113,10 +113,10 @@
 <a name="51"><span class="lineNum">      51 </span>            :   }</a>
 <a name="52"><span class="lineNum">      52 </span><span class="lineCov">       4143 : }</span></a>
 <a name="53"><span class="lineNum">      53 </span>            : </a>
-<a name="54"><span class="lineNum">      54 </span><span class="lineCov">       8864 : const TypeSpec* TypeMemberStore::type_spec() const {</span></a>
+<a name="54"><span class="lineNum">      54 </span><span class="lineCov">       8868 : const TypeSpec* TypeMemberStore::type_spec() const {</span></a>
 <a name="55"><span class="lineNum">      55 </span>            :   // We need to return a value here:</a>
-<a name="56"><span class="lineNum">      56 </span><span class="lineCov">       8864 :   if (type_spec_.has_value()) {</span></a>
-<a name="57"><span class="lineNum">      57 </span><span class="lineCov">       8864 :     return type_spec_.value();  // most of the time this holds:</span></a>
+<a name="56"><span class="lineNum">      56 </span><span class="lineCov">       8868 :   if (type_spec_.has_value()) {</span></a>
+<a name="57"><span class="lineNum">      57 </span><span class="lineCov">       8868 :     return type_spec_.value();  // most of the time this holds:</span></a>
 <a name="58"><span class="lineNum">      58 </span>            :   }</a>
 <a name="59"><span class="lineNum">      59 </span><span class="lineNoCov">          0 :   if (binding_parent_.has_value()) {</span></a>
 <a name="60"><span class="lineNum">      60 </span><span class="lineNoCov">          0 :     return binding_parent_.value()-&gt;type_spec();</span></a>
@@ -150,8 +150,8 @@
 <a name="88"><span class="lineNum">      88 </span><span class="lineCov">       1510 :   return pb::ObjectKind::OBJ_TYPE_MEMBER_STORE;</span></a>
 <a name="89"><span class="lineNum">      89 </span>            : }</a>
 <a name="90"><span class="lineNum">      90 </span>            : </a>
-<a name="91"><span class="lineNum">      91 </span><span class="lineCov">       2564 : std::string TypeMemberStore::full_name() const {</span></a>
-<a name="92"><span class="lineNum">      92 </span><span class="lineCov">       2564 :   return absl::StrCat(&quot;Members of &quot;, type_spec()-&gt;full_name());</span></a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineCov">       2568 : std::string TypeMemberStore::full_name() const {</span></a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">       2568 :   return absl::StrCat(&quot;Members of &quot;, type_spec()-&gt;full_name());</span></a>
 <a name="93"><span class="lineNum">      93 </span>            : }</a>
 <a name="94"><span class="lineNum">      94 </span>            : </a>
 <a name="95"><span class="lineNum">      95 </span><span class="lineCov">         13 : std::vector&lt;const NameStore*&gt; TypeMemberStore::FindConstBindingOrder() const {</span></a>
@@ -245,10 +245,10 @@
 <a name="183"><span class="lineNum">     183 </span><span class="lineCov">      24146 : void TypeMemberStore::RemoveMemberType(const TypeSpec* member_type) {</span></a>
 <a name="184"><span class="lineNum">     184 </span><span class="lineCov">      24146 :   member_types_.erase(member_type);</span></a>
 <a name="185"><span class="lineNum">     185 </span><span class="lineCov">      24146 :   if (type_spec_.has_value() &amp;&amp; member_type == type_spec_.value()) {</span></a>
-<a name="186"><span class="lineNum">     186 </span><span class="lineCov">       4525 :     if (member_types_.empty()) {</span></a>
+<a name="186"><span class="lineNum">     186 </span><span class="lineCov">       4522 :     if (member_types_.empty()) {</span></a>
 <a name="187"><span class="lineNum">     187 </span><span class="lineCov">       3740 :       type_spec_.reset();</span></a>
 <a name="188"><span class="lineNum">     188 </span>            :     } else {</a>
-<a name="189"><span class="lineNum">     189 </span><span class="lineCov">        785 :       type_spec_ = *member_types_.begin();</span></a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">        782 :       type_spec_ = *member_types_.begin();</span></a>
 <a name="190"><span class="lineNum">     190 </span>            :     }</a>
 <a name="191"><span class="lineNum">     191 </span>            :   }</a>
 <a name="192"><span class="lineNum">     192 </span><span class="lineCov">      24146 : }</span></a>
@@ -286,21 +286,21 @@
 <a name="224"><span class="lineNum">     224 </span><span class="lineCov">       1362 :   return false;</span></a>
 <a name="225"><span class="lineNum">     225 </span>            : }</a>
 <a name="226"><span class="lineNum">     226 </span>            : </a>
-<a name="227"><span class="lineNum">     227 </span><span class="lineCov">       2213 : absl::StatusOr&lt;NamedObject*&gt; TypeMemberStore::GetName(</span></a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineCov">       2217 : absl::StatusOr&lt;NamedObject*&gt; TypeMemberStore::GetName(</span></a>
 <a name="228"><span class="lineNum">     228 </span>            :     absl::string_view local_name, bool in_self_only) {</a>
-<a name="229"><span class="lineNum">     229 </span><span class="lineCov">       4426 :   auto result = BaseNameStore::GetName(local_name, in_self_only);</span></a>
-<a name="230"><span class="lineNum">     230 </span><span class="lineCov">       2213 :   if (result.ok() || in_self_only) {</span></a>
-<a name="231"><span class="lineNum">     231 </span><span class="lineCov">       1386 :     return result;</span></a>
+<a name="229"><span class="lineNum">     229 </span><span class="lineCov">       4434 :   auto result = BaseNameStore::GetName(local_name, in_self_only);</span></a>
+<a name="230"><span class="lineNum">     230 </span><span class="lineCov">       2217 :   if (result.ok() || in_self_only) {</span></a>
+<a name="231"><span class="lineNum">     231 </span><span class="lineCov">       1390 :     return result;</span></a>
 <a name="232"><span class="lineNum">     232 </span>            :   }</a>
 <a name="233"><span class="lineNum">     233 </span><span class="lineCov">       1654 :   std::vector&lt;absl::Status&gt; result_status;</span></a>
 <a name="234"><span class="lineNum">     234 </span><span class="lineCov">        827 :   result_status.emplace_back(result.status());</span></a>
-<a name="235"><span class="lineNum">     235 </span><span class="lineCov">       2598 :   for (auto store : FindBindingOrder()) {</span></a>
-<a name="236"><span class="lineNum">     236 </span><span class="lineCov">       1794 :     if (store != this) {</span></a>
-<a name="237"><span class="lineNum">     237 </span><span class="lineCov">        944 :       result = store-&gt;GetName(local_name, true);</span></a>
-<a name="238"><span class="lineNum">     238 </span><span class="lineCov">        944 :       if (result.ok()) {</span></a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineCov">       2602 :   for (auto store : FindBindingOrder()) {</span></a>
+<a name="236"><span class="lineNum">     236 </span><span class="lineCov">       1798 :     if (store != this) {</span></a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">        948 :       result = store-&gt;GetName(local_name, true);</span></a>
+<a name="238"><span class="lineNum">     238 </span><span class="lineCov">        948 :       if (result.ok()) {</span></a>
 <a name="239"><span class="lineNum">     239 </span><span class="lineCov">         23 :         return result;</span></a>
 <a name="240"><span class="lineNum">     240 </span>            :       }</a>
-<a name="241"><span class="lineNum">     241 </span><span class="lineCov">        921 :       result_status.emplace_back(result.status());</span></a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineCov">        925 :       result_status.emplace_back(result.status());</span></a>
 <a name="242"><span class="lineNum">     242 </span>            :     }</a>
 <a name="243"><span class="lineNum">     243 </span>            :   }</a>
 <a name="244"><span class="lineNum">     244 </span><span class="lineCov">       1608 :   return status::JoinStatus(result_status);</span></a>
@@ -367,24 +367,24 @@
 <a name="305"><span class="lineNum">     305 </span><span class="lineCov">          1 :   return CHECK_NOTNULL(type_member_store_.get());</span></a>
 <a name="306"><span class="lineNum">     306 </span>            : }</a>
 <a name="307"><span class="lineNum">     307 </span>            : </a>
-<a name="308"><span class="lineNum">     308 </span><span class="lineCov">      77198 : std::string TypeSpec::wrap_local_name(std::string s) const {</span></a>
-<a name="309"><span class="lineNum">     309 </span><span class="lineCov">      77198 :   if (local_name_.empty()) {</span></a>
-<a name="310"><span class="lineNum">     310 </span><span class="lineCov">      68111 :     return s;</span></a>
+<a name="308"><span class="lineNum">     308 </span><span class="lineCov">      77213 : std::string TypeSpec::wrap_local_name(std::string s) const {</span></a>
+<a name="309"><span class="lineNum">     309 </span><span class="lineCov">      77213 :   if (local_name_.empty()) {</span></a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineCov">      68122 :     return s;</span></a>
 <a name="311"><span class="lineNum">     311 </span>            :   }</a>
-<a name="312"><span class="lineNum">     312 </span><span class="lineCov">       9087 :   return absl::StrCat(&quot;{ &quot;, local_name_, &quot; : &quot;, s, &quot; }&quot;);</span></a>
+<a name="312"><span class="lineNum">     312 </span><span class="lineCov">       9091 :   return absl::StrCat(&quot;{ &quot;, local_name_, &quot; : &quot;, s, &quot; }&quot;);</span></a>
 <a name="313"><span class="lineNum">     313 </span>            : }</a>
 <a name="314"><span class="lineNum">     314 </span>            : </a>
-<a name="315"><span class="lineNum">     315 </span><span class="lineCov">      61947 : std::string TypeSpec::full_name() const {</span></a>
-<a name="316"><span class="lineNum">     316 </span><span class="lineCov">      61947 :   std::string s;</span></a>
-<a name="317"><span class="lineNum">     317 </span><span class="lineCov">      61947 :   absl::StrAppend(&amp;s, name());</span></a>
-<a name="318"><span class="lineNum">     318 </span><span class="lineCov">      61947 :   if (!parameters_.empty()) {</span></a>
-<a name="319"><span class="lineNum">     319 </span><span class="lineCov">       6273 :     absl::StrAppend(&amp;s, &quot;&lt;&quot;, parameters_.front()-&gt;full_name());</span></a>
-<a name="320"><span class="lineNum">     320 </span><span class="lineCov">      14986 :     for (auto it = parameters_.begin() + 1; it != parameters_.end(); ++it) {</span></a>
-<a name="321"><span class="lineNum">     321 </span><span class="lineCov">       8713 :       absl::StrAppend(&amp;s, &quot;, &quot;, (*it)-&gt;full_name());</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineCov">      61962 : std::string TypeSpec::full_name() const {</span></a>
+<a name="316"><span class="lineNum">     316 </span><span class="lineCov">      61962 :   std::string s;</span></a>
+<a name="317"><span class="lineNum">     317 </span><span class="lineCov">      61962 :   absl::StrAppend(&amp;s, name());</span></a>
+<a name="318"><span class="lineNum">     318 </span><span class="lineCov">      61962 :   if (!parameters_.empty()) {</span></a>
+<a name="319"><span class="lineNum">     319 </span><span class="lineCov">       6278 :     absl::StrAppend(&amp;s, &quot;&lt;&quot;, parameters_.front()-&gt;full_name());</span></a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineCov">      14997 :     for (auto it = parameters_.begin() + 1; it != parameters_.end(); ++it) {</span></a>
+<a name="321"><span class="lineNum">     321 </span><span class="lineCov">       8719 :       absl::StrAppend(&amp;s, &quot;, &quot;, (*it)-&gt;full_name());</span></a>
 <a name="322"><span class="lineNum">     322 </span>            :     }</a>
-<a name="323"><span class="lineNum">     323 </span><span class="lineCov">       6273 :     absl::StrAppend(&amp;s, &quot;&gt;&quot;);</span></a>
+<a name="323"><span class="lineNum">     323 </span><span class="lineCov">       6278 :     absl::StrAppend(&amp;s, &quot;&gt;&quot;);</span></a>
 <a name="324"><span class="lineNum">     324 </span>            :   }</a>
-<a name="325"><span class="lineNum">     325 </span><span class="lineCov">     123894 :   return wrap_local_name(std::move(s));</span></a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineCov">     123924 :   return wrap_local_name(std::move(s));</span></a>
 <a name="326"><span class="lineNum">     326 </span>            : }</a>
 <a name="327"><span class="lineNum">     327 </span>            : </a>
 <a name="328"><span class="lineNum">     328 </span><span class="lineCov">        726 : pb::ExpressionTypeSpec TypeSpec::ToProto() const {</span></a>
