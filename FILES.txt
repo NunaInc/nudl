@@ -2,11 +2,9 @@
 .bazelrc
 .clang-format
 .github
-.gitlab
 .gitignore
 BUILD.bazel
 CPPLINT.cfg
-FILES.txt
 LICENSE
 README.md
 WORKSPACE

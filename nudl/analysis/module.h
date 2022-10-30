@@ -1,3 +1,18 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 #ifndef NUDL_ANALYSIS_MODULE_H__
 #define NUDL_ANALYSIS_MODULE_H__
 
@@ -38,6 +53,7 @@ class ModuleFileReader {
     std::string module_name;
     std_filesystem::path path_used;
     std_filesystem::path file_name;
+    bool is_init_module = false;
     std::string content;
   };
 
@@ -151,6 +167,9 @@ class Module : public Scope {
   // This is to set the module store just in the builtin module.
   void set_module_store(ModuleStore* module_store);
 
+  // This designates if the module is a directory/__init__.ndl module.
+  bool is_init_module() const;
+
   std::string DebugString() const override;
   pb::ModuleSpec ToProto() const;
 
@@ -181,6 +200,7 @@ class Module : public Scope {
   const std::string module_name_;
   ModuleStore* module_store_ = nullptr;
   std::unique_ptr<TypeSpec> module_type_;
+  bool is_init_module_ = false;
   PragmaHandler pragma_handler_;
   absl::Duration parse_duration_;
   absl::Duration analysis_duration_;

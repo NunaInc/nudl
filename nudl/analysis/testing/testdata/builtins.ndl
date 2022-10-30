@@ -1,0 +1,459 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+////////////////////////////////////////////////////////////////////////////////
+
+//
+// Utility types:
+//
+
+// Types that can be sorterd with less than / greater than
+typedef Sortable = Union<String, Bytes, Numeric,
+                         Date, DateTime, Timestamp, TimeInterval>
+
+// Typses that can be compared with == and !=
+typedef Comparable = Any   // For now
+
+// Types that can be converted directly to bool:
+//   - String and Bytes - if they are empty
+//   - Numeric - if they are 0
+typedef BooleanConvertible = Union<Numeric, String, Bytes>
+
+// TODO(catalin): Union<Union<X, Y>, Z> => Union<X, Y, Z>
+
+//
+// Basic operators
+//
+
+def __pos__(x: {T: Numeric}) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]+${x}[[end]]
+
+def __neg__(x: {T: Numeric}) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]-${x}[[end]]
+
+def __inv__(x: {T: Integral}) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]~${x}[[end]]
+
+def __not__(x: Bool) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]not ${x}[[end]]
+
+def __if__(cond: Bool, val_true: {T : Any}, val_false: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]
+(${val_true} if ${cond} else ${val_false})
+[[end]]
+
+def __between__(val: {T: Sortable}, min_val: T, max_val: T) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]](${min_val} <= ${val} <= ${max_val})[[end]]
+
+def __mul__(x: {T: Numeric}, y: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} * ${y}[[end]]
+
+def __div__(x: {T: Numeric}, y: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} / ${y}[[end]]
+
+def __mod__(x: {T: Numeric}, y: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} % ${y}[[end]]
+
+def __add__(x: {T: Numeric}, y: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} + ${y}[[end]]
+
+def __add__(x: {T: Union<String, Bytes>}, y: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} + ${y}[[end]]
+
+def __add__(x: {T: Union<Date, DateTime>}, y: TimeInterval) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} + ${y}[[end]]
+
+def __sub__(x: {T: Numeric}, y: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} - ${y}[[end]]
+
+def __sub__(x: {T: Union<Date, DateTime>}, y: T) : TimeInterval =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} - ${y}[[end]]
+
+def __rshift__(x: {T:Integral}, y: UInt) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} >> ${y}[[end]]
+
+def __lshift__(x: {T:Integral}, y: UInt) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} << ${y}[[end]]
+
+def __lt__(x: {T: Sortable}, y: T) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} < ${y}[[end]]
+
+def __le__(x: {T: Sortable}, y: T) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} <= ${y}[[end]]
+
+def __eq__(x: {T: Comparable}, y: T) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} == ${y}[[end]]
+
+def __ne__(x: {T: Comparable}, y: T) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} != ${y}[[end]]
+
+def __gt__(x: {T: Sortable}, y: T) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} > ${y}[[end]]
+
+def __ge__(x: {T: Sortable}, y: T) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} >= ${y}[[end]]
+
+def __bit_and__(x: {T: Integral}, y: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} & ${y}[[end]]
+
+def __bit_or__(x: {T: Integral}, y: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} | ${y}[[end]]
+
+def __bit_xor__(x: {T: Integral}, y: T) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} ^ ${y}[[end]]
+
+def __and__(x: Bool, y: Bool) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} and ${y}[[end]]
+
+def __or__(x: Bool, y: Bool) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} or ${y}[[end]]
+
+def __xor__(x: Bool, y: Bool) : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} != ${y}[[end]]
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Nullable management:
+
+
+def is_null(x: Nullable<{T:Any}>) : Bool =>
+[[pyinline]]
+${x} is None
+[[end]]
+
+def _ensured(x: Nullable<{T:Any}>) : T =>
+[[pyinline]]${x}[[end]]
+
+def ensure(x: Nullable<{T:Int}>, val: Int = 0) : Int =>
+  is_null(x) ? (val, _ensured(x))
+
+def ensure(x: Nullable<{T:UInt}>, val: UInt = 0u) : UInt  =>
+  is_null(x) ? (val, _ensured(x))
+
+def ensure(x: Nullable<String>, val: String = "") : String  =>
+  is_null(x) ? (val, _ensured(x))
+
+def ensure(x: Nullable<Bytes>, val: Bytes = b"") : Bytes  =>
+  is_null(x) ? (val, _ensured(x))
+
+def ensure(x: Nullable<Bool>, val: Bool = false) : Bool  =>
+  is_null(x) ? (val, _ensured(x))
+
+def method ensured_run(x: Nullable<{X}>,
+  f: Function<X, Nullable<{Y}>>) : Nullable<Y> =>
+  is_null(x) ? (null, f(_ensured(x)))
+
+////////////////////////////////////////////////////////////////////////////////
+
+def method len(l: {X: Union<Container<{Y}>, String, Bytes>}) : UInt =>
+[[skip_conversion]][[end]]
+[[pyinline]]len(${l})[[end]]
+
+def method empty(l: Container<{X: Any}>) : Bool =>
+[[pyinline]]
+bool({l})
+[[end]]
+
+def method empty(
+  l: Generator<{X: Any}>) : Bool =>
+[[pyimport]]
+import itertools
+[[end]]
+[[pyinline]]
+not bool(list(itertools.islice(${l}, 1)))
+[[end]]
+
+def method to_array(l: Iterable<{X: Any}>) : Array<X> =>
+[[pyinline]]
+nudl.collect(${l})
+[[end]]
+
+def method map(
+  l: Iterable<{X : Any}>,
+  f: Function<X, {Y : Any}>) : Generator<Y> =>
+[[skip_conversion]][[end]]
+[[pyinline]]map(${f}, ${l})[[end]]
+
+def method filter(
+  l: Iterable<{X : Any}>,
+  f: Function<X, Bool>) : Generator<X> =>
+[[skip_conversion]][[end]]
+[[pyinline]]filter(${f}, ${l})[[end]]
+
+def method aggregate_to_array(
+  l: Iterable<{X : Any}>,
+  key: Function<X, {Y: Any}>,
+  value: Function<X, {Z: Any}>) : Generator<Tuple<Y, Array<Z>>> =>
+[[pyinline]]
+nudl.aggregate_to_array(${l}, ${key}, ${value})
+[[end]]
+
+def method aggregate_to_set(
+  l: Iterable<{X : Any}>,
+  key: Function<X, {Y: Any}>,
+  value: Function<X, {Z: Any}>) : Generator<Tuple<Y, Set<Z>>> =>
+[[pyinline]]
+nudl.aggregate_to_set(${l}, ${key}, ${value})
+[[end]]
+
+def method sort(
+  l: Array<{X : Any}>,
+  key: Function<X, Sortable>,
+  reverse: Bool = false) : Array<X> =>
+[[pyinline]]
+nudl.sort(${l}, ${key}, ${reverse})
+[[end]]
+
+def method front(
+  l: Array<{X: Any}>) : Nullable<X> =>
+[[pyinline]]
+${l}[0] if ${l} else None
+[[end]]
+
+def method front(
+  l: Iterable<{X: Any}>) : Nullable<X> =>
+[[pyinline]]
+nudl.front(${l})
+[[end]]
+
+def method shuffle(
+  l: Array<{X: Any}>) : Array<X> =>
+[[pyinline]]
+nudl.shuffle(${l})
+[[end]]
+
+def method sum(l: Iterable<{X : Numeric}>) : X =>
+[[skip_conversion]][[end]]
+[[pyinline]]sum(${l})[[end]]
+
+def method max(l: Iterable<{X: Sortable}>) : Nullable<X> =>
+[[skip_conversion]][[end]]
+[[pyinline]]nudl.safe_max(${l})[[end]]
+
+def method min(l: Array<{X: Sortable}>) : Nullable<X> =>
+[[skip_conversion]][[end]]
+[[pyinline]]nudl.safe_min(${l})[[end]]
+
+def method max_by(
+  l: Iterable<{X}>,
+  f: Function<X, {Y: Sortable}>): Nullable<X> =>
+[[pyinline]]
+nudl.max_by(${l}, ${f})
+[[end]]
+
+def method min_by(
+  l: Iterable<{X}>,
+  f: Function<X, {Y: Sortable}>) : Nullable<X> =>
+[[pyinline]]
+nudl.min_by(${l}, ${f})
+[[end]]
+
+////////////////////////////////////////////////////////////////////////////////
+
+//
+// Default value constructors:
+//
+// They are to be used by their type name: e.g. Int() or Array(Int())
+//
+def constructor int() : Int => 0
+def constructor int8() : Int8 => 0
+def constructor int16() : Int16 => 0
+def constructor int32() : Int32 => 0
+def constructor uint() : UInt => 0u
+def constructor uint8() : UInt8 => 0u
+def constructor uint16() : UInt16 => 0u
+def constructor uint32() : UInt32 => 0u
+def constructor string() : String => ""
+def constructor bytes() : Bytes => b""
+def constructor bool() : Bool => false
+def constructor array(t: {T}) : Array<T> => []
+def constructor set(t: {T}) : Set<T> => []
+def constructor dict(k: {K}, v: {V}) : Map<K, V> => []
+def constructor nullable(t: {T}) : Nullable<T> => null
+def constructor tuple(t: {T: Tuple}) : Tuple => t
+
+
+// Int constructors:
+def constructor int(x: Union<Numeric, Bool>) : Int =>
+[[pyinline]]
+int(${x})
+[[end]]
+
+def constructor int(x: String, default: Int) : Int =>
+[[pyinline]]
+nudl.to_int(${x}, default)
+[[end]]
+
+// Returns null on invalid string representation:
+def constructor int(x: String) : Nullable<Int> =>
+[[pyinline]]
+nudl.to_int(${x})
+[[end]]
+
+// UInt constructors:
+def constructor uint(x: Numeric) : UInt =>
+[[pyinline]]
+${x} if int(${x}) > 0 else 0
+[[end]]
+
+def constructor uint(x: Bool) : UInt =>
+[[pyinline]]
+int(${x})
+[[end]]
+
+// Bool constructors:
+def constructor bool(x: BooleanConvertible): Bool =>
+[[pyinline]]
+bool(${x})
+[[end]]
+
+// We need a typedef :)
+def constructor bool(value: Nullable<BooleanConvertible>) : Bool =>
+  is_null(value) ? (false, Bool(_ensured(value)))
+
+
+// Date / Datetime / Timestamp
+
+// This sets the timezone in which we operate.
+def set_timezone(s: String) : Bool =>
+[[pyinline]]
+nudl.set_timezone(${s})
+[[end]]
+
+def default_timestamp() : Timestamp =>
+[[pyinline]]0.0[[end]]
+
+def default_date() : Date =>
+[[pyinline]]
+nudl.default_date()
+[[end]]
+
+def default_datetime() : DateTime =>
+[[pyinline]]
+nudl.default_datetime()
+[[end]]
+
+def default_decimal() : Decimal =>
+[[pyinline]]
+nudl.default_decimal()
+[[end]]
+
+def constructor timestamp() : Timestamp =>
+[[pyinline]]
+nudl.timestamp_now()
+[[end]]
+
+def timestamp_ms(utc_timestamp_ms: Int) : Timestamp =>
+[[pyinline]]
+nudl.timestamp_ms(${utc_timestamp_ms})
+[[end]]
+
+def timestamp_sec(utc_timestamp_sec: Float64) : Timestamp =>
+[[pyinline]]
+nudl.timestamp_sec(${utc_timestamp_sec})
+[[end]]
+
+def constructor date() : Date =>
+[[pyinline]]
+nudl.date_today()
+[[end]]
+
+def constructor date(year: Int, month: Int, day: Int) : Nullable<Date> =>
+[[pyinline]]
+nudl.date_safe(${year}, ${month}, ${day})
+[[end]]
+
+def constructor date(ts: Timestamp) : Date =>
+[[pyinline]]
+nudl.date_from_timestamp(${ts})
+[[end]]
+
+def constructor date(s: String) : Nullable<Date> =>
+[[pyinline]]
+nudl.date_from_isoformat(${s})
+[[end]]
+
+def constructor datetime() : DateTime =>
+[[pyinline]]
+nudl.datetime_now()
+[[end]]
+
+def constructor datetime(year: Int, month: Int, day: Int,
+  hour: Int = 0, minute: Int = 0, second: Int = 0) : Nullable<DateTime> =>
+[[pyinline]]
+nudl.datetime_safe(${year}, ${month}, ${day}, ${hour}, ${minute}, ${second})
+[[end]]
+
+def constructor datetime(ts: Timestamp) : DateTime =>
+[[pyinline]]
+nudl.datetime_from_timestamp(${ts})
+[[end]]
+
+def constructor datetime(s: String) : Nullable<DateTime> =>
+[[pyinline]]
+nudl.datetime_from_isoformat(${s})
+[[end]]
+
+// String constructors
+
+def constructor str(x: Numeric) : String =>
+[[skip_conversion]][[end]]
+[[pyinline]]str(${x})[[end]]
+
+def method concat(x: Iterable<String>, joiner: String) : String =>
+[[pyinline]]
+${joiner}.join(${x})
+[[end]]
+
+
+//
+// These are just temporarely, and for python only in this format:
+//
+
+def to_string(x: Any) : String =>
+[[pyinline]]str(${x})[[end]]
+
+def print(x: Any) : Null =>
+[[skip_conversion]][[end]]
+[[pyinline]]print(${x})[[end]]

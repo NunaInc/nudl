@@ -1,3 +1,18 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 #ifndef NUDL_ANALYSIS_TYPE_SPEC_H__
 #define NUDL_ANALYSIS_TYPE_SPEC_H__
 
@@ -130,9 +145,12 @@ class TypeSpec : public NamedObject {
   const std::string& local_name() const;
   // The scope in which the type is defined:
   virtual const ScopeName& scope_name() const = 0;
+  // The scope in which the type is defined:
+  absl::optional<NameStore*> parent_store() const override;
 
   // Converts this type to a proto representation.
   virtual pb::ExpressionTypeSpec ToProto() const;
+  virtual pb::TypeSpec ToTypeSpecProto() const;
 
   // NamedObject interface:
   pb::ObjectKind kind() const override;
@@ -192,6 +210,14 @@ class TypeSpec : public NamedObject {
       const std::vector<TypeBindingArg>& bindings, bool check_params = true,
       absl::optional<size_t> minimum_parameters = {}) const;
 
+  // Builds an expression that returns the default value for this type.
+  virtual absl::StatusOr<pb::Expression> DefaultValueExpression() const;
+
+  // Gets / Sets the place where the object is defined.
+  // Can set only once !
+  absl::optional<NameStore*> definition_scope() const;
+  void set_definition_scope(absl::optional<NameStore*> obj);
+
  protected:
   // Updates the type_member_store per provided bindings.
   absl::Status UpdateBindingStore(const std::vector<TypeBindingArg>& bindings);
@@ -211,6 +237,7 @@ class TypeSpec : public NamedObject {
   std::shared_ptr<TypeMemberStore> type_member_store_;
   const bool is_bound_type_;
   bool is_name_set_ = false;
+  absl::optional<NameStore*> definition_scope_ = {};
 
   std::string local_name_;
   const TypeSpec* ancestor_ = nullptr;

@@ -1,3 +1,19 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include "nudl/analysis/module.h"
 
 #include <fstream>
@@ -91,13 +107,13 @@ PathBasedFileReader::ReadModule(absl::string_view module_name) const {
       if (std_filesystem::is_regular_file(crt_path)) {
         return ReadFile(crt_path, ModuleFileReader::ModuleReadResult{
                                       std::string(module_name), path.native(),
-                                      crt_path.native()});
+                                      crt_path.native(), false});
       }
       auto top_path = path / ModuleNameToPath(module_name) / kDefaultModuleFile;
       if (std_filesystem::is_regular_file(top_path)) {
         return ReadFile(top_path, ModuleFileReader::ModuleReadResult{
                                       std::string(module_name), path.native(),
-                                      top_path.native()});
+                                      top_path.native(), true});
       }
     } catch (const std_filesystem::filesystem_error& ex) {
       return status::InternalErrorBuilder()
@@ -169,7 +185,7 @@ absl::StatusOr<Module*> ModuleStore::ImportModule(
   if (it_code != module_code_.end()) {
     read_result = ModuleFileReader::ModuleReadResult{
         std::string(module_name), std_filesystem::path("preset"),
-        std_filesystem::path(module_name), std::string(it_code->second)};
+        std_filesystem::path(module_name), false, std::string(it_code->second)};
   } else {
     ASSIGN_OR_RETURN(read_result, reader_->ReadModule(module_name));
   }
@@ -231,6 +247,7 @@ absl::StatusOr<Module*> Module::ParseAndImport(
   auto module = absl::WrapUnique(new Module(pscope, read_result.module_name,
                                             read_result.file_name, store));
   auto pmodule = module.get();
+  pmodule->is_init_module_ = read_result.is_init_module;
   RETURN_IF_ERROR(store->top_module()->AddSubScope(std::move(module)))
       << "Registering module: " << read_result.module_name;
   RETURN_IF_ERROR(pmodule->Import(*parse_pb, import_chain));
@@ -257,13 +274,17 @@ Module::Module(std_filesystem::path file_path)
       module_name_(kBuildtinModuleName),
       module_type_(
           std::make_unique<TypeModule>(type_store_, kBuildtinModuleName, this)),
-      pragma_handler_(this) {}
+      pragma_handler_(this) {
+  module_type_->set_definition_scope(this);
+}
 
 Module::Module(ModuleStore* module_store)
     : Scope(module_store->built_in_scope()),
       module_store_(module_store),
       module_type_(std::make_unique<TypeModule>(type_store_, "__top__", this)),
-      pragma_handler_(this) {}
+      pragma_handler_(this) {
+  module_type_->set_definition_scope(this);
+}
 
 Module::Module(std::shared_ptr<ScopeName> scope_name, absl::string_view name,
                std_filesystem::path file_path, ModuleStore* module_store)
@@ -272,7 +293,9 @@ Module::Module(std::shared_ptr<ScopeName> scope_name, absl::string_view name,
       module_name_(name),
       module_store_(module_store),
       module_type_(std::make_unique<TypeModule>(type_store_, name, this)),
-      pragma_handler_(this) {}
+      pragma_handler_(this) {
+  module_type_->set_definition_scope(this);
+}
 
 const std_filesystem::path& Module::file_path() const { return file_path_; }
 
@@ -360,8 +383,60 @@ absl::Status Module::ProcessSchema(const pb::SchemaDefinition& element,
                    TypeStruct::AddTypeStruct(scope_name(), type_store_, name,
                                              std::move(fields)),
                    _ << context.ToErrorInfo("Creating structure type"));
+  type_spec->set_definition_scope(this);
   expressions_.emplace_back(
       std::make_unique<SchemaDefinitionExpression>(this, type_spec));
+
+  // Prepare the constructors:
+  pb::FunctionDefinition object_constructor;
+  object_constructor.set_name(absl::StrCat("_init_object_", type_spec->name()));
+  object_constructor.set_fun_type(pb::FunctionType::FUN_CONSTRUCTOR);
+  RET_CHECK(type_spec->parameters().size() == type_spec->fields().size());
+  for (size_t i = 0; i < type_spec->parameters().size(); ++i) {
+    const auto param = type_spec->parameters()[i];
+    const auto& field = type_spec->fields()[i];
+    auto fparam = object_constructor.add_param();
+    fparam->set_name(field.name);
+    *fparam->mutable_type_spec() = element.field(i).type_spec();
+    if (param->type_id() == pb::TypeId::STRUCT_ID) {
+      // Special casing for this - we may have a modularized type name,
+      // not known by the field itself.
+      *fparam->mutable_default_value()
+           ->mutable_function_call()
+           ->mutable_identifier() = element.field(i).type_spec().identifier();
+    } else {
+      ASSIGN_OR_RETURN(
+          *fparam->mutable_default_value(), param->DefaultValueExpression(),
+          _ << "Preparing default value for structure field: " << field.name
+            << ", while building default constructor for: "
+            << type_spec->name());
+    }
+  }
+  object_constructor.mutable_result_type()->mutable_identifier()->add_name(
+      type_spec->name());
+  auto snippet = object_constructor.add_snippet();
+  snippet->set_name(std::string(kStructObjectConstructor));
+  snippet->set_body(type_spec->name());
+  RETURN_IF_ERROR(ProcessFunctionDef(object_constructor, context))
+      << "Registering structure type default object constructor"
+      << context.ToErrorInfo("In init constructor auto-definition");
+
+  pb::FunctionDefinition copy_constructor;
+  copy_constructor.set_name(absl::StrCat("_init_copy_", type_spec->name()));
+  copy_constructor.set_fun_type(pb::FunctionType::FUN_CONSTRUCTOR);
+  auto fparam = copy_constructor.add_param();
+  fparam->set_name("obj");
+  fparam->mutable_type_spec()->mutable_identifier()->add_name(
+      type_spec->name());
+  copy_constructor.mutable_result_type()->mutable_identifier()->add_name(
+      type_spec->name());
+  snippet = copy_constructor.add_snippet();
+  snippet->set_name(std::string(kStructCopyConstructor));
+  snippet->set_body(type_spec->name());
+  RETURN_IF_ERROR(ProcessFunctionDef(copy_constructor, context))
+      << "Registering structure type copy object constructor"
+      << context.ToErrorInfo("In copy constructor auto-definition");
+
   return absl::OkStatus();
 }
 
@@ -398,9 +473,11 @@ absl::Status Module::ProcessTypeDef(const pb::TypeDefinition& element,
                    type_store_->FindType(scope_name(), element.type_spec()),
                    _ << "Processing type expression"
                      << context.ToErrorInfo("In type definition"));
+  auto new_type = type_spec->Clone();
+  new_type->set_definition_scope(this);
   ASSIGN_OR_RETURN(
       auto declared_type,
-      type_store_->DeclareType(scope_name(), type_name, type_spec->Clone()),
+      type_store_->DeclareType(scope_name(), type_name, std::move(new_type)),
       _ << "Declaring type: " << type_spec->full_name() << " as " << type_name
         << " in " << full_name() << context.ToErrorInfo("In type definition"));
   auto expression = std::make_unique<TypeDefinitionExpression>(this, type_name,
@@ -433,6 +510,8 @@ void Module::set_module_store(ModuleStore* module_store) {
   module_store_ = CHECK_NOTNULL(module_store);
 }
 
+bool Module::is_init_module() const { return is_init_module_; }
+
 std::string Module::DebugString() const {
   std::vector<std::string> body;
   body.reserve(expressions_.size());
@@ -461,7 +540,7 @@ absl::StatusOr<std::unique_ptr<Environment>> Environment::Build(
   ASSIGN_OR_RETURN(
       auto read_result,
       reader.ReadFile(file_path, ModuleFileReader::ModuleReadResult{
-                                     "", file_path, file_path, ""}));
+                                     "", file_path, file_path, false, ""}));
   absl::Time start_time = absl::Now();
   ASSIGN_OR_RETURN(auto module_pb, ParseToProto(read_result));
   absl::Time parse_time = absl::Now();

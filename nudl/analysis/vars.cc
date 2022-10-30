@@ -1,3 +1,19 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include "nudl/analysis/vars.h"
 
 #include <utility>
@@ -31,6 +47,15 @@ const TypeSpec* VarBase::type_spec() const { return type_spec_; }
 
 const TypeSpec* VarBase::original_type() const { return original_type_; }
 
+const TypeSpec* VarBase::converted_type() const {
+  if ((!original_type_->IsBound() ||
+       original_type_->type_id() == pb::UNION_ID) &&
+      (type_spec_->type_id() != pb::NULL_ID)) {
+    return type_spec_;
+  }
+  return type_spec_;
+}
+
 absl::optional<NameStore*> VarBase::parent_store() const {
   return parent_store_;
 }
@@ -61,7 +86,8 @@ absl::StatusOr<std::unique_ptr<Expression>> VarBase::Assign(
   }
   // TODO(catalin): wrap this in type conversion or something.
   std::unique_ptr<Expression> converted_expression(std::move(expression));
-  if (!type_spec_->IsBound() && (type_spec->type_id() != pb::NULL_ID)) {
+  if ((!type_spec_->IsBound() || type_spec_->type_id() == pb::UNION_ID) &&
+      (type_spec->type_id() != pb::NULL_ID)) {
     type_spec_ = type_spec;
   }
   assign_types_.push_back(type_spec);

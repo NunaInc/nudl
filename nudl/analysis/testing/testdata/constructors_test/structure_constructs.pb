@@ -102,12 +102,14 @@ expression {
             name: "Timestamp"
           }
           call_spec {
-            call_name {
-              full_name: "timestamp__1__"
+            left_expression {
+              kind: EXPR_IDENTIFIER
+              identifier {
+                full_name: "timestamp_sec"
+              }
             }
-            is_method: true
             argument {
-              name: "utc_timestamp_ms"
+              name: "utc_timestamp_sec"
               value {
                 kind: EXPR_LITERAL
                 literal {
@@ -116,13 +118,44 @@ expression {
               }
             }
             binding_type {
-              name: "Function<Timestamp(utc_timestamp_ms: Int)>"
+              name: "Function<Timestamp(utc_timestamp_sec: Float64)>"
             }
           }
         }
       }
       binding_type {
         name: "Function<Date(ts: Timestamp)>"
+      }
+    }
+  }
+}
+expression {
+  kind: EXPR_FUNCTION_DEF
+  function_spec {
+    scope_name {
+      name: "structure_constructs::year::year"
+    }
+    kind: OBJ_METHOD
+    parameter {
+      name: "d"
+      type_spec {
+        name: "Date"
+      }
+    }
+    result_type {
+      name: "Int"
+    }
+    function_name: "year"
+    qualified_name {
+      full_name: "structure_constructs.year"
+    }
+    body {
+      kind: EXPR_BLOCK
+      child {
+        kind: EXPR_LITERAL
+        literal {
+          int_value: 1
+        }
       }
     }
   }
@@ -147,11 +180,11 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "year"
+              full_name: "structure_constructs.year"
             }
             is_method: true
             argument {
-              name: "date"
+              name: "d"
               value {
                 kind: EXPR_IDENTIFIER
                 identifier {
@@ -160,7 +193,7 @@ expression {
               }
             }
             binding_type {
-              name: "Function<Int(date: Date)>"
+              name: "Function<Int(d: Date)>"
             }
           }
         }
@@ -174,11 +207,11 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "year"
+              full_name: "structure_constructs.year"
             }
             is_method: true
             argument {
-              name: "date"
+              name: "d"
               value {
                 kind: EXPR_IDENTIFIER
                 identifier {
@@ -187,7 +220,7 @@ expression {
               }
             }
             binding_type {
-              name: "Function<Int(date: Date)>"
+              name: "Function<Int(d: Date)>"
             }
           }
         }

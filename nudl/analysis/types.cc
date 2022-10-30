@@ -1,3 +1,19 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include "nudl/analysis/types.h"
 
 #include <algorithm>
@@ -76,19 +92,35 @@ absl::string_view TypeUtils::BaseTypeName(pb::TypeId type_id) {
   return it->second;
 }
 
-bool TypeUtils::IsUIntType(size_t type_id) {
+bool TypeUtils::IsUIntType(const TypeSpec& type_spec) {
+  const size_t type_id = type_spec.type_id();
   return (type_id == pb::TypeId::UINT_ID || type_id == pb::TypeId::UINT8_ID ||
           type_id == pb::TypeId::UINT16_ID || type_id == pb::TypeId::UINT32_ID);
 }
 
-bool TypeUtils::IsIntType(size_t type_id) {
+bool TypeUtils::IsIntType(const TypeSpec& type_spec) {
+  const size_t type_id = type_spec.type_id();
   return (type_id == pb::TypeId::INT_ID || type_id == pb::TypeId::INT8_ID ||
           type_id == pb::TypeId::INT16_ID || type_id == pb::TypeId::INT32_ID);
 }
 
-bool TypeUtils::IsFloatType(size_t type_id) {
+bool TypeUtils::IsFloatType(const TypeSpec& type_spec) {
+  const size_t type_id = type_spec.type_id();
   return (type_id == pb::TypeId::FLOAT32_ID ||
           type_id == pb::TypeId::FLOAT64_ID);
+}
+
+bool TypeUtils::IsNullType(const TypeSpec& type_spec) {
+  return type_spec.type_id() == pb::TypeId::NULL_ID;
+}
+
+bool TypeUtils::IsAnyType(const TypeSpec& type_spec) {
+  return type_spec.type_id() == pb::TypeId::ANY_ID;
+}
+
+bool TypeUtils::IsNullableType(const TypeSpec& type_spec) {
+  const size_t type_id = type_spec.type_id();
+  return (type_id == pb::TypeId::NULL_ID || type_id == pb::TypeId::NULLABLE_ID);
 }
 
 std::unique_ptr<TypeSpec> TypeUtils::IntIndexType(TypeStore* type_store) {
@@ -144,6 +176,31 @@ void TypeUtils::FindUnboundTypes(const TypeSpec* type_spec,
       FindUnboundTypes(param, type_names);
     }
   }
+}
+
+// TODO(catalin): may want to include more here e.g. anything that contains
+//  undefined in any parameter type.
+bool TypeUtils::IsUndefinedArgType(const TypeSpec* arg_type) {
+  const size_t type_id = CHECK_NOTNULL(arg_type)->type_id();
+  if (type_id == pb::TypeId::ANY_ID || type_id == pb::TypeId::UNKNOWN_ID ||
+      type_id == pb::TypeId::UNION_ID) {
+    return true;
+  } else if (type_id == pb::TypeId::NULLABLE_ID) {
+    if (arg_type->parameters().empty()) {
+      return true;
+    }
+    return IsUndefinedArgType(arg_type->parameters().back());
+  } else if (type_id == pb::TypeId::TUPLE_ID) {
+    if (arg_type->parameters().empty()) {
+      return true;
+    }
+    for (const TypeSpec* param : arg_type->parameters()) {
+      if (IsUndefinedArgType(param)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 void BaseTypesStore::CreateBaseTypes() {
@@ -328,6 +385,25 @@ TypeNull::TypeNull(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeNull::Clone() const {
   return CloneType<TypeNull>();
 }
+absl::StatusOr<pb::Expression> TypeNull::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_literal()->set_null_value(pb::NullType::NULL_VALUE);
+  return expression;
+}
+
+absl::StatusOr<std::unique_ptr<TypeSpec>> TypeNull::Bind(
+    const std::vector<TypeBindingArg>& bindings) const {
+  if (bindings.size() != 1) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Binding on Null type requires 1 argument. Got: "
+           << bindings.size();
+  }
+  ASSIGN_OR_RETURN(auto types, TypesFromBindings(bindings, false));
+  if (TypeUtils::IsNullableType(*types.front())) {
+    return types.front()->Clone();
+  }
+  return TypeUtils::EnsureType(type_store_, kTypeNameNullable)->Bind(bindings);
+}
 
 TypeNumeric::TypeNumeric(TypeStore* type_store,
                          std::shared_ptr<TypeMemberStore> type_member_store)
@@ -356,7 +432,12 @@ std::unique_ptr<TypeSpec> TypeInt::Clone() const {
   return CloneType<TypeInt>();
 }
 bool TypeInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsIntType(type_spec.type_id());
+  return TypeUtils::IsIntType(type_spec);
+}
+absl::StatusOr<pb::Expression> TypeInt::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_literal()->set_int_value(0);
+  return expression;
 }
 
 TypeInt8::TypeInt8(TypeStore* type_store,
@@ -368,7 +449,7 @@ std::unique_ptr<TypeSpec> TypeInt8::Clone() const {
   return CloneType<TypeInt8>();
 }
 bool TypeInt8::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsIntType(type_spec.type_id());
+  return TypeUtils::IsIntType(type_spec);
 }
 
 TypeInt16::TypeInt16(TypeStore* type_store,
@@ -380,7 +461,7 @@ std::unique_ptr<TypeSpec> TypeInt16::Clone() const {
   return CloneType<TypeInt16>();
 }
 bool TypeInt16::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsIntType(type_spec.type_id());
+  return TypeUtils::IsIntType(type_spec);
 }
 
 TypeInt32::TypeInt32(TypeStore* type_store,
@@ -392,7 +473,7 @@ std::unique_ptr<TypeSpec> TypeInt32::Clone() const {
   return CloneType<TypeInt32>();
 }
 bool TypeInt32::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsIntType(type_spec.type_id());
+  return TypeUtils::IsIntType(type_spec);
 }
 
 TypeUInt::TypeUInt(TypeStore* type_store,
@@ -404,7 +485,12 @@ std::unique_ptr<TypeSpec> TypeUInt::Clone() const {
   return CloneType<TypeUInt>();
 }
 bool TypeUInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsUIntType(type_spec.type_id());
+  return TypeUtils::IsUIntType(type_spec);
+}
+absl::StatusOr<pb::Expression> TypeUInt::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_literal()->set_uint_value(0u);
+  return expression;
 }
 
 TypeUInt8::TypeUInt8(TypeStore* type_store,
@@ -416,7 +502,7 @@ std::unique_ptr<TypeSpec> TypeUInt8::Clone() const {
   return CloneType<TypeUInt8>();
 }
 bool TypeUInt8::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsUIntType(type_spec.type_id());
+  return TypeUtils::IsUIntType(type_spec);
 }
 
 TypeUInt16::TypeUInt16(TypeStore* type_store,
@@ -428,7 +514,7 @@ std::unique_ptr<TypeSpec> TypeUInt16::Clone() const {
   return CloneType<TypeUInt16>();
 }
 bool TypeUInt16::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsUIntType(type_spec.type_id());
+  return TypeUtils::IsUIntType(type_spec);
 }
 
 TypeUInt32::TypeUInt32(TypeStore* type_store,
@@ -440,7 +526,7 @@ std::unique_ptr<TypeSpec> TypeUInt32::Clone() const {
   return CloneType<TypeUInt32>();
 }
 bool TypeUInt32::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return TypeUtils::IsUIntType(type_spec.type_id());
+  return TypeUtils::IsUIntType(type_spec);
 }
 
 TypeFloat64::TypeFloat64(TypeStore* type_store,
@@ -452,9 +538,13 @@ std::unique_ptr<TypeSpec> TypeFloat64::Clone() const {
   return CloneType<TypeFloat64>();
 }
 bool TypeFloat64::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return (TypeUtils::IsFloatType(type_spec.type_id()) ||
-          TypeUtils::IsIntType(type_spec.type_id()) ||
-          TypeUtils::IsUIntType(type_spec.type_id()));
+  return (TypeUtils::IsFloatType(type_spec) ||
+          TypeUtils::IsIntType(type_spec) || TypeUtils::IsUIntType(type_spec));
+}
+absl::StatusOr<pb::Expression> TypeFloat64::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_literal()->set_double_value(0.0);
+  return expression;
 }
 
 TypeFloat32::TypeFloat32(TypeStore* type_store,
@@ -466,9 +556,13 @@ std::unique_ptr<TypeSpec> TypeFloat32::Clone() const {
   return CloneType<TypeFloat32>();
 }
 bool TypeFloat32::IsConvertibleFrom(const TypeSpec& type_spec) const {
-  return (TypeUtils::IsFloatType(type_spec.type_id()) ||
-          TypeUtils::IsIntType(type_spec.type_id()) ||
-          TypeUtils::IsUIntType(type_spec.type_id()));
+  return (TypeUtils::IsFloatType(type_spec) ||
+          TypeUtils::IsIntType(type_spec) || TypeUtils::IsUIntType(type_spec));
+}
+absl::StatusOr<pb::Expression> TypeFloat32::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_literal()->set_float_value(0.0f);
+  return expression;
 }
 
 TypeString::TypeString(TypeStore* type_store,
@@ -479,6 +573,11 @@ TypeString::TypeString(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeString::Clone() const {
   return CloneType<TypeString>();
 }
+absl::StatusOr<pb::Expression> TypeString::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_literal()->set_str_value("");
+  return expression;
+}
 
 TypeBytes::TypeBytes(TypeStore* type_store,
                      std::shared_ptr<TypeMemberStore> type_member_store)
@@ -487,6 +586,11 @@ TypeBytes::TypeBytes(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameAny)) {}
 std::unique_ptr<TypeSpec> TypeBytes::Clone() const {
   return CloneType<TypeBytes>();
+}
+absl::StatusOr<pb::Expression> TypeBytes::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_literal()->set_bytes_value("");
+  return expression;
 }
 
 TypeBool::TypeBool(TypeStore* type_store,
@@ -497,6 +601,11 @@ TypeBool::TypeBool(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeBool::Clone() const {
   return CloneType<TypeBool>();
 }
+absl::StatusOr<pb::Expression> TypeBool::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_literal()->set_bool_value("");
+  return expression;
+}
 
 TypeTimestamp::TypeTimestamp(TypeStore* type_store,
                              std::shared_ptr<TypeMemberStore> type_member_store)
@@ -505,6 +614,12 @@ TypeTimestamp::TypeTimestamp(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameAny)) {}
 std::unique_ptr<TypeSpec> TypeTimestamp::Clone() const {
   return CloneType<TypeTimestamp>();
+}
+absl::StatusOr<pb::Expression> TypeTimestamp::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_function_call()->mutable_identifier()->add_name(
+      "default_timestamp");
+  return expression;
 }
 
 TypeDate::TypeDate(TypeStore* type_store,
@@ -515,6 +630,12 @@ TypeDate::TypeDate(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeDate::Clone() const {
   return CloneType<TypeDate>();
 }
+absl::StatusOr<pb::Expression> TypeDate::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_function_call()->mutable_identifier()->add_name(
+      "default_date");
+  return expression;
+}
 
 TypeDateTime::TypeDateTime(TypeStore* type_store,
                            std::shared_ptr<TypeMemberStore> type_member_store)
@@ -523,6 +644,12 @@ TypeDateTime::TypeDateTime(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameTimestamp)) {}
 std::unique_ptr<TypeSpec> TypeDateTime::Clone() const {
   return CloneType<TypeDateTime>();
+}
+absl::StatusOr<pb::Expression> TypeDateTime::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_function_call()->mutable_identifier()->add_name(
+      "default_datetime");
+  return expression;
 }
 
 TypeTimeInterval::TypeTimeInterval(
@@ -533,12 +660,18 @@ TypeTimeInterval::TypeTimeInterval(
 std::unique_ptr<TypeSpec> TypeTimeInterval::Clone() const {
   return CloneType<TypeTimeInterval>();
 }
+absl::StatusOr<pb::Expression> TypeTimeInterval::DefaultValueExpression()
+    const {
+  pb::Expression expression;
+  expression.mutable_literal()->mutable_time_range()->set_seconds(0);
+  return expression;
+}
 
 TypeDecimal::TypeDecimal(TypeStore* type_store,
                          std::shared_ptr<TypeMemberStore> type_member_store,
                          int precision, int scale)
     : StoredTypeSpec(type_store, pb::TypeId::DECIMAL_ID, kTypeNameDecimal,
-                     std::move(type_member_store), precision > 0 && scale >= 0,
+                     std::move(type_member_store), true,
                      TypeUtils::EnsureType(type_store, kTypeNameNumeric)),
       precision_(precision),
       scale_(scale) {}
@@ -548,8 +681,15 @@ std::unique_ptr<TypeSpec> TypeDecimal::Clone() const {
                                        precision_, scale_);
 }
 
+absl::StatusOr<pb::Expression> TypeDecimal::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_function_call()->mutable_identifier()->add_name(
+      "default_decimal");
+  return expression;
+}
+
 std::string TypeDecimal::full_name() const {
-  if (IsBound()) {
+  if (precision_ > 0) {
     return absl::StrCat(name(), "<", precision_, ", ", scale_, ">");
   }
   return name();
@@ -560,14 +700,26 @@ pb::ExpressionTypeSpec TypeDecimal::ToProto() const {
   if (absl::GetFlag(FLAGS_nudl_short_analysis_proto)) {
     return proto;
   }
-  proto.add_parameter_value(precision_);
-  proto.add_parameter_value(scale_);
+  if (precision_ > 0) {
+    proto.add_parameter_value(precision_);
+    proto.add_parameter_value(scale_);
+  }
+  return proto;
+}
+
+pb::TypeSpec TypeDecimal::ToTypeSpecProto() const {
+  pb::TypeSpec proto;
+  proto.mutable_identifier()->add_name(name());
+  if (precision_ > 0) {
+    proto.add_argument()->set_int_value(precision_);
+    proto.add_argument()->set_int_value(scale_);
+  }
   return proto;
 }
 
 absl::StatusOr<std::unique_ptr<TypeSpec>> TypeDecimal::Bind(
     const std::vector<TypeBindingArg>& bindings) const {
-  if (IsBound()) {
+  if (precision_ > 0) {
     return status::InvalidArgumentErrorBuilder()
            << "Decimal type " << full_name() << " cannot be re-bind";
   }
@@ -667,6 +819,11 @@ std::unique_ptr<TypeSpec> TypeArray::Clone() const {
   return std::make_unique<TypeArray>(type_store_, type_member_store_,
                                      parameters_.front());
 }
+absl::StatusOr<pb::Expression> TypeArray::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.set_empty_struct(pb::NullType::NULL_VALUE);
+  return expression;
+}
 
 TypeSet::TypeSet(TypeStore* type_store,
                  std::shared_ptr<TypeMemberStore> type_member_store,
@@ -689,6 +846,11 @@ const TypeSpec* TypeSet::IndexType() const {
 }
 
 const TypeSpec* TypeSet::IndexedType() const { return bool_type_; }
+absl::StatusOr<pb::Expression> TypeSet::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.set_empty_struct(pb::NullType::NULL_VALUE);
+  return expression;
+}
 
 TypeStruct::TypeStruct(TypeStore* type_store,
                        std::shared_ptr<StructMemberStore> type_member_store,
@@ -702,6 +864,12 @@ TypeStruct::TypeStruct(TypeStore* type_store,
     parameters_.push_back(CHECK_NOTNULL(field.type_spec));
   }
   struct_member_store_->set_type_spec(this);
+}
+
+absl::StatusOr<pb::Expression> TypeStruct::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_function_call()->mutable_identifier()->add_name(name());
+  return expression;
 }
 
 pb::ExpressionTypeSpec TypeStruct::ToProto() const {
@@ -770,6 +938,9 @@ bool TypeStruct::CheckStruct(
 }
 
 bool TypeStruct::IsAncestorOf(const TypeSpec& type_spec) const {
+  if (fields_.empty()) {
+    return type_spec.type_id() == type_id();
+  }
   return CheckStruct(type_spec,
                      [](const TypeSpec* self, const TypeSpec* other) {
                        return self->IsAncestorOf(*other);
@@ -784,6 +955,9 @@ bool TypeStruct::IsEqual(const TypeSpec& type_spec) const {
 }
 
 bool TypeStruct::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  if (fields_.empty()) {
+    return type_spec.type_id() == type_id();
+  }
   return CheckStruct(type_spec,
                      [](const TypeSpec* self, const TypeSpec* other) {
                        return self->IsConvertibleFrom(*other);
@@ -916,6 +1090,12 @@ std::unique_ptr<TypeSpec> TypeMap::Clone() const {
 
 const TypeSpec* TypeMap::ResultType() const { return result_type_.get(); }
 
+absl::StatusOr<pb::Expression> TypeMap::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.set_empty_struct(pb::NullType::NULL_VALUE);
+  return expression;
+}
+
 // TODO(catalin): at some point should probably restrict the key types.
 absl::StatusOr<std::unique_ptr<TypeSpec>> TypeMap::Bind(
     const std::vector<TypeBindingArg>& bindings) const {
@@ -935,6 +1115,13 @@ TypeTuple::TypeTuple(TypeStore* type_store,
                      TypeUtils::EnsureType(type_store, kTypeNameAny),
                      std::move(parameters)) {}
 
+bool TypeTuple::IsBound() const {
+  if (parameters_.empty()) {
+    return false;
+  }
+  return TypeSpec::IsBound();
+}
+
 const TypeSpec* TypeTuple::IndexType() const {
   if (!index_type_) {
     index_type_ = TypeUtils::IntIndexType(type_store_);
@@ -947,13 +1134,32 @@ std::unique_ptr<TypeSpec> TypeTuple::Clone() const {
                                      parameters_);
 }
 
+bool TypeTuple::IsAncestorOf(const TypeSpec& type_spec) const {
+  if (type_spec.type_id() == pb::TypeId::TUPLE_ID && parameters_.empty()) {
+    return true;
+  }
+  return TypeSpec::IsAncestorOf(type_spec);
+}
+
+bool TypeTuple::IsConvertibleFrom(const TypeSpec& type_spec) const {
+  if (type_spec.type_id() == pb::TypeId::TUPLE_ID && parameters_.empty()) {
+    return true;
+  }
+  return TypeSpec::IsConvertibleFrom(type_spec);
+}
+
 absl::StatusOr<std::unique_ptr<TypeSpec>> TypeTuple::Bind(
     const std::vector<TypeBindingArg>& bindings) const {
+  if (bindings.empty() && parameters_.empty()) {
+    return Clone();
+  }
   if (!parameters_.empty() || bindings.empty()) {
-    return TypeSpec::Bind(bindings);
+    ASSIGN_OR_RETURN(auto binding, TypeSpec::Bind(bindings),
+                     _ << "Binding tuple type: " << full_name());
+    return {std::move(binding)};
   }
   ASSIGN_OR_RETURN(auto types, TypesFromBindings(bindings, false),
-                   _ << "Extracting types from bindings");
+                   _ << "Extracting types from bindings " << full_name());
   CHECK_EQ(bindings.size(), types.size());
   auto new_tuple = std::make_unique<TypeTuple>(type_store_, type_member_store_,
                                                std::move(types));
@@ -1055,7 +1261,7 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeFunction::Bind(
   const TypeSpec* result_type = nullptr;
   if (result_) {
     ASSIGN_OR_RETURN(auto types, TypesFromBindings(bindings),
-                     _ << "Extracting types from bindings");
+                     _ << "Extracting types from bindings " << full_name());
     CHECK_EQ(types.size(), arguments_.size() + 1);
     arguments = arguments_;
     for (size_t i = 0; i < arguments.size(); ++i) {
@@ -1068,7 +1274,7 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeFunction::Bind(
     }
     arguments.reserve(bindings.size() - 1);
     ASSIGN_OR_RETURN(auto types, TypesFromBindings(bindings, false),
-                     _ << "Extracting types from bindings");
+                     _ << "Extracting types from bindings " << full_name());
     CHECK_EQ(types.size(), bindings.size());
     for (size_t i = 0; i + 1 < bindings.size(); ++i) {
       arguments.push_back(Argument{absl::StrCat("arg_", i + 1), "", types[i]});
@@ -1079,6 +1285,26 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeFunction::Bind(
   return {std::make_unique<TypeFunction>(type_store_, type_member_store_,
                                          name(), std::move(arguments),
                                          result_type)};
+}
+
+absl::StatusOr<pb::Expression> TypeFunction::DefaultValueExpression() const {
+  if (!result_) {
+    return TypeSpec::DefaultValueExpression();
+  }
+  pb::Expression expression;
+  auto fun = expression.mutable_lambda_def();
+  for (auto arg : arguments_) {
+    RET_CHECK(arg.type_spec != nullptr);
+    auto fparam = fun->add_param();
+    fparam->set_name(arg.name);
+    *fparam->mutable_type_spec() = arg.type_spec->ToTypeSpecProto();
+  }
+  *fun->mutable_result_type() = result_->ToTypeSpecProto();
+  ASSIGN_OR_RETURN(
+      *fun->mutable_expression_block()->add_expression(),
+      result_->DefaultValueExpression(),
+      _ << "Producing default result expression for: " << full_name());
+  return expression;
 }
 
 absl::StatusOr<std::unique_ptr<TypeSpec>> TypeFunction::BindWithFunction(
@@ -1205,13 +1431,19 @@ std::vector<const TypeSpec*> UnionSortTypes(
 TypeUnion::TypeUnion(TypeStore* type_store,
                      std::shared_ptr<TypeMemberStore> type_member_store,
                      std::vector<const TypeSpec*> parameters)
-    : StoredTypeSpec(type_store, pb::TypeId::UNION_ID, kTypeNameUnion,
-                     std::move(type_member_store), false,
-                     TypeUtils::EnsureType(type_store, kTypeNameAny),
-                     UnionSortTypes(std::move(parameters))) {}
+    : StoredTypeSpec(
+          type_store, pb::TypeId::UNION_ID, kTypeNameUnion,
+          // TODO(catalin): there is a discussion here if we want
+          // to make union base-bound.. for now we say true and
+          // we see what issues we get :) else may be too restrictive.
+          std::move(type_member_store), true,  // false,
+          TypeUtils::EnsureType(type_store, kTypeNameAny),
+          UnionSortTypes(std::move(parameters))) {}
 
 bool TypeUnion::IsBound() const {
-  return parameters_.size() == 1 && parameters_.front()->IsBound();
+  return TypeSpec::IsBound();
+  // Same here:
+  // return parameters_.size() == 1 && parameters_.front()->IsBound();
 }
 std::unique_ptr<TypeSpec> TypeUnion::Clone() const {
   return std::make_unique<TypeUnion>(type_store_, type_member_store_,
@@ -1301,6 +1533,9 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeNullable::Bind(
     } else if (types.back()->type_id() == pb::TypeId::NULL_ID) {
       nullable_bind = types.front();
     }
+  } else if (types.size() == 1 &&
+             types.front()->type_id() == pb::TypeId::NULLABLE_ID) {
+    nullable_bind = types.front()->parameters().back();
   }
   if (types.size() != 1 && !nullable_bind) {
     return status::InvalidArgumentErrorBuilder()
@@ -1344,6 +1579,12 @@ std::unique_ptr<TypeSpec> TypeNullable::Clone() const {
   return std::make_unique<TypeNullable>(
       type_store_, type_member_store_,
       parameters_.empty() ? nullptr : parameters_.back());
+}
+
+absl::StatusOr<pb::Expression> TypeNullable::DefaultValueExpression() const {
+  pb::Expression expression;
+  expression.mutable_literal()->set_null_value(pb::NullType::NULL_VALUE);
+  return expression;
 }
 
 bool TypeNullable::IsAncestorOf(const TypeSpec& type_spec) const {

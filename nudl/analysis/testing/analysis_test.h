@@ -1,3 +1,18 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 #ifndef NUDL_ANALYSIS_TESTING_ANALYSIS_TEST_H__
 #define NUDL_ANALYSIS_TESTING_ANALYSIS_TEST_H__
 
@@ -91,7 +106,7 @@ class AnalysisTest : public ::testing::Test {
                          bool skip_write) const;
 
   std::unique_ptr<Environment> env_;
-  std::string builtin_file_{"nudl/analysis/testing/testdata/builtin.ndl"};
+  std::string builtin_file_{"nudl/analysis/testing/testdata/builtins.ndl"};
   std::string search_path_{"nudl/analysis/testing/testdata"};
   size_t next_id_ = 0;
   absl::Duration setup_duration_ = absl::ZeroDuration();

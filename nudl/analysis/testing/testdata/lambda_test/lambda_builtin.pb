@@ -66,7 +66,7 @@ expression {
                   }
                 }
                 binding_type {
-                  name: "Function<Generator<UInt>(l: Array<String>, f: Function<UInt(arg_1: String)>)>"
+                  name: "Function<Generator<UInt>(l: Array<String>, f: Function<UInt(l: String)>)>"
                 }
               }
             }

@@ -1,3 +1,18 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 #ifndef NUDL_ANALYSIS_FUNCTION_H__
 #define NUDL_ANALYSIS_FUNCTION_H__
 
@@ -172,6 +187,11 @@ class Function : public Scope {
   // If the function has a native implementation
   bool is_native() const;
 
+  // A special case of native - for structure constructs:
+  bool is_struct_constructor() const;
+  // If this native function should not be converted:
+  bool is_skip_conversion() const;
+
   // The native implementation blocks:
   const absl::flat_hash_map<std::string, std::string>& native_impl() const;
 
@@ -307,6 +327,15 @@ class Function : public Scope {
   // Map from binding type signature to bound function.
   absl::flat_hash_map<std::string, Function*> bindings_map_;
 };
+
+// Annotations for semi-native structure implementations, which
+// have to be dynamically generated during conversion:
+inline constexpr absl::string_view kStructObjectConstructor =
+    "__struct_object_constructor__";
+inline constexpr absl::string_view kStructCopyConstructor =
+    "__struct_copy_constructor__";
+// Native tag to add for skipping the default conversion of a function:
+inline constexpr absl::string_view kFunctionSkipConversion = "skip_conversion";
 
 }  // namespace analysis
 }  // namespace nudl

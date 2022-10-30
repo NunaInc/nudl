@@ -39,7 +39,7 @@ expression {
       }
       is_method: true
       argument {
-        name: "v"
+        name: "x"
         value {
           kind: EXPR_IDENTIFIER
           identifier {
@@ -48,7 +48,7 @@ expression {
         }
       }
       binding_type {
-        name: "Function<Bool(v: Int)>"
+        name: "Function<Bool(x: Int)>"
       }
     }
   }

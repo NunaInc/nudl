@@ -1,5 +1,6 @@
 build --cxxopt='-std=c++17'
 build --javacopt="--release 8"
+build --host_cxxopt='-std=c++17'
 
 build:asan --strip=never
 build:asan --copt -fsanitize=address

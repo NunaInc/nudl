@@ -3,6 +3,68 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
+      name: "define_constructor::month::month"
+    }
+    kind: OBJ_METHOD
+    parameter {
+      name: "d"
+      type_spec {
+        name: "Date"
+      }
+    }
+    result_type {
+      name: "Int"
+    }
+    function_name: "month"
+    qualified_name {
+      full_name: "define_constructor.month"
+    }
+    body {
+      kind: EXPR_BLOCK
+      child {
+        kind: EXPR_LITERAL
+        literal {
+          int_value: 2
+        }
+      }
+    }
+  }
+}
+expression {
+  kind: EXPR_FUNCTION_DEF
+  function_spec {
+    scope_name {
+      name: "define_constructor::day::day"
+    }
+    kind: OBJ_METHOD
+    parameter {
+      name: "d"
+      type_spec {
+        name: "Date"
+      }
+    }
+    result_type {
+      name: "Int"
+    }
+    function_name: "day"
+    qualified_name {
+      full_name: "define_constructor.day"
+    }
+    body {
+      kind: EXPR_BLOCK
+      child {
+        kind: EXPR_LITERAL
+        literal {
+          int_value: 3
+        }
+      }
+    }
+  }
+}
+expression {
+  kind: EXPR_FUNCTION_DEF
+  function_spec {
+    scope_name {
       name: "define_constructor::date_to_string::date_to_string"
     }
     kind: OBJ_CONSTRUCTOR
@@ -54,11 +116,11 @@ expression {
                       }
                       call_spec {
                         call_name {
-                          full_name: "year"
+                          full_name: "structure_constructs.year"
                         }
                         is_method: true
                         argument {
-                          name: "date"
+                          name: "d"
                           value {
                             kind: EXPR_IDENTIFIER
                             identifier {
@@ -67,7 +129,7 @@ expression {
                           }
                         }
                         binding_type {
-                          name: "Function<Int(date: Date)>"
+                          name: "Function<Int(d: Date)>"
                         }
                       }
                     }
@@ -78,11 +140,11 @@ expression {
                       }
                       call_spec {
                         call_name {
-                          full_name: "month"
+                          full_name: "define_constructor.month"
                         }
                         is_method: true
                         argument {
-                          name: "date"
+                          name: "d"
                           value {
                             kind: EXPR_IDENTIFIER
                             identifier {
@@ -91,7 +153,7 @@ expression {
                           }
                         }
                         binding_type {
-                          name: "Function<Int(date: Date)>"
+                          name: "Function<Int(d: Date)>"
                         }
                       }
                     }
@@ -102,11 +164,11 @@ expression {
                       }
                       call_spec {
                         call_name {
-                          full_name: "day"
+                          full_name: "define_constructor.day"
                         }
                         is_method: true
                         argument {
-                          name: "date"
+                          name: "d"
                           value {
                             kind: EXPR_IDENTIFIER
                             identifier {
@@ -115,7 +177,7 @@ expression {
                           }
                         }
                         binding_type {
-                          name: "Function<Int(date: Date)>"
+                          name: "Function<Int(d: Date)>"
                         }
                       }
                     }
@@ -126,12 +188,12 @@ expression {
                   value {
                     kind: EXPR_IDENTIFIER
                     identifier {
-                      full_name: "to_string"
+                      full_name: "str"
                     }
                   }
                 }
                 binding_type {
-                  name: "Function<Generator<String>(l: Array<Int>, f: Function<String(arg_1: Int)>)>"
+                  name: "Function<Generator<String>(l: Array<Int>, f: Function<String(x: Int)>)>"
                 }
               }
             }
