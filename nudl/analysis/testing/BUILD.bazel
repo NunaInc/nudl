@@ -1,3 +1,18 @@
+#
+# Copyright 2022 Nuna inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 package(default_visibility = ["//visibility:private"])
 
 load("//external/cpplint:cpplint.bzl", "cpplint")
@@ -28,11 +43,13 @@ cc_test(
 
 cc_library(
     name = "analysis_test",
-    hdrs = ["analysis_test.h"],
-    srcs = ["analysis_test.cc"],
     testonly = 1,
+    srcs = ["analysis_test.cc"],
+    hdrs = ["analysis_test.h"],
+    data = ["//nudl/analysis/testing/testdata:builtins.ndl"],
     deps = [
         "//nudl/analysis",
+        "//nudl/conversion",
         "//nudl/status:testing",
         "//nudl/testing:protobuf_matchers",
         "@com_google_absl//absl/debugging:failure_signal_handler",
@@ -42,75 +59,74 @@ cc_library(
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest",
     ],
-    data = ["//nudl/analysis/testing/testdata:builtin.ndl"],
 )
 
 cc_test(
     name = "lambda_test",
     srcs = ["lambda_test.cc"],
+    data = [
+        "//nudl/analysis/testing/testdata:cdm.ndl",
+        "//nudl/analysis/testing/testdata:lambda_test",
+    ],
     deps = [
         ":analysis_test",
         "@com_google_googletest//:gtest",
-    ],
-    data = [
-        "//nudl/analysis/testing/testdata:lambda_test",
-        "//nudl/analysis/testing/testdata:cdm.ndl",
     ],
 )
 
 cc_test(
     name = "general_test",
     srcs = ["general_test.cc"],
+    data = [
+        "//nudl/analysis/testing/testdata:cdm.ndl",
+        "//nudl/analysis/testing/testdata:general_test",
+        "//nudl/analysis/testing/testdata:submodule/__init__.ndl",
+        "//nudl/analysis/testing/testdata:submodule/compute.ndl",
+    ],
     deps = [
         ":analysis_test",
         "@com_google_googletest//:gtest",
-    ],
-    data = [
-        "//nudl/analysis/testing/testdata:general_test",
-        "//nudl/analysis/testing/testdata:cdm.ndl",
-        "//nudl/analysis/testing/testdata:submodule/__init__.ndl",
-        "//nudl/analysis/testing/testdata:submodule/compute.ndl",
     ],
 )
 
 cc_test(
     name = "coverage_test",
     srcs = ["coverage_test.cc"],
+    data = [
+        "//nudl/analysis/testing/testdata:cdm.ndl",
+        "//nudl/analysis/testing/testdata:coverage_test",
+    ],
     deps = [
         ":analysis_test",
         "@com_google_googletest//:gtest",
-    ],
-    data = [
-        "//nudl/analysis/testing/testdata:coverage_test",
-        "//nudl/analysis/testing/testdata:cdm.ndl",
     ],
 )
 
 cc_test(
     name = "expression_test",
     srcs = ["expression_test.cc"],
+    data = [
+        "//nudl/analysis/testing/testdata:cdm.ndl",
+        "//nudl/analysis/testing/testdata:coverage_test",
+    ],
     deps = [
         ":analysis_test",
         "@com_google_googletest//:gtest",
-    ],
-    data = [
-        "//nudl/analysis/testing/testdata:coverage_test",
-        "//nudl/analysis/testing/testdata:cdm.ndl",
     ],
 )
 
 cc_test(
     name = "constructors_test",
     srcs = ["constructors_test.cc"],
+    data = [
+        "//nudl/analysis/testing/testdata:cdm.ndl",
+        "//nudl/analysis/testing/testdata:constructors_test",
+        "//nudl/analysis/testing/testdata:submodule/__init__.ndl",
+        "//nudl/analysis/testing/testdata:submodule/compute.ndl",
+    ],
     deps = [
         ":analysis_test",
         "@com_google_googletest//:gtest",
-    ],
-    data = [
-        "//nudl/analysis/testing/testdata:constructors_test",
-        "//nudl/analysis/testing/testdata:cdm.ndl",
-        "//nudl/analysis/testing/testdata:submodule/__init__.ndl",
-        "//nudl/analysis/testing/testdata:submodule/compute.ndl",
     ],
 )
 

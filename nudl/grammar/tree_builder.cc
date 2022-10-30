@@ -1,3 +1,19 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include "nudl/grammar/tree_builder.h"
 
 #include <string>
@@ -369,11 +385,11 @@ class DslVisitor : public NudlDslParserBaseVisitor {
     pb::NativeSnippet snippet;
     std::string body_str(absl::StripPrefix(
         absl::StripSuffix(CHECK_NOTNULL(context->INLINE_BODY())->toString(),
-                          "$$end"),
-        "$$"));
+                          "[[end]]"),
+        "[["));
     re2::StringPiece native_body(body_str);
     std::string inline_name;
-    if (RE2::Consume(&native_body, R"(([a-zA-Z_][a-zA-Z0-9_]*))",
+    if (RE2::Consume(&native_body, R"(([a-zA-Z_][a-zA-Z0-9_]*)\]\])",
                      &inline_name)) {
       snippet.set_name(std::move(inline_name));
       snippet.set_body(std::string(

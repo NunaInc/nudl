@@ -192,7 +192,7 @@ expression {
               }
             }
             binding_type {
-              name: "Function<Generator<String>(l: Array<String>, f: Function<Bool(arg_1: String)>)>"
+              name: "Function<Generator<String>(l: Array<String>, f: Function<Bool(name: String)>)>"
             }
           }
         }

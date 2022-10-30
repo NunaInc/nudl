@@ -13,6 +13,136 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
+      name: "import_alias::_init_object_Foo::_init_object_Foo"
+    }
+    kind: OBJ_CONSTRUCTOR
+    parameter {
+      name: "bar"
+      type_spec {
+        name: "String"
+      }
+      default_value {
+        kind: EXPR_LITERAL
+        literal {
+          str_value: ""
+        }
+      }
+    }
+    parameter {
+      name: "baz"
+      type_spec {
+        name: "Nullable<Int>"
+      }
+      default_value {
+        kind: EXPR_LITERAL
+        literal {
+          null_value: NULL_VALUE
+        }
+      }
+    }
+    parameter {
+      name: "qux"
+      type_spec {
+        name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+      }
+      default_value {
+        kind: EXPR_FUNCTION_CALL
+        type_spec {
+          name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+        }
+        call_spec {
+          call_name {
+            full_name: "cdm._init_object_HumanName"
+          }
+          is_method: true
+          argument {
+            name: "use"
+            value {
+              kind: EXPR_LITERAL
+              literal {
+                null_value: NULL_VALUE
+              }
+            }
+          }
+          argument {
+            name: "family"
+            value {
+              kind: EXPR_LITERAL
+              literal {
+                null_value: NULL_VALUE
+              }
+            }
+          }
+          argument {
+            name: "given"
+            value {
+              kind: EXPR_LITERAL
+              literal {
+                null_value: NULL_VALUE
+              }
+            }
+          }
+          argument {
+            name: "prefix"
+            value {
+              kind: EXPR_EMPTY_STRUCT
+            }
+          }
+          argument {
+            name: "suffix"
+            value {
+              kind: EXPR_EMPTY_STRUCT
+            }
+          }
+          binding_type {
+            name: "Function<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }(use: Null, family: Null, given: Null, prefix: Array<String>, suffix: Array<String>)>"
+          }
+        }
+      }
+    }
+    result_type {
+      name: "{ Foo : Foo<String, Nullable<Int>, { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }> }"
+    }
+    function_name: "_init_object_Foo"
+    qualified_name {
+      full_name: "import_alias._init_object_Foo"
+    }
+    native_snippet {
+      name: "__struct_object_constructor__"
+      body: "Foo"
+    }
+  }
+}
+expression {
+  kind: EXPR_FUNCTION_DEF
+  function_spec {
+    scope_name {
+      name: "import_alias::_init_copy_Foo::_init_copy_Foo"
+    }
+    kind: OBJ_CONSTRUCTOR
+    parameter {
+      name: "obj"
+      type_spec {
+        name: "{ Foo : Foo<String, Nullable<Int>, { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }> }"
+      }
+    }
+    result_type {
+      name: "{ Foo : Foo<String, Nullable<Int>, { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }> }"
+    }
+    function_name: "_init_copy_Foo"
+    qualified_name {
+      full_name: "import_alias._init_copy_Foo"
+    }
+    native_snippet {
+      name: "__struct_copy_constructor__"
+      body: "Foo"
+    }
+  }
+}
+expression {
+  kind: EXPR_FUNCTION_DEF
+  function_spec {
+    scope_name {
       name: "import_alias::f::f"
     }
     kind: OBJ_FUNCTION

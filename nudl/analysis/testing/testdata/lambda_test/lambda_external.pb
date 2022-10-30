@@ -150,7 +150,7 @@ expression {
                   }
                 }
                 binding_type {
-                  name: "Function<Generator<UInt>(l: Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>, f: Function<UInt(arg_1: { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> })>)>"
+                  name: "Function<Generator<UInt>(l: Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>, f: Function<UInt(s: { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> })>)>"
                 }
               }
             }

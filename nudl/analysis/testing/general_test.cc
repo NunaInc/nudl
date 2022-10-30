@@ -1,3 +1,19 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include "nudl/analysis/testing/analysis_test.h"
 #include "nudl/status/testing.h"
 
@@ -60,9 +76,16 @@ def g(name: cdm.HumanName) => f(name).family
 )");
   CheckCode("general_test", "native_function", R"(
 def f(x: Int) : Int =>
-$$pyinline
+[[pyinline]]
 ${x}
-$$end
+[[end]]
+)");
+  CheckCode("general_test", "if_binding", R"(
+def f(x: Int) : Nullable<Int> => {
+  x > 10 ? (null, x - 10)
+}
+y = f(20)
+def g() => y
 )");
 }
 
@@ -319,7 +342,7 @@ TEST_F(AnalysisTest, FunctionErrors) {
 def f(names: Array<{X}>) => _ensured(names.front())
 def g() => f().prefix.len()
 )",
-             "is unbound and not a function");
+             "No value provided for function parameter");
   CheckError("unbuilt_function2", R"(
 def g() => { z = (x => x + 1); z(3) }
 )",
@@ -467,7 +490,7 @@ def g(a: Int) => f(y=a)
 def f(x: {X} = 10, y: X = "Foo") => x + y
 def g(a: Int) => f(a)
 )",
-             "two incompatible argument types: Int and String");
+             "two incompatible (sub)argument types: Int and String");
   CheckCode("general_test", "default_bind_on_funtype", R"(
 def f() => (x: Int = 10, y: Int = 20) => x + y
 def g(a: Int) => f()(a)
@@ -477,16 +500,20 @@ def f(x: Int) => pass;
 )",
              "needs to yield some values");
   CheckError("return_unbound", R"(
-def f() : Numeric => $$pyinline0$$end
+def f() : Numeric => [[pyinline]]0[[end]]
 def g() => f()
+y = g()
 )",
              "is unbound and not a function");
-  CheckError("too_many_binds", R"(
+  CheckCode("general_test", "not_too_many_binds", R"(
 def f(x: Numeric, y: Int) => x + y
 def f(x: Int, y: Numeric) => x + y
 z = f(1, 2)
-)",
-             "Found too many functions");
+)");  // the second bind is identical - so we are fine. I guess..
+  CheckCode("general_test", "not_too_many_binds2", R"(
+def f(x: Numeric, y: Int) => x + y
+z = f(1, 2)
+)");
   CheckError("improper_function_type", R"(
 def f() => {
   z: Nullable<Function> = null;
@@ -527,6 +554,14 @@ def foo(x: Int) => {
     yield x
   }
   yield null
+}
+)");
+  CheckCode("general_test", "compatible_yeld_results", R"(
+def foo(x: Int) => {
+  if (x % 2 == 0) {
+    pass
+  }
+  yield x / 2
 }
 )");
   CheckCode("general_test", "compatible_nullable_results5", R"(
@@ -651,6 +686,35 @@ def foo(x: Int) => {
   x
 })",
              "Cannot find name: `y`");
+}
+
+TEST_F(AnalysisTest, Tuples) {
+  CheckCode("general_test", "tuple_build", R"(
+def f(n: Int) => n + 1
+x: Tuple = [1, "foo", f]
+)");
+  CheckCode("general_test", "tuple_bind", R"(
+x: Tuple = [1, "foo", 3.4]
+def g(t: Tuple) => t[1]
+z = g(x)
+)");
+  CheckCode("general_test", "tuple_construct", R"(
+v = Tuple([1, "foo", 2.3])
+)");
+  CheckCode("general_test", "tuple_direct_call", R"(
+def g(t: Tuple) => t[2]
+z = g([1, "foo", 2.3])
+)");
+  CheckError("tuple_badtype", R"(
+v = Tuple([1, "foo", 2.3])
+v = Tuple([1, 3, 2.3])
+)",
+             "Type mismatch");
+  CheckError("tuple_index", R"(
+def h(t: Tuple) => t[4]
+zz = h([1, "foo", "bar"])
+)",
+             "Tuples index: 4 out of tuple type range");
 }
 
 TEST_F(AnalysisTest, JustPrepare) {

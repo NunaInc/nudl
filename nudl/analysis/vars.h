@@ -1,3 +1,18 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 #ifndef NUDL_ANALYSIS_VARS_H__
 #define NUDL_ANALYSIS_VARS_H__
 
@@ -28,7 +43,10 @@ class VarBase : public WrappedNameStore {
   absl::optional<NameStore*> parent_store() const override;
   const std::vector<Expression*> assignments() const;
   const std::vector<const TypeSpec*> assign_types() const;
+  // How the variable was declared:
   const TypeSpec* original_type() const;
+  // To which type we should convert this for conversion:
+  const TypeSpec* converted_type() const;
 
   // Marks the assignment of a variable / field with an expression
   // The value of the status or can be a new expression that was

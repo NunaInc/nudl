@@ -1,3 +1,19 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include "nudl/analysis/expression.h"
 
 #include <typeindex>
@@ -157,7 +173,7 @@ absl::optional<NamedObject*> Assignment::named_object() const {
 
 std::string Assignment::DebugString() const {
   return absl::StrCat(name_.full_name(), ": ",
-                      var_->original_type()->full_name(), " = ",
+                      var_->converted_type()->full_name(), " = ",
                       children_.front()->DebugString());
 }
 
@@ -247,7 +263,12 @@ pb::ExpressionKind Literal::expr_kind() const {
   return pb::ExpressionKind::EXPR_LITERAL;
 }
 
-std::string Literal::DebugString() const { return str_value_; }
+std::string Literal::DebugString() const {
+  if (!str_value_.empty()) {
+    return str_value_;
+  }
+  return ToProto().literal().ShortDebugString();
+}
 
 pb::ExpressionSpec Literal::ToProto() const {
   auto proto = Expression::ToProto();
@@ -501,6 +522,44 @@ std::string ArrayDefinitionExpression::DebugString() const {
   return absl::StrCat("[", absl::StrJoin(elements, ", "), "]");
 }
 
+absl::StatusOr<const TypeSpec*> ArrayDefinitionExpression::NegotiateTuple(
+    const TypeSpec* tuple_type) {
+  const bool new_type = tuple_type->parameters().empty();
+  if (!new_type && tuple_type->parameters().size() != children_.size()) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Building tuple for components, expecting: "
+           << tuple_type->parameters().size()
+           << " arguments, got: " << children_.size()
+           << "; While building: " << tuple_type->full_name();
+  }
+  if (children_.empty()) {
+    return tuple_type;
+  }
+  std::vector<TypeBindingArg> elements;
+  elements.reserve(children_.size());
+  for (size_t i = 0; i < children_.size(); ++i) {
+    absl::optional<const TypeSpec*> expected_type;
+    if (!new_type) {
+      expected_type = tuple_type->parameters()[i];
+    }
+    ASSIGN_OR_RETURN(
+        const TypeSpec* crt_type, children_[i]->type_spec(expected_type),
+        _ << "Obtaining type for element: " << i << " in tuple expression");
+    if (expected_type.has_value() &&
+        !expected_type.value()->IsAncestorOf(*crt_type)) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Invalid element " << i << " of type: " << crt_type->full_name()
+             << " in tuple expression; expecting: "
+             << expected_type.value()->full_name();
+    }
+    elements.emplace_back(TypeBindingArg{crt_type});
+  }
+  ASSIGN_OR_RETURN(auto negotiated_type, tuple_type->Bind(elements),
+                   _ << "Building type for tuple definition");
+  negotiated_types_.emplace_back(std::move(negotiated_type));
+  return negotiated_types_.back().get();
+}
+
 absl::StatusOr<const TypeSpec*> ArrayDefinitionExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   const TypeSpec* base_type = nullptr;
@@ -515,6 +574,8 @@ absl::StatusOr<const TypeSpec*> ArrayDefinitionExpression::NegotiateType(
     } else if (type_hint.value()->type_id() == pb::TypeId::SET_ID) {
       ASSIGN_OR_RETURN(base_type, scope_->FindTypeByName(kTypeNameSet),
                        _ << "Finding base Array type " << kBugNotice);
+    } else if (type_hint.value()->type_id() == pb::TypeId::TUPLE_ID) {
+      return NegotiateTuple(type_hint.value());
     } else {
       return status::InvalidArgumentErrorBuilder()
              << "Array definition cannot be converted to non set/array type: "

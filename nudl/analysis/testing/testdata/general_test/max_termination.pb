@@ -13,7 +13,7 @@ expression {
       }
     }
     result_type {
-      name: "UInt"
+      name: "Nullable<UInt>"
     }
     function_name: "MaxTermination"
     qualified_name {
@@ -24,7 +24,7 @@ expression {
       child {
         kind: EXPR_FUNCTION_CALL
         type_spec {
-          name: "UInt"
+          name: "Nullable<UInt>"
         }
         call_spec {
           left_expression {
@@ -92,7 +92,7 @@ expression {
             }
           }
           binding_type {
-            name: "Function<UInt(l: Array<UInt>)>"
+            name: "Function<Nullable<UInt>(l: Array<UInt>)>"
           }
         }
       }

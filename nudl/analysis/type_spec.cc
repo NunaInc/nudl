@@ -1,3 +1,19 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include "nudl/analysis/type_spec.h"
 
 #include <deque>
@@ -331,10 +347,33 @@ pb::ExpressionTypeSpec TypeSpec::ToProto() const {
   return proto;
 }
 
+pb::TypeSpec TypeSpec::ToTypeSpecProto() const {
+  pb::TypeSpec proto;
+  proto.mutable_identifier()->add_name(name());
+  for (auto param : parameters_) {
+    *proto.add_argument()->mutable_type_spec() = param->ToTypeSpecProto();
+  }
+  return proto;
+}
+
 const std::string& TypeSpec::local_name() const { return local_name_; }
 
 void TypeSpec::set_local_name(absl::string_view local_name) {
   local_name_ = std::string(local_name);
+}
+
+absl::optional<NameStore*> TypeSpec::parent_store() const {
+  return definition_scope_;
+}
+
+absl::optional<NameStore*> TypeSpec::definition_scope() const {
+  return definition_scope_;
+}
+
+void TypeSpec::set_definition_scope(absl::optional<NameStore*> obj) {
+  CHECK(!definition_scope_.has_value() ||
+        (obj.has_value() && definition_scope_.value() == obj.value()));
+  definition_scope_ = obj;
 }
 
 bool TypeSpec::IsBound() const {
@@ -514,8 +553,9 @@ absl::StatusOr<std::vector<const TypeSpec*>> TypeSpec::TypesFromBindings(
         !parameters_[i]->IsAncestorOf(*CHECK_NOTNULL(types.back()))) {
       return status::InvalidArgumentErrorBuilder()
              << "Expecting an argument of type: " << parameters_[i]->full_name()
-             << " for binding parameter " << i << " of type " << full_name()
-             << ". Got: " << types.back()->full_name();
+             << " for binding parameter " << i
+             << ". Got: " << types.back()->full_name()
+             << ". In type binding of: " << full_name();
     }
   }
   if (check_params) {
@@ -523,9 +563,8 @@ absl::StatusOr<std::vector<const TypeSpec*>> TypeSpec::TypesFromBindings(
       if (types.size() < minimum_parameters.value()) {
         return status::InvalidArgumentErrorBuilder()
                << "Expecting at least " << minimum_parameters.value()
-               << " arguments "
-                  " and at most: "
-               << parameters_.size() << " for binding type " << full_name()
+               << " arguments and at most: " << parameters_.size()
+               << " for binding type " << full_name()
                << " - got: " << bindings.size();
       }
     } else if (types.size() < parameters_.size()) {
@@ -575,6 +614,11 @@ bool TypeSpec::IsBasicType() const {
   return false;
 }
 
+absl::StatusOr<pb::Expression> TypeSpec::DefaultValueExpression() const {
+  return status::UnimplementedErrorBuilder()
+         << "Cannot build default value expression for: " << full_name();
+}
+
 namespace {
 const TypeSpec* FindUnionMatch(const TypeSpec* src_param,
                                const TypeSpec* type_spec) {
@@ -600,17 +644,98 @@ absl::Status LocalNamesRebinder::RecordLocalName(const TypeSpec* src_param,
   auto it = local_types_.find(src_param->local_name());
   if (it == local_types_.end()) {
     local_types_.emplace(src_param->local_name(), type_spec);
-  } else if (!it->second->IsEqual(*type_spec)) {
-    // TODO(catalin): tune the logic a bit here with tests.
-    if (type_spec->IsBound() &&
-        (!it->second->IsBound() || it->second->IsAncestorOf(*type_spec))) {
-      it->second = type_spec;
-    } else if (!it->second->IsConvertibleFrom(*type_spec) &&
-               !type_spec->IsConvertibleFrom(*it->second)) {
+    return absl::OkStatus();
+  } else if (it->second->IsEqual(*type_spec)) {
+    return absl::OkStatus();
+  }
+
+  // Function that determines if we should swap t2 in place of t1:
+  auto swap_types = [&it](const TypeSpec* t1,
+                          const TypeSpec* t2) -> absl::StatusOr<bool> {
+    if (t2->IsBound() && (!t1->IsBound() || t1->IsAncestorOf(*t2))) {
+      return true;
+    } else if (!t1->IsConvertibleFrom(*t2) && !t2->IsConvertibleFrom(*t1)) {
       return status::InvalidArgumentErrorBuilder()
              << "Named type: " << it->first
-             << " is bound to two incompatible argument types: "
-             << it->second->full_name() << " and " << type_spec->full_name();
+             << " is bound to two incompatible (sub)argument types: "
+             << t1->full_name() << " and " << t2->full_name();
+    }
+    return false;
+  };
+  // Helper to allocate a type and set it in the iterator:
+  auto set_new_type =
+      [this, &it](absl::StatusOr<std::unique_ptr<TypeSpec>> t) -> absl::Status {
+    RETURN_IF_ERROR(t.status());
+    it->second = t.value().get();
+    allocated_types.emplace_back(std::move(t).value());
+    return absl::OkStatus();
+  };
+  const TypeSpec* t1 = it->second;
+  const TypeSpec* t2 = type_spec;
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // We may need to update the existing type t1 with the new type t2.
+  // Here is what we do:
+  //
+  //     t1: Existing     t2: New         => Action
+  // ------------------------------------------------------------------
+  // 1:  Null          <- Any             => Null
+  // 2:  Null          <- Nullable<Any>   => Nullable<Any> ???
+  // 3:  Null          <- Nullable<X>     => Nullable<X>
+  // 4:  Null          <- X               => Nullable<X>
+  // 5:  Nullable<A>   <- Null            => unchanged
+  // 6:  Nullable<Y>   <- Nullable<X>     => typecheck & Nullable<X or Y>
+  // 7:  Nullable<Y>   <- X               => typecheck & Nullable<X or Y>
+  // 8:  Any           <- Null / X        => Null / X
+  // 9:  X             <- Null            => Nullable<X>
+  // 10: X             <- Nullable<Y>     => Nullable<X or Y>
+  // 11: X             <- Y               => swap_types
+  //
+  if (TypeUtils::IsNullType(*t1)) {
+    if (TypeUtils::IsAnyType(*t2)) {  // 1:
+      return absl::OkStatus();
+    } else if (TypeUtils::IsNullableType(*t2)) {  // 2: 3:
+      it->second = t2;
+    } else {  // 4:
+      return set_new_type(t1->Bind({TypeBindingArg{t2}}));
+    }
+  } else if (TypeUtils::IsNullableType(*t1)) {
+    if (TypeUtils::IsNullType(*t2)) {  // 5:
+      return absl::OkStatus();
+    } else if (TypeUtils::IsNullableType(*t2)) {  // 6:
+      ASSIGN_OR_RETURN(auto do_swap, swap_types(t1, t2));
+      if (do_swap) {
+        it->second = t2;
+      }
+    } else {  // 7:
+      ASSIGN_OR_RETURN(
+          auto do_swap, swap_types(t1->parameters().back(), t2),
+          _ << " Checking subtype of source type: " << t1->full_name());
+      if (do_swap) {
+        return set_new_type(t1->Bind({TypeBindingArg{t2}}));
+      }
+    }
+  } else if (TypeUtils::IsAnyType(*t1)) {  // 8:
+    ASSIGN_OR_RETURN(auto do_swap, swap_types(t1, t2));
+    if (do_swap) {
+      it->second = t2;
+    }
+  } else if (TypeUtils::IsNullType(*t2)) {
+    return set_new_type(t2->Bind({TypeBindingArg{t1}}));
+  } else if (TypeUtils::IsNullableType(*t2)) {
+    ASSIGN_OR_RETURN(
+        auto do_swap, swap_types(t1, t2->parameters().back()),
+        _ << " Checking subtype of call type: " << t1->full_name());
+    if (do_swap) {
+      it->second = t2;
+    } else {
+      return set_new_type(t2->Bind({TypeBindingArg{t1}}));
+    }
+  } else {
+    ASSIGN_OR_RETURN(auto do_swap, swap_types(t1, t2));
+    if (do_swap) {
+      it->second = t1;
     }
   }
   return absl::OkStatus();

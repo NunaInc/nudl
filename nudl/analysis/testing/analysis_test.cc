@@ -1,3 +1,19 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include "nudl/analysis/testing/analysis_test.h"
 
 #include <fstream>
@@ -13,8 +29,8 @@
 #include "absl/time/time.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "nudl/analysis/basic_converter.h"
-#include "nudl/analysis/python_converter.h"
+#include "nudl/conversion/pseudo_converter.h"
+#include "nudl/conversion/python_converter.h"
 #include "nudl/status/status.h"
 #include "nudl/status/testing.h"
 #include "nudl/testing/protobuf_matchers.h"
@@ -36,10 +52,12 @@ AnalysisTest::~AnalysisTest() {
             << "    read_file_time:  " << read_file_duration_ << std::endl
             << "    compare_time:    " << compare_duration_ << std::endl
             << "    regenerate_time: " << regenerate_duration_ << std::endl;
-  std::cout << "Builtin parse time:  "
-            << env_->builtin_module()->parse_duration() << std::endl
-            << "Builtin analysis time: "
-            << env_->builtin_module()->analysis_duration() << std::endl;
+  if (env_->builtin_module()) {
+    std::cout << "Builtin parse time:  "
+              << env_->builtin_module()->parse_duration() << std::endl
+              << "Builtin analysis time: "
+              << env_->builtin_module()->analysis_duration() << std::endl;
+  }
 }
 
 void AnalysisTest::SetUp() {
@@ -93,9 +111,10 @@ void AnalysisTest::CheckCode(absl::string_view test_name,
   const absl::Time compared_time = absl::Now();
   // This just exercises the basic converter, don't want to check
   // pseudocode against anything:
-  ASSERT_OK_AND_ASSIGN(auto pseudocode, BasicConverter().ConvertModule(module));
+  ASSERT_OK_AND_ASSIGN(auto pseudocode,
+                       conversion::PseudoConverter().ConvertModule(module));
   ASSERT_OK_AND_ASSIGN(auto pythoncode,
-                       PythonConverter().ConvertModule(module));
+                       conversion::PythonConverter().ConvertModule(module));
   EXPECT_FALSE(pseudocode.empty());
   EXPECT_FALSE(pythoncode.empty());
   EXPECT_FALSE(module->DebugString().empty());
@@ -123,9 +142,10 @@ void AnalysisTest::WritePreparedCode(Module* module,
                                      absl::string_view module_name,
                                      absl::string_view code,
                                      bool skip_write) const {
-  ASSERT_OK_AND_ASSIGN(auto pseudocode, BasicConverter().ConvertModule(module));
+  ASSERT_OK_AND_ASSIGN(auto pseudocode,
+                       conversion::PseudoConverter().ConvertModule(module));
   ASSERT_OK_AND_ASSIGN(auto pythoncode,
-                       PythonConverter().ConvertModule(module));
+                       conversion::PythonConverter().ConvertModule(module));
   std::cout << "  CheckCode(" << std::endl
             << "    R\"(" << code << ")\", R\"(" << std::endl
             << proto.DebugString() << ")\");" << std::endl

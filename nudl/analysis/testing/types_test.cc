@@ -1,3 +1,19 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include "nudl/analysis/types.h"
 
 #include <set>
@@ -99,8 +115,8 @@ void TypesTest::CheckTypes(absl::Span<const absl::string_view> names,
 TEST_F(TypesTest, BaseTypes) {
   ASSERT_OK_AND_ASSIGN(auto any_type, FindType("Any"));
   std::set<std::string> kUnBoundTypes(
-      {"Any", "Numeric", "Decimal", "Iterable", "Array", "Set", "Map", "Struct",
-       "Function", "Container", "Integral", "Generator"});
+      {"Any", "Numeric", "Iterable", "Array", "Set", "Map", "Struct",
+       "Function", "Tuple", "Container", "Integral", "Generator"});
   for (absl::string_view name : kBaseTypeNames) {
     ASSERT_OK_AND_ASSIGN(auto typespec, FindType(name));
     // std::cout << "Found type : `" << typespec->full_name() << "` - "
@@ -277,7 +293,7 @@ TEST_F(TypesTest, Structs) {
     // Int
     false, true, false, false, false, false, false, false, false, false, false,
     // Struct
-    false, false, true, false, false, false, false, false, false, false, false,
+    false, false, true, true, true, true, true, true, true, true, true,
     // Struct<Numeric, Numeric, Function<Numeric>>
     false, false, false, true, true, true, false, false, false, false, false,
     // Struct<Int, Int, Function<Numeric>>
@@ -301,7 +317,7 @@ TEST_F(TypesTest, Structs) {
     // Int
     false, true, false, false, false, false, false, false, false, false, false,
     // Struct
-    false, false, true, false, false, false, false, false, false, false, false,
+    false, false, true, true, true, true, true, true, true, true, true,
     // Struct<Numeric, Numeric, Function<Numeric>>
     false, false, false, true, true, true, false, false, false, false, false,
     // Struct<Int, Int, Function<Numeric>>
@@ -358,7 +374,7 @@ TEST_F(TypesTest, Unions) {
     false, false, false, false, false, false,
     // Union<Bool, Numeric, Struct>
     true, false, false, false, true, false,
-    false, false, false, false, false, false,
+    false, false, true, true, false, false,
     // Union<Numeric, String>
     true, true, false, false, false, true,
     false, false, false, false, true, false,
@@ -396,7 +412,7 @@ TEST_F(TypesTest, Unions) {
     false, false, false, false, false, false,
     // Union<Bool, Numeric, Struct>
     true, false, false, false, true, false,
-    false, false, false, false, false, false,
+    false, false, true, true, false, false,
     // Union<Numeric, String>
     true, true, false, false, false, true,
     false, false, false, false, true, false,
@@ -437,6 +453,61 @@ TEST_F(TypesTest, Unions) {
   ASSERT_OK_AND_ASSIGN(auto union2, FindType("Nullable<Numeric>"));
   ASSERT_OK_AND_ASSIGN(auto bound4, union2->Bind({FindType("Int").value()}));
   EXPECT_EQ(bound4->type_id(), pb::TypeId::INT_ID);
+}
+
+TEST_F(TypesTest, Tuples) {
+  static const absl::string_view kTypeNames[] = {
+      "Tuple",
+      "Tuple<Numeric, String>",
+      "Tuple<Int, String>",
+      "Tuple<Any, Struct, Numeric>",
+      "Tuple<Int, Struct<Int, String>, Integral>",
+      "Tuple<Int, Struct<Int, String>, String>",
+      "Tuple<Int8, Struct<Int8, String>, UInt>",
+      "Tuple<Int, Nullable<String>>",
+  };
+  // clang-format off
+  static const bool kIsBound[] = {
+    false, false, true, false, false, true, true, true
+  };
+  static const bool kIsAncestor[] = {
+    // Tuple
+    true, true, true, true, true, true, true, true,
+    // Tuple<Numeric, Nullable<String>>
+    false, true, true, false, false, false, false, false,
+    // Tuple<Int, String>
+    false, false, true, false, false, false, false, false,
+    // Tuple<Any, Struct, Numeric>
+    false, false, false, true, true, false, true, false,
+    // Tuple<Int, Struct<Int, String>, Integral>
+    false, false, false, false, true, false, true, false,
+    // Tuple<Int, Struct<Int, String>, String>
+    false, false, false, false, false, true, false, false,
+    // Tuple<Int8, Struct<Int8, String>, UInt>
+    false, false, false, false, false, false, true, false,
+    // Tuple<Int, Nullable<String>>
+    false, false, true, false, false, false, false, true,
+  };
+  static const bool kIsConvertible[] = {
+    // Tuple
+    true, true, true, true, true, true, true, true,
+    // Tuple<Numeric, String>
+    false, true, true, false, false, false, false, false,
+    // Tuple<Int, String>
+    false, false, true, false, false, false, false, false,
+    // Tuple<Any, Struct, Numeric>
+    false, false, false, true, true, false, true, false,
+    // Tuple<Int, Struct<Int, String>, Integral>
+    false, false, false, false, true, false, false, false,
+    // Tuple<Int, Struct<Int, String>, String>
+    false, false, false, false, false, true, false, false,
+    // Tuple<Int8, Struct<Int8, String>, UInt>
+    false, false, false, false, false, false, true, false,
+    // Tuple<Int, Nullable<String>>
+    false, false, false, false, false, false, false, true,
+  };
+  // clang-format on
+  CheckTypes(kTypeNames, kIsAncestor, kIsConvertible, kIsBound);
 }
 
 TEST_F(TypesTest, Stores) {
