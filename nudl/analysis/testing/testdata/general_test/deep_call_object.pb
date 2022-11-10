@@ -6,7 +6,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "deep_call_object::_init_object_Bar::_init_object_Bar"
+      name: "deep_call_object::_init_object_Bar::_init_object_Bar__i0"
     }
     kind: OBJ_CONSTRUCTOR
     parameter {
@@ -26,7 +26,7 @@ expression {
     }
     function_name: "_init_object_Bar"
     qualified_name {
-      full_name: "deep_call_object._init_object_Bar"
+      full_name: "deep_call_object._init_object_Bar__i0"
     }
     native_snippet {
       name: "__struct_object_constructor__"
@@ -38,7 +38,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "deep_call_object::_init_copy_Bar::_init_copy_Bar"
+      name: "deep_call_object::_init_copy_Bar::_init_copy_Bar__i0"
     }
     kind: OBJ_CONSTRUCTOR
     parameter {
@@ -52,7 +52,7 @@ expression {
     }
     function_name: "_init_copy_Bar"
     qualified_name {
-      full_name: "deep_call_object._init_copy_Bar"
+      full_name: "deep_call_object._init_copy_Bar__i0"
     }
     native_snippet {
       name: "__struct_copy_constructor__"
@@ -67,7 +67,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "deep_call_object::_init_object_Foo::_init_object_Foo"
+      name: "deep_call_object::_init_object_Foo::_init_object_Foo__i0"
     }
     kind: OBJ_CONSTRUCTOR
     parameter {
@@ -82,7 +82,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "deep_call_object._init_object_Bar"
+            full_name: "deep_call_object._init_object_Bar__i0"
           }
           is_method: true
           argument {
@@ -105,7 +105,7 @@ expression {
     }
     function_name: "_init_object_Foo"
     qualified_name {
-      full_name: "deep_call_object._init_object_Foo"
+      full_name: "deep_call_object._init_object_Foo__i0"
     }
     native_snippet {
       name: "__struct_object_constructor__"
@@ -117,7 +117,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "deep_call_object::_init_copy_Foo::_init_copy_Foo"
+      name: "deep_call_object::_init_copy_Foo::_init_copy_Foo__i0"
     }
     kind: OBJ_CONSTRUCTOR
     parameter {
@@ -131,7 +131,7 @@ expression {
     }
     function_name: "_init_copy_Foo"
     qualified_name {
-      full_name: "deep_call_object._init_copy_Foo"
+      full_name: "deep_call_object._init_copy_Foo__i0"
     }
     native_snippet {
       name: "__struct_copy_constructor__"
@@ -143,7 +143,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "deep_call_object::g::g"
+      name: "deep_call_object::g::g__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -157,7 +157,7 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "deep_call_object.g"
+      full_name: "deep_call_object.g__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -168,7 +168,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "len"
+            full_name: "len__i0"
           }
           is_method: true
           argument {

@@ -8,7 +8,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "int__1__"
+        full_name: "int__i1"
       }
       is_method: true
       argument {
@@ -35,7 +35,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "bool__1__"
+        full_name: "bool__i1"
       }
       is_method: true
       argument {
@@ -62,7 +62,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "int"
+        full_name: "int__i0"
       }
       is_method: true
       binding_type {
@@ -80,7 +80,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "int__2__"
+        full_name: "int__i2"
       }
       is_method: true
       argument {
@@ -101,7 +101,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "int"
+              full_name: "int__i0"
             }
             is_method: true
             binding_type {
@@ -125,7 +125,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "int__3__"
+        full_name: "int__i3"
       }
       is_method: true
       argument {

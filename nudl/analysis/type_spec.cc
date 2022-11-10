@@ -29,6 +29,7 @@
 #include "nudl/analysis/names.h"
 #include "nudl/proto/analysis.pb.h"
 #include "nudl/status/status.h"
+#include "nudl/testing/stacktrace.h"
 
 ABSL_DECLARE_FLAG(bool, nudl_short_analysis_proto);
 
@@ -258,19 +259,21 @@ absl::Status TypeMemberStore::AddChildStore(absl::string_view local_name,
 
 int TypeSpec::NextTypeId() {
   static std::atomic<int> next_id{pb::TypeId::FIRST_CUSTOM_ID};
-  return next_id.fetch_add(std::memory_order_relaxed);
+  return next_id.fetch_add(1, std::memory_order_relaxed);
 }
 
 TypeSpec::TypeSpec(int type_id, absl::string_view name,
                    std::shared_ptr<TypeMemberStore> type_member_store,
                    bool is_bound_type, const TypeSpec* ancestor,
-                   std::vector<const TypeSpec*> parameters)
+                   std::vector<const TypeSpec*> parameters,
+                   absl::optional<const TypeSpec*> original_bind)
     : NamedObject(name),
       type_id_(type_id),
       type_member_store_(std::move(type_member_store)),
       is_bound_type_(is_bound_type),
       ancestor_(ancestor),
-      parameters_(std::move(parameters)) {
+      parameters_(std::move(parameters)),
+      original_bind_(original_bind) {
   if (!type_member_store_) {
     type_member_store_ = std::make_shared<TypeMemberStore>(
         this, ancestor ? ancestor->type_member_store_ptr() : nullptr);
@@ -297,6 +300,10 @@ TypeMemberStore* TypeSpec::type_member_store() const {
 
 std::shared_ptr<TypeMemberStore> TypeSpec::type_member_store_ptr() const {
   return type_member_store_;
+}
+
+absl::optional<const TypeSpec*> TypeSpec::original_bind() const {
+  return original_bind_;
 }
 
 pb::ObjectKind TypeSpec::kind() const { return pb::ObjectKind::OBJ_TYPE; }
@@ -359,6 +366,8 @@ pb::TypeSpec TypeSpec::ToTypeSpecProto() const {
 const std::string& TypeSpec::local_name() const { return local_name_; }
 
 void TypeSpec::set_local_name(absl::string_view local_name) {
+  CHECK(local_name.empty() || NameUtil::IsValidName(local_name))
+      << " --> `" << local_name << "`";
   local_name_ = std::string(local_name);
 }
 
@@ -374,6 +383,18 @@ void TypeSpec::set_definition_scope(absl::optional<NameStore*> obj) {
   CHECK(!definition_scope_.has_value() ||
         (obj.has_value() && definition_scope_.value() == obj.value()));
   definition_scope_ = obj;
+}
+
+const ScopeName& TypeSpec::scope_name() const {
+  static const auto kEmptyScope = new ScopeName();
+  if (scope_name_.has_value()) {
+    return scope_name_.value();
+  }
+  return *kEmptyScope;
+}
+
+void TypeSpec::set_scope_name(ScopeName scope_name) {
+  scope_name_ = std::move(scope_name);
 }
 
 bool TypeSpec::IsBound() const {
@@ -471,6 +492,11 @@ bool TypeSpec::IsResultTypeComparable(const TypeSpec& type_spec) const {
           type_spec.IsIterable());
 }
 
+bool TypeSpec::IsGeneratedByThis(const TypeSpec& type_spec) const {
+  return (type_spec.original_bind().has_value() &&
+          type_spec.original_bind().value() == this);
+}
+
 const TypeSpec* TypeSpec::ResultType() const {
   if (IsIterable() && !parameters_.empty()) {
     return parameters_.back();
@@ -498,6 +524,11 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeSpec::Bind(
   return {std::move(result)};
 }
 
+absl::StatusOr<std::unique_ptr<TypeSpec>> TypeSpec::Build(
+    const std::vector<TypeBindingArg>& bindings) const {
+  return Bind(bindings);
+}
+
 absl::Status TypeSpec::UpdateBindingStore(
     const std::vector<TypeBindingArg>& bindings) {
   size_t num_non_any = 0;
@@ -517,18 +548,54 @@ absl::Status TypeSpec::UpdateBindingStore(
   return absl::OkStatus();
 }
 
+std::string TypeSpec::TypeSignature() const {
+  std::string s(name());  // absl::StrCat("T", type_id()));
+  // if (!local_name().empty()) {
+  //  absl::StrAppend(&s, "_L_", local_name(), "_");
+  // }
+  if (parameters_.empty()) {
+    return s;
+  }
+  absl::StrAppend(&s, "__");
+  for (size_t i = 0; i < parameters_.size(); ++i) {
+    if (i) {
+      absl::StrAppend(&s, "_");
+    }
+    absl::StrAppend(&s, parameters_[i]->TypeSignature());
+  }
+  absl::StrAppend(&s, "__");
+  return s;
+}
+
+namespace {
+std::string TypeBindingSignatureJoin(
+    const absl::Span<const std::string> components) {
+  return absl::StrCat("TS_", absl::StrJoin(components, "_s_"), "_");
+}
+}  // namespace
+
+std::string TypeSpec::TypeBindingSignature(
+    const absl::Span<const TypeSpec* const> type_arguments) {
+  std::vector<std::string> components;
+  components.reserve(type_arguments.size());
+  for (const auto& ta : type_arguments) {
+    components.emplace_back(ta->TypeSignature());
+  }
+  return TypeBindingSignatureJoin(components);
+}
+
 std::string TypeSpec::TypeBindingSignature(
     const std::vector<TypeBindingArg>& type_arguments) {
   std::vector<std::string> components;
   components.reserve(type_arguments.size());
   for (const auto& ta : type_arguments) {
     if (std::holds_alternative<const TypeSpec*>(ta)) {
-      components.emplace_back(std::get<const TypeSpec*>(ta)->full_name());
+      components.emplace_back(std::get<const TypeSpec*>(ta)->TypeSignature());
     } else {
       components.emplace_back(absl::StrCat("_i_", std::get<int>(ta)));
     }
   }
-  return absl::StrCat("Signature(", absl::StrJoin(components, "|"), ")");
+  return TypeBindingSignatureJoin(components);
 }
 
 absl::StatusOr<std::vector<const TypeSpec*>> TypeSpec::TypesFromBindings(
@@ -615,6 +682,9 @@ bool TypeSpec::IsBasicType() const {
 }
 
 absl::StatusOr<pb::Expression> TypeSpec::DefaultValueExpression() const {
+  if (ancestor_) {
+    return ancestor_->DefaultValueExpression();
+  }
   return status::UnimplementedErrorBuilder()
          << "Cannot build default value expression for: " << full_name();
 }
@@ -749,8 +819,8 @@ absl::Status LocalNamesRebinder::ProcessType(const TypeSpec* src_param,
   if (original_type != src_param) {
     RETURN_IF_ERROR(RecordLocalName(src_param, type_spec));
   }
-  if (src_param->type_id() == pb::TypeId::FUNCTION_ID) {
-    if (type_spec->type_id() != pb::TypeId::FUNCTION_ID ||
+  if (TypeUtils::IsFunctionType(*src_param)) {
+    if (!TypeUtils::IsFunctionType(*type_spec) ||
         src_param->parameters().empty()) {
       return status::InvalidArgumentErrorBuilder()
              << "Cannot process type for rebinding: " << src_param->full_name()
@@ -792,8 +862,16 @@ absl::StatusOr<const TypeSpec*> LocalNamesRebinder::RebuildType(
   bool is_function = false;
   size_t num_type_params = type_spec->parameters().size();
   size_t num_src_params = src_param->parameters().size();
-  if (src_param->type_id() == pb::TypeId::FUNCTION_ID) {
-    if (type_spec->type_id() != pb::TypeId::FUNCTION_ID ||
+
+  // This is to avert rebinding a type_spec that was created as a parametrized
+  // type from src_param (e.g. a Tuple from a TupleJoin or similar).
+  if (type_spec->original_bind().has_value() &&
+      (type_spec->original_bind().value() == src_param)) {
+    return type_spec;
+  }
+
+  if (TypeUtils::IsFunctionType(*src_param)) {
+    if (!TypeUtils::IsFunctionType(*type_spec) ||
         src_param->parameters().empty() || type_spec->parameters().empty()) {
       return status::InvalidArgumentErrorBuilder()
              << "Cannot rebuilt type: " << src_param->full_name()
@@ -842,6 +920,11 @@ absl::StatusOr<const TypeSpec*> LocalNamesRebinder::RebuildType(
                    _ << "Binding type dependent of changed local type names: "
                      << src_param->full_name()
                      << " binding: " << type_spec->full_name());
+  if (TypeUtils::IsTupleType(*new_allocated_type)) {
+    auto new_tuple_type = static_cast<TypeTuple*>(new_allocated_type.get());
+    new_tuple_type->UpdateNames(type_spec);
+    new_tuple_type->UpdateNames(src_param);
+  }
   allocated_types.emplace_back(std::move(new_allocated_type));
   if (it != local_types_.end()) {
     it->second = allocated_types.back().get();
@@ -855,7 +938,7 @@ LocalNamesRebinder::RebuildFunctionWithComponents(
   std::vector<TypeBindingArg> args;
   bool needs_rebinding = false;
   args.reserve(src_param->parameters().size());
-  RET_CHECK(src_param->type_id() == pb::TypeId::FUNCTION_ID)
+  RET_CHECK(TypeUtils::IsFunctionType(*src_param))
       << " Got a: " << src_param->full_name();
   RET_CHECK(type_specs.size() == src_param->parameters().size())
       << "Invalid number of types: " << type_specs.size() << " vs. "
@@ -863,7 +946,10 @@ LocalNamesRebinder::RebuildFunctionWithComponents(
   for (size_t i = 0; i < type_specs.size(); ++i) {
     const TypeSpec* param_type = CHECK_NOTNULL(src_param->parameters()[i]);
     const TypeSpec* param_type_spec = CHECK_NOTNULL(type_specs[i]);
-    ASSIGN_OR_RETURN(auto new_type, RebuildType(param_type, param_type_spec));
+    ASSIGN_OR_RETURN(auto new_type, RebuildType(param_type, param_type_spec),
+                     _ << "Rebuilding function argument: " << i
+                       << " from: " << param_type->full_name()
+                       << " with: " << param_type_spec->full_name());
     if (new_type != param_type) {
       needs_rebinding = true;
     }

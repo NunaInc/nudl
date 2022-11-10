@@ -18,6 +18,7 @@
 
 #include <utility>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_set.h"
 #include "glog/logging.h"
 #include "nudl/status/status.h"
@@ -70,8 +71,10 @@ const std::vector<const TypeSpec*> VarBase::assign_types() const {
 
 absl::StatusOr<std::unique_ptr<Expression>> VarBase::Assign(
     std::unique_ptr<Expression> expression) {
+  absl::Cleanup mark_failed = [this, &expression]() {
+    failed_assignments_.emplace_back(std::move(expression));
+  };
   ASSIGN_OR_RETURN(auto type_spec, expression->type_spec(type_spec_));
-
   if (!original_type_->IsAncestorOf(*type_spec)) {
     return status::InvalidArgumentErrorBuilder()
            << "Cannot assign an expression of type: " << type_spec->full_name()
@@ -84,9 +87,11 @@ absl::StatusOr<std::unique_ptr<Expression>> VarBase::Assign(
            << " to " << full_name()
            << " that was las assigned to: " << type_spec_->full_name();
   }
+  std::move(mark_failed).Cancel();
   // TODO(catalin): wrap this in type conversion or something.
   std::unique_ptr<Expression> converted_expression(std::move(expression));
-  if ((!type_spec_->IsBound() || type_spec_->type_id() == pb::UNION_ID) &&
+  if (((!type_spec_->IsBound() && type_spec_->type_id() != pb::FUNCTION_ID) ||
+       type_spec_->type_id() == pb::UNION_ID) &&
       (type_spec->type_id() != pb::NULL_ID)) {
     type_spec_ = type_spec;
   }

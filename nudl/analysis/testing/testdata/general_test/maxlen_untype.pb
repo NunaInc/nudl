@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "maxlen_untype::maxlen::maxlen"
+      name: "maxlen_untype::maxlen::maxlen__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -17,11 +17,11 @@ expression {
     }
     function_name: "maxlen"
     qualified_name {
-      full_name: "maxlen_untype.maxlen"
+      full_name: "maxlen_untype.maxlen__i0"
     }
     binding {
       scope_name {
-        name: "maxlen_untype::maxlen::maxlen__bind_1"
+        name: "maxlen_untype::maxlen::maxlen__i0__bind_1"
       }
       kind: OBJ_FUNCTION
       parameter {
@@ -35,7 +35,7 @@ expression {
       }
       function_name: "maxlen"
       qualified_name {
-        full_name: "maxlen_untype.maxlen__bind_1"
+        full_name: "maxlen_untype.maxlen__i0__bind_1"
       }
       body {
         kind: EXPR_BLOCK
@@ -46,7 +46,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "max"
+              full_name: "max__i0"
             }
             is_method: true
             argument {
@@ -58,7 +58,7 @@ expression {
                 }
                 call_spec {
                   call_name {
-                    full_name: "map"
+                    full_name: "map__i0"
                   }
                   is_method: true
                   argument {
@@ -98,7 +98,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "maxlen_untype::MaxTermination::MaxTermination"
+      name: "maxlen_untype::MaxTermination::MaxTermination__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -112,7 +112,7 @@ expression {
     }
     function_name: "MaxTermination"
     qualified_name {
-      full_name: "maxlen_untype.MaxTermination"
+      full_name: "maxlen_untype.MaxTermination__i0"
     }
     body {
       kind: EXPR_BLOCK

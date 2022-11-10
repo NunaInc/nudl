@@ -107,7 +107,7 @@ TEST_F(AnalysisTest, ExpressionNamedObject) {
                        Function::BuildInScope(&base_scope, fdef, "", context));
   EXPECT_EQ(fun->result_kind(), pb::FunctionResultKind::RESULT_NONE);
   EXPECT_EQ(fun->definition_scope(), &base_scope);
-  EXPECT_TRUE(fun->bindings_set().empty());
+  EXPECT_TRUE(fun->bindings_by_function().empty());
   EXPECT_TRUE(fun->native_impl().empty());
   EXPECT_RAISES_WITH_MESSAGE_THAT(
       fun->ValidateAssignment(ScopedName::Parse("foo").value(), &var1).status(),
@@ -324,14 +324,14 @@ TEST_F(AnalysisTest, BuildOperatorsFailures) {
         expr->ToProto(), EqualsProto(R"pb(
           kind: EXPR_FUNCTION_CALL
           call_spec {
-            call_name { full_name: "__and__" }
+            call_name { full_name: "__and____i0" }
             argument {
               name: "x"
               value {
                 kind: EXPR_FUNCTION_CALL
                 type_spec { name: "Bool" }
                 call_spec {
-                  call_name { full_name: "__eq__" }
+                  call_name { full_name: "__eq____i0" }
                   argument {
                     name: "x"
                     value {
@@ -356,7 +356,7 @@ TEST_F(AnalysisTest, BuildOperatorsFailures) {
                 kind: EXPR_FUNCTION_CALL
                 type_spec { name: "Bool" }
                 call_spec {
-                  call_name { full_name: "__eq__" }
+                  call_name { full_name: "__eq____i0" }
                   argument {
                     name: "x"
                     value {
@@ -445,7 +445,7 @@ TEST_F(AnalysisTest, DotExpression) {
     EXPECT_THAT(expr->ToProto(), EqualsProto(R"pb(
                   kind: EXPR_FUNCTION_CALL
                   call_spec {
-                    call_name { full_name: "len" }
+                    call_name { full_name: "len__i0" }
                     is_method: true
                     argument {
                       name: "l"
@@ -453,7 +453,7 @@ TEST_F(AnalysisTest, DotExpression) {
                         kind: EXPR_FUNCTION_CALL
                         type_spec { name: "String" }
                         call_spec {
-                          call_name { full_name: "ensure__2____bind_1" }
+                          call_name { full_name: "ensure__i2__bind_1" }
                           argument {
                             name: "x"
                             value {

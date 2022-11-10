@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "return_lambda::get_fun::get_fun"
+      name: "return_lambda::get_fun::get_fun__i0"
     }
     kind: OBJ_FUNCTION
     result_type {
@@ -11,7 +11,7 @@ expression {
     }
     function_name: "get_fun"
     qualified_name {
-      full_name: "return_lambda.get_fun"
+      full_name: "return_lambda.get_fun__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -19,7 +19,7 @@ expression {
         kind: EXPR_LAMBDA
         function_spec {
           scope_name {
-            name: "return_lambda::get_fun::get_fun::__local_lambda_1::__local_lambda_1"
+            name: "return_lambda::get_fun::get_fun__i0::_local_lambda_1::_local_lambda_1__i0"
           }
           kind: OBJ_LAMBDA
           parameter {
@@ -31,9 +31,9 @@ expression {
           result_type {
             name: "Int"
           }
-          function_name: "__local_lambda_1"
+          function_name: "_local_lambda_1"
           qualified_name {
-            full_name: "return_lambda.__local_lambda_1"
+            full_name: "return_lambda._local_lambda_1__i0"
           }
           body {
             kind: EXPR_BLOCK
@@ -44,7 +44,7 @@ expression {
               }
               call_spec {
                 call_name {
-                  full_name: "__add__"
+                  full_name: "__add____i0"
                 }
                 argument {
                   name: "x"

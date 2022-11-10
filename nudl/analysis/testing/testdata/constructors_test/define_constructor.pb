@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "define_constructor::month::month"
+      name: "define_constructor::month::month__i0"
     }
     kind: OBJ_METHOD
     parameter {
@@ -17,7 +17,7 @@ expression {
     }
     function_name: "month"
     qualified_name {
-      full_name: "define_constructor.month"
+      full_name: "define_constructor.month__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -34,7 +34,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "define_constructor::day::day"
+      name: "define_constructor::day::day__i0"
     }
     kind: OBJ_METHOD
     parameter {
@@ -48,7 +48,7 @@ expression {
     }
     function_name: "day"
     qualified_name {
-      full_name: "define_constructor.day"
+      full_name: "define_constructor.day__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -65,7 +65,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "define_constructor::date_to_string::date_to_string"
+      name: "define_constructor::date_to_string::date_to_string__i0"
     }
     kind: OBJ_CONSTRUCTOR
     parameter {
@@ -79,7 +79,7 @@ expression {
     }
     function_name: "date_to_string"
     qualified_name {
-      full_name: "define_constructor.date_to_string"
+      full_name: "define_constructor.date_to_string__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -90,7 +90,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "concat"
+            full_name: "concat__i0"
           }
           is_method: true
           argument {
@@ -102,7 +102,7 @@ expression {
               }
               call_spec {
                 call_name {
-                  full_name: "map"
+                  full_name: "map__i0"
                 }
                 is_method: true
                 argument {
@@ -116,7 +116,7 @@ expression {
                       }
                       call_spec {
                         call_name {
-                          full_name: "structure_constructs.year"
+                          full_name: "structure_constructs.year__i0"
                         }
                         is_method: true
                         argument {
@@ -140,7 +140,7 @@ expression {
                       }
                       call_spec {
                         call_name {
-                          full_name: "define_constructor.month"
+                          full_name: "define_constructor.month__i0"
                         }
                         is_method: true
                         argument {
@@ -164,7 +164,7 @@ expression {
                       }
                       call_spec {
                         call_name {
-                          full_name: "define_constructor.day"
+                          full_name: "define_constructor.day__i0"
                         }
                         is_method: true
                         argument {
@@ -224,7 +224,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "define_constructor.date_to_string"
+        full_name: "define_constructor.date_to_string__i0"
       }
       is_method: true
       argument {
@@ -236,7 +236,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "date"
+              full_name: "date__i0"
             }
             is_method: true
             binding_type {

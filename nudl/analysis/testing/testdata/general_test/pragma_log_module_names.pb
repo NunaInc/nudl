@@ -12,7 +12,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "pragma_log_module_names::f::f"
+      name: "pragma_log_module_names::f::f__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -32,7 +32,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "pragma_log_module_names.f"
+      full_name: "pragma_log_module_names.f__i0"
     }
   }
 }

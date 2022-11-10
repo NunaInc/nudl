@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "ancestor_type_bind::f::f"
+      name: "ancestor_type_bind::f::f__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -17,7 +17,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "ancestor_type_bind.f"
+      full_name: "ancestor_type_bind.f__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -28,7 +28,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "__sub__"
+            full_name: "__sub____i0"
           }
           argument {
             name: "x"
@@ -60,7 +60,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "ancestor_type_bind::f::f__1__"
+      name: "ancestor_type_bind::f::f__i1"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -74,7 +74,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "ancestor_type_bind.f__1__"
+      full_name: "ancestor_type_bind.f__i1"
     }
     body {
       kind: EXPR_BLOCK
@@ -85,7 +85,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "__add__"
+            full_name: "__add____i0"
           }
           argument {
             name: "x"

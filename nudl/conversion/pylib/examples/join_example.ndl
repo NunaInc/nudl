@@ -1,0 +1,57 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// This exemplifies a simple join:
+//
+import dataset
+import aggregate
+import examples.dataproc
+
+schema Left = {
+  l_id : Int;
+  left : String;
+}
+
+schema Right = {
+  l_id : Int;
+  r_id : Int;
+  right : String;
+}
+
+GENERATORS_RE : Tuple = [
+  Tuple([".*_id", Tuple(["inc", 1])]),
+  Tuple([".*", Tuple(["str", Tuple([10, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"])])]),
+]
+
+
+def generate_parquet(gendir: String, count: Int = 2000) => {
+  examples.dataproc.generate_parquet(
+    Tuple([Left(), Right()]), gendir, count, GENERATORS_RE)
+}
+
+def process(filenames: Array<String>) => {
+  left = dataset.read_parquet(Left(), _ensured(filenames[0]))
+  right = dataset.read_parquet(Right(), _ensured(filenames[1]));
+  src = left.join_left(
+    l => l.l_id,
+    {right = right.join_by(r => r.l_id),
+     right_multi = right.join_multi_by(r => r.l_id % 500 + 1)})
+}
+
+init = examples.dataproc.spark_init_session("Demo")
+main = print(process(generate_parquet("/tmp/protest"))
+  .filter(t => len(t.right_multi) > 0u)
+  .aggregate(t => dataset.agg(t).count(1).sum({s = len(t.right_multi)}))
+  .collect())

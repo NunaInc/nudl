@@ -200,8 +200,8 @@
 //   // the type of the protobuf.
 //   // EXPECT_THAT(data, WhenDeserialized(EqualsProto("foo: 1")));
 
-#ifndef NINDEX_TESTING_PROTOBUF_MATCHERS_H_
-#define NINDEX_TESTING_PROTOBUF_MATCHERS_H_
+#ifndef NUDL_TESTING_PROTOBUF_MATCHERS_H_
+#define NUDL_TESTING_PROTOBUF_MATCHERS_H_
 
 #include <initializer_list>
 #include <iostream>  // NOLINT
@@ -1148,4 +1148,4 @@ WhenDeserializedAs(const InnerMatcher& inner_matcher) {
 }  // namespace proto
 }  // namespace nudl
 
-#endif  // NINDEX_TESTING_PROTOBUF_MATCHERS_H_
+#endif  // NUDL_TESTING_PROTOBUF_MATCHERS_H_

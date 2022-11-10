@@ -14,6 +14,64 @@
 // limitations under the License.
 //
 
+//
+// This contains the definition of basic NuDL builtin functions/
+// This contains a lot of standard operators (e.g. the __add__ for `+`, etc),
+// and other helper functions and constructors.
+//
+// The implementations here tend to be either inline native calls or
+// short snippets of NuDL code.
+//
+// The native implementations have a function body that consists of
+// a series of `[[<name>]]<native body>[[end]]` blocks. The meaning
+// of `<name>` depends on the specific language converter. The
+// code inside the `<native body>` contains code in the target language,
+// with `${<param name>}` directly replaced with the corresponding code
+// generated for that named argument.
+//
+// For python, the code in this file would be converted to a
+// `_nudl_builtin.py` file and imported in all nudl generated files
+// as `from _nudl_builtin import *`. (We may change that though)
+//
+// The current native names are:
+//   - skip_conversion - no native function is generated. This is sweet
+//   for all operators and functions that are not needed as argument
+//   functions. Generally prefix them with `__`
+//   - pyinline - the provided inside code is directly converted to a
+//   python snippet, placed directly in the generated code
+//   - pyimport - is an import statement needed for the pyinline snippet.
+//   We already import the `nudl` module by default.
+//
+// More about the inline code. If, for example if you have a function:
+//
+// def add(x: {T: Numeric}, y: {T: Numeric}) : T =>
+// [[pyinline]]${x} + ${y}[[end]]
+//
+// A nudl snippet of the form:
+// `add(foo(33), 24)` would be be directly translated to:
+// `foo(33) + 24` in the python generated code.
+//
+// This brings us to a second important point - If you need to use
+// the same argument twice in a pyinline snippet, don't do it, instead
+// place the code in a native function, and use that. E.g.
+//
+// DO NOT DO THIS:
+// def square(x: {T: Numeric}): T =>
+// [[pyinline]]${x} * ${x}[[end]]
+//
+// because when you call `square(foo(33))` the generated code
+// `foo(33) + foo(33)` contains *two* calls to the foo function. Instead
+// define `square` in a native python module, say `mymodule.py`
+//
+// def square(x):
+//   return x * x
+//
+// And in the .ndl use:
+//
+// def square(x: {T: Numeric}): T =>
+// [[pyimport]]import mymodule[[end]]
+// [[pyinline]]mymodule.square(${x})[[end]]
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 //
@@ -206,7 +264,7 @@ not bool(list(itertools.islice(${l}, 1)))
 
 def method to_array(l: Iterable<{X: Any}>) : Array<X> =>
 [[pyinline]]
-nudl.collect(${l})
+nudl.as_list(${l})
 [[end]]
 
 def method map(
@@ -226,7 +284,7 @@ def method aggregate_to_array(
   key: Function<X, {Y: Any}>,
   value: Function<X, {Z: Any}>) : Generator<Tuple<Y, Array<Z>>> =>
 [[pyinline]]
-nudl.aggregate_to_array(${l}, ${key}, ${value})
+nudl.aggregate_to_array(nudl.collect(${l}), ${key}, ${value})
 [[end]]
 
 def method aggregate_to_set(
@@ -234,7 +292,7 @@ def method aggregate_to_set(
   key: Function<X, {Y: Any}>,
   value: Function<X, {Z: Any}>) : Generator<Tuple<Y, Set<Z>>> =>
 [[pyinline]]
-nudl.aggregate_to_set(${l}, ${key}, ${value})
+nudl.aggregate_to_set(nudl.collect(${l}), ${key}, ${value})
 [[end]]
 
 def method sort(
@@ -247,9 +305,7 @@ nudl.sort(${l}, ${key}, ${reverse})
 
 def method front(
   l: Array<{X: Any}>) : Nullable<X> =>
-[[pyinline]]
-${l}[0] if ${l} else None
-[[end]]
+[[pyinline]]nudl.safe_front(${l})[[end]]
 
 def method front(
   l: Iterable<{X: Any}>) : Nullable<X> =>
@@ -265,7 +321,7 @@ nudl.shuffle(${l})
 
 def method sum(l: Iterable<{X : Numeric}>) : X =>
 [[skip_conversion]][[end]]
-[[pyinline]]sum(${l})[[end]]
+[[pyinline]]sum(nudl.collect(${l})[[end]]
 
 def method max(l: Iterable<{X: Sortable}>) : Nullable<X> =>
 [[skip_conversion]][[end]]
@@ -278,16 +334,12 @@ def method min(l: Array<{X: Sortable}>) : Nullable<X> =>
 def method max_by(
   l: Iterable<{X}>,
   f: Function<X, {Y: Sortable}>): Nullable<X> =>
-[[pyinline]]
-nudl.max_by(${l}, ${f})
-[[end]]
+[[pyinline]]nudl.max_by(${l}, ${f})[[end]]
 
 def method min_by(
   l: Iterable<{X}>,
   f: Function<X, {Y: Sortable}>) : Nullable<X> =>
-[[pyinline]]
-nudl.min_by(${l}, ${f})
-[[end]]
+[[pyinline]]nudl.min_by(${l}, ${f})[[end]]
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -296,22 +348,69 @@ nudl.min_by(${l}, ${f})
 //
 // They are to be used by their type name: e.g. Int() or Array(Int())
 //
-def constructor int() : Int => 0
-def constructor int8() : Int8 => 0
-def constructor int16() : Int16 => 0
-def constructor int32() : Int32 => 0
-def constructor uint() : UInt => 0u
-def constructor uint8() : UInt8 => 0u
-def constructor uint16() : UInt16 => 0u
-def constructor uint32() : UInt32 => 0u
-def constructor string() : String => ""
-def constructor bytes() : Bytes => b""
-def constructor bool() : Bool => false
-def constructor array(t: {T}) : Array<T> => []
-def constructor set(t: {T}) : Set<T> => []
-def constructor dict(k: {K}, v: {V}) : Map<K, V> => []
-def constructor nullable(t: {T}) : Nullable<T> => null
-def constructor tuple(t: {T: Tuple}) : Tuple => t
+def constructor int() : Int =>
+[[skip_conversion]][[end]]
+[[pyinline]]0[[end]]
+
+def constructor int8() : Int8 =>
+[[skip_conversion]][[end]]
+[[pyinline]]0[[end]]
+
+def constructor int16() : Int16 =>
+[[skip_conversion]][[end]]
+[[pyinline]]0[[end]]
+
+def constructor int32() : Int32 =>
+[[skip_conversion]][[end]]
+[[pyinline]]0[[end]]
+
+def constructor uint() : UInt =>
+[[skip_conversion]][[end]]
+[[pyinline]]0[[end]]
+
+def constructor uint8() : UInt8 =>
+[[skip_conversion]][[end]]
+[[pyinline]]0[[end]]
+
+def constructor uint16() : UInt16 =>
+[[skip_conversion]][[end]]
+[[pyinline]]0[[end]]
+
+def constructor uint32() : UInt32 =>
+[[skip_conversion]][[end]]
+[[pyinline]]0[[end]]
+
+def constructor string() : String =>
+[[skip_conversion]][[end]]
+[[pyinline]]""[[end]]
+
+def constructor bytes() : Bytes =>
+[[skip_conversion]][[end]]
+[[pyinline]]b""{x}[[end]]
+
+def constructor bool() : Bool =>
+[[skip_conversion]][[end]]
+[[pyinline]]False[[end]]
+
+def constructor array(t: {T}) : Array<T> =>
+[[skip_conversion]][[end]]
+[[pyinline]][][[end]]
+
+def constructor set(t: {T}) : Set<T> =>
+[[skip_conversion]][[end]]
+[[pyinline]]set()[[end]]
+
+def constructor dict(k: {K}, v: {V}) : Map<K, V> =>
+[[skip_conversion]][[end]]
+[[pyinline]]{}[[end]]
+
+def constructor nullable(t: {T}) : Nullable<T> =>
+[[skip_conversion]][[end]]
+[[pyinline]]${t}[[end]]
+
+def constructor tuple(t: {T: Tuple}) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${t}[[end]]
 
 
 // Int constructors:
@@ -443,17 +542,20 @@ def constructor str(x: Numeric) : String =>
 
 def method concat(x: Iterable<String>, joiner: String) : String =>
 [[pyinline]]
-${joiner}.join(${x})
+${joiner}.join(nudl.collect(${x}))
 [[end]]
 
+def tuple_join(a: {X: Tuple}, b: {Y: Tuple}) : TupleJoin<X, Y> =>
+  // for now - may need to add proper nudl.tuple_join(..)
+  [[pyinline]]${a} + ${b}[[end]]
 
 //
 // These are just temporarely, and for python only in this format:
 //
 
-def to_string(x: Any) : String =>
+def method to_string(x: Any) : String =>
 [[pyinline]]str(${x})[[end]]
 
-def print(x: Any) : Null =>
+def method print(x: Any) : Null =>
 [[skip_conversion]][[end]]
 [[pyinline]]print(${x})[[end]]

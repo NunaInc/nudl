@@ -1,0 +1,104 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+// Reads a CSV file specification and creates a dataset with
+// a specified schema determined by T.
+// Example: read_csv(Foo(), '/path/to/foo.parquet')
+def read_csv(seed: {T: Struct}, file_spec: String) : Dataset<T> =>
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.read_csv(${seed}, ${file_spec})[[end]]
+
+// Reads a Parquet file specification and creates a
+// dataset with specified schema determined by T.
+// Example: read_parquet(Foo(), '/path/to/foo.parquet')
+def read_parquet(seed: {T: Struct}, file_spec: String) : Dataset<T> =>
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.read_parquet(${seed}, ${file_spec})[[end]]
+
+// Applies the provided function on all members of src dataset,
+// obtaining a dataset from the results.
+def method map(src: Dataset<{T: Any}>,
+               f: Function<T, {Y: Struct}>) : Dataset<Y> =>
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.dataset_map(${src}, ${f})[[end]]
+
+// Applies the provided function that returns an array, then
+// flattens it into the output. E.g. if you return this
+// sequence of arrays: [1, 2], [], [3], [4, 5, 6] you would get
+// 1,2,3,4,5,6 as output.
+def method flat_map(src: Dataset<{T: Any}>,
+                    f: Function<T, Array<{Y: Struct}>>) : Dataset<Y> =>
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.dataset_flat_map(${src}, ${f})[[end]]
+
+// Filters the input dataset by the provided predicate `f`.
+def method filter(src: Dataset<{T: Any}>,
+                  f: Function<T, Bool>) : Dataset<T> =>
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.dataset_filter(${src}, ${f})[[end]]
+
+// Root for an aggregation.
+// For detail specification of aggregates check aggregate.ndl
+def agg(t: {T}): Tuple<T, Tuple<T>> => [t, {_arg = t}]
+
+// Specification for a join. We do only left joins.
+//
+// Example:
+//   Say `foo` is a dataset of
+//     Foo = { foo_id: Int; value: String }
+//   and `bar` another dataset of
+//     Bar = { bar_id: Int; bar_foo_id: Int; info: String }
+//
+// For a 1:1 relationship between foo_id and bar_foo_id, use:
+// foo.join_left(
+//   f => f.foo_id,
+//   { bar_field = bar.join_by(b => b.bar_foo_id) })
+// To obtain dataset of:
+//   { foo_id: Int; value: String; bar_field: Nullable<Bar> }
+//
+// For 1:many relationship between foo_id and bar_foo_id use:
+// foo.join_left(
+//   f => f.foo_id,
+//   { bar_field = bar.join_multi_by(b => b.bar_foo_id) })
+// To obtain a dataset of:
+//   { foo_id: Int; value: String; bar_field: Array<Bar> }
+//
+def method join_left(
+  left_src: Dataset<{T: Struct}>,
+  left_key: {F: Function<T, {K}>},
+  right_spec: {Spec: Tuple}
+) : DatasetJoin<T, F, Spec> =>
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.dataset_join_left(${left_src}, ${left_key}, ${right_spec})[[end]]
+
+def method join_by(
+  right_src: {R: Dataset<{T: Struct}>},
+  right_key: {F: Function<T, {K}>}
+) : Tuple<R, F> => {right = right_src, key = right_key}
+
+def method join_multi_by(
+  right_src: {R: Dataset<{T: Struct}>},
+  right_key: {F: Function<T, {K}>}
+) : Tuple<R, F> => {right_multi = right_src, key = right_key}
+
+
+// Collects the result of a dataset as an array.
+// Of course, it must fit in memory or so :)
+// We may choose to limit the collection to say 10k records, but
+// still should fit in memory.
+def method collect(src: Dataset<{T}>) : Array<T> =>
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.dataset_collect(${src})[[end]]

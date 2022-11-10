@@ -1,2 +1,7 @@
-
-// Empty playground.
+/*
+def ff(x, y) => x + y
+gg = ff
+v1 = gg(1, 2)
+gg = (x, y) => x * y
+v2 = gg(1.1, 2.2)
+*/

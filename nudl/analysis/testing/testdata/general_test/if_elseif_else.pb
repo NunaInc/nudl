@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "if_elseif_else::f::f"
+      name: "if_elseif_else::f::f__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -17,7 +17,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "if_elseif_else.f"
+      full_name: "if_elseif_else.f__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -30,7 +30,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "__eq__"
+              full_name: "__eq____i0"
             }
             argument {
               name: "x"
@@ -41,7 +41,7 @@ expression {
                 }
                 call_spec {
                   call_name {
-                    full_name: "__mod__"
+                    full_name: "__mod____i0"
                   }
                   argument {
                     name: "x"
@@ -92,7 +92,7 @@ expression {
               }
               call_spec {
                 call_name {
-                  full_name: "__div__"
+                  full_name: "__div____i0"
                 }
                 argument {
                   name: "x"
@@ -130,7 +130,7 @@ expression {
               }
               call_spec {
                 call_name {
-                  full_name: "__eq__"
+                  full_name: "__eq____i0"
                 }
                 argument {
                   name: "x"
@@ -141,7 +141,7 @@ expression {
                     }
                     call_spec {
                       call_name {
-                        full_name: "__mod__"
+                        full_name: "__mod____i0"
                       }
                       argument {
                         name: "x"
@@ -192,7 +192,7 @@ expression {
                   }
                   call_spec {
                     call_name {
-                      full_name: "__div__"
+                      full_name: "__div____i0"
                     }
                     argument {
                       name: "x"

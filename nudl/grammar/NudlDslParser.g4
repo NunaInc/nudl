@@ -38,11 +38,11 @@ emptyStruct
     ;
 
 arrayDefinition
-    : LBRACKET computeExpressions RBRACKET
+    : LBRACKET computeExpressions COMMA? RBRACKET
     ;
 
 mapDefinition
-    : LBRACKET mapElements RBRACKET
+    : LBRACKET mapElements COMMA? RBRACKET
     ;
 
 mapElements
@@ -53,8 +53,20 @@ mapElement
     : computeExpression COLON computeExpression
     ;
 
+namedTupleDefinition
+    : LBRACE namedTupleElements COMMA? RBRACE
+    ;
+
+namedTupleElements
+    : namedTupleElement (COMMA namedTupleElement)*
+    ;
+
+namedTupleElement
+    : IDENTIFIER typeAssignment? EQ_SINGLE computeExpression
+    ;
+
 structDefinition
-    : emptyStruct | arrayDefinition | mapDefinition
+    : emptyStruct | arrayDefinition | mapDefinition | namedTupleDefinition
     ;
 
 dotIdentifier

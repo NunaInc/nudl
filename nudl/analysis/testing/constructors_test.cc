@@ -92,7 +92,7 @@ z = String(Date())
 date1 = Date(Timestamp())
 x = date1 < 20
 )",
-             "T is bound to two incompatible (sub)argument types");
+             "Cannot coerce a literal of type: Int into a: Date");
   CheckError("bad_constructor", R"(
 date1 = Date(Timestamp(), 12, 10)
 )",

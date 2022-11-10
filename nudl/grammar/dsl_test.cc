@@ -3311,6 +3311,90 @@ element {
   }
 }
 )");
+  CheckOkParse(R"(
+x = {foo = 3, bar: Array<String> = ["x", "y"], baz: float = 1.3}
+)",
+               R"(
+module(
+  assignExpression(x =
+    namedTupleDefinition({
+      namedTupleElements(namedTupleElement(foo = 3) ,
+        namedTupleElement(bar
+          typeAssignment(: typeExpression(Array typeTemplate(< String >)))
+          = arrayDefinition([ computeExpressions("x" , "y") ])
+        ) , namedTupleElement(baz typeAssignment(: float) = 1.3)
+      ) }
+    )
+  )
+)
+)",
+               R"(
+element {
+  assignment {
+    identifier {
+      name: "x"
+    }
+    value {
+      tuple_def {
+        element {
+          name: "foo"
+          value {
+            literal {
+              int_value: 3
+              original: "3"
+            }
+          }
+        }
+        element {
+          name: "bar"
+          type_spec {
+            identifier {
+              name: "Array"
+            }
+            argument {
+              type_spec {
+                identifier {
+                  name: "String"
+                }
+              }
+            }
+          }
+          value {
+            array_def {
+              element {
+                literal {
+                  str_value: "x"
+                  original: "\"x\""
+                }
+              }
+              element {
+                literal {
+                  str_value: "y"
+                  original: "\"y\""
+                }
+              }
+            }
+          }
+        }
+        element {
+          name: "baz"
+          type_spec {
+            identifier {
+              name: "float"
+            }
+          }
+          value {
+            literal {
+              double_value: 1.3
+              original: "1.3"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+)");
 }
 
 }  // namespace grammar

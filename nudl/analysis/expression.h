@@ -28,9 +28,11 @@ namespace nudl {
 namespace analysis {
 
 class Function;
+struct FunctionBinding;
+class FunctionGroup;
+class Module;
 class Scope;
 class VarBase;
-class Module;
 
 class Expression {
  public:
@@ -256,6 +258,31 @@ class MapDefinitionExpression : public Expression {
   std::vector<std::unique_ptr<TypeSpec>> negotiated_types_;
 };
 
+// An (named) tuple definition with form:
+//  {name1: type1? = val1, name2: type2? = val2, ...]
+class TupleDefinitionExpression : public Expression {
+ public:
+  // When building this expression we expect keys & values interleaved
+  // in elements array [key1, value1, key2, value2 ...]
+  TupleDefinitionExpression(Scope* scope, std::vector<std::string> names,
+                            std::vector<absl::optional<const TypeSpec*>> types,
+                            std::vector<std::unique_ptr<Expression>> elements);
+
+  pb::ExpressionKind expr_kind() const override;
+  std::string DebugString() const override;
+  pb::ExpressionSpec ToProto() const override;
+  const std::vector<std::string>& names() const;
+  const std::vector<absl::optional<const TypeSpec*>>& types() const;
+  void CheckSizes() const;
+
+ protected:
+  absl::StatusOr<const TypeSpec*> NegotiateType(
+      absl::optional<const TypeSpec*> type_hint) override;
+  std::vector<std::string> names_;
+  std::vector<absl::optional<const TypeSpec*>> types_;
+  std::vector<std::unique_ptr<TypeSpec>> negotiated_types_;
+};
+
 // A composed if expression
 // if (condition[0]) { expression[0] }
 // elif (condition[1]} { expression[1] }
@@ -335,11 +362,13 @@ class TupleIndexExpression : public IndexExpression {
 // An expression containing the definition of a lambda function.
 class LambdaExpression : public Expression {
  public:
-  LambdaExpression(Scope* scope, Function* lambda_function);
+  LambdaExpression(Scope* scope, Function* lambda_function,
+                   FunctionGroup* lambda_group);
 
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
   Function* lambda_function() const;
+  FunctionGroup* lambda_group() const;
 
   pb::ExpressionSpec ToProto() const override;
   std::string DebugString() const override;
@@ -348,7 +377,9 @@ class LambdaExpression : public Expression {
   absl::StatusOr<const TypeSpec*> NegotiateType(
       absl::optional<const TypeSpec*> type_hint) override;
 
-  Function* const lambda_function_;
+  Function* lambda_function_;
+  FunctionGroup* const lambda_group_;
+  std::vector<std::unique_ptr<FunctionBinding>> lambda_bindings_;
 };
 
 class DotAccessExpression : public Expression {
@@ -371,8 +402,6 @@ class DotAccessExpression : public Expression {
   NamedObject* const object_;
 };
 
-struct FunctionBinding;
-
 class FunctionCallExpression : public Expression {
  public:
   FunctionCallExpression(
@@ -388,6 +417,8 @@ class FunctionCallExpression : public Expression {
 
   pb::ExpressionSpec ToProto() const override;
   std::string DebugString() const override;
+  const absl::flat_hash_set<Function*>& dependent_functions() const;
+  void set_dependent_functions(absl::flat_hash_set<Function*> fun);
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -395,6 +426,7 @@ class FunctionCallExpression : public Expression {
 
   std::unique_ptr<FunctionBinding> function_binding_;
   std::unique_ptr<Expression> left_expression_;
+  absl::flat_hash_set<Function*> dependent_functions_;
   bool is_method_call_;
 };
 

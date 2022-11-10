@@ -19,6 +19,7 @@
 #include <typeindex>
 #include <utility>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
@@ -146,6 +147,9 @@ std::string Scope::NextBindingName(absl::string_view name) {
 }
 
 absl::Status Scope::AddSubScope(std::unique_ptr<Scope> scope) {
+  absl::Cleanup mark_failed = [this, &scope]() {
+    failed_names_.emplace_back(std::move(scope));
+  };
   if (!scope_name_->IsPrefixScope(scope->scope_name())) {
     return status::InvalidArgumentErrorBuilder()
            << "Expected child scope name: " << scope->name() << " to "
@@ -157,6 +161,7 @@ absl::Status Scope::AddSubScope(std::unique_ptr<Scope> scope) {
   const std::string local_name(
       scope->scope_name().SuffixName(scope_name_->size()));
   RETURN_IF_ERROR(AddChildStore(local_name, scope.get()));
+  std::move(mark_failed).Cancel();
   defined_names_.emplace_back(std::move(scope));
   return absl::OkStatus();
 }
@@ -171,6 +176,9 @@ absl::Status Scope::AddOwnedChildStore(absl::string_view local_name,
 }
 
 absl::Status Scope::AddDefinedVar(std::unique_ptr<VarBase> var_base) {
+  absl::Cleanup mark_failed = [this, &var_base]() {
+    failed_names_.emplace_back(std::move(var_base));
+  };
   CHECK_EQ(var_base->parent_store().value_or(nullptr), this)
       << " Parent store of: " << var_base->full_name()
       << " expected to be: " << full_name();
@@ -180,6 +188,7 @@ absl::Status Scope::AddDefinedVar(std::unique_ptr<VarBase> var_base) {
            << " to add to scope: " << full_name();
   }
   RETURN_IF_ERROR(AddChildStore(var_base->name(), var_base.get()));
+  std::move(mark_failed).Cancel();
   defined_names_.emplace_back(std::move(var_base));
   return absl::OkStatus();
 }
@@ -354,6 +363,13 @@ const TypeSpec* Scope::FindTypeUnion() {
   return result.value();
 }
 
+const TypeSpec* Scope::FindTypeTuple() {
+  auto result = FindTypeByName(kTypeNameTuple);
+  CHECK_OK(result.status())
+      << "Cannot find type `Tuple` - Badly initialized scope" << kBugNotice;
+  return result.value();
+}
+
 const TypeSpec* Scope::FindTypeGenerator() {
   auto result = FindTypeByName(kTypeNameGenerator);
   CHECK_OK(result.status())
@@ -509,19 +525,8 @@ absl::StatusOr<std::tuple<VarBase*, bool>> Scope::ProcessVarFind(
         _ << context.ToErrorInfo(absl::StrCat(
             "Determining type of assing expression for: ", name.name())));
   }
-  if (type_spec->type_id() == pb::TypeId::FUNCTION_ID &&
-      !type_spec->IsBound()) {
-    absl::flat_hash_set<std::string> unbound_types;
-    TypeUtils::FindUnboundTypes(type_spec, &unbound_types);
-    return status::InvalidArgumentErrorBuilder()
-           << "In definition of: " << name.name()
-           << ", when defining a "
-              "variable typed as a Function, this type needs to be bound. "
-              "Please add non-abstract type specifications to all arguments "
-              "and define the return value as well if necessary. Type found: "
-           << type_spec->full_name()
-           << " unbound types: " << absl::StrJoin(unbound_types, ", ");
-  }
+  RETURN_IF_ERROR(TypeUtils::CheckFunctionTypeIsBound(type_spec))
+      << "In assignment assignment of: " << name.name();
   std::unique_ptr<VarBase> new_var;
   if (IsParameterDefined(element)) {
     new_var = std::make_unique<Parameter>(name.name(), CHECK_NOTNULL(type_spec),
@@ -570,6 +575,8 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildExpression(
     return BuildArrayDefinition(expression.array_def(), context);
   } else if (expression.has_map_def()) {
     return BuildMapDefinition(expression.map_def(), context);
+  } else if (expression.has_tuple_def()) {
+    return BuildNamedTupleDefinition(expression.tuple_def(), context);
   } else if (expression.has_assignment()) {
     return BuildAssignment(expression.assignment(), context);
   } else if (expression.has_yield_expr()) {
@@ -853,23 +860,15 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildOperatorCall(
                    FindFunctionByName(scoped_name, type_spec, arguments),
                    _ << "Finding operator function: " << name
                      << context.ToErrorInfo("Applying operator on operands"));
-  return BuildFunctionApply(std::move(op_function), nullptr,
-                            std::move(operands), false, context);
-}
-
-absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionApply(
-    std::unique_ptr<FunctionBinding> apply_function,
-    std::unique_ptr<Expression> left_expression,
-    std::vector<std::unique_ptr<Expression>> argument_expressions,
-    bool is_method_call, const CodeContext& context) {
-  if (apply_function->fun.has_value()) {
-    RETURN_IF_ERROR(apply_function->fun.value()->Bind(apply_function.get()))
-        << "Binding function instance"
-        << context.ToErrorInfo("Applying function call");
-  }
-  return absl::make_unique<FunctionCallExpression>(
-      this, std::move(apply_function), std::move(left_expression),
-      std::move(argument_expressions), is_method_call);
+  ASSIGN_OR_RETURN(auto bound_function,
+                   op_function->fun.value()->Bind(op_function.get(), true),
+                   _ << "Binding operator function instance"
+                     << context.ToErrorInfo("Applying operator call"));
+  auto call_expression = absl::make_unique<FunctionCallExpression>(
+      this, std::move(op_function), nullptr, std::move(operands), false);
+  call_expression->set_dependent_functions(
+      absl::flat_hash_set<Function*>{bound_function});
+  return std::move(call_expression);
 }
 
 absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildArrayDefinition(
@@ -901,17 +900,55 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildMapDefinition(
   for (const auto& element : map_def.element()) {
     if (!element.has_key() || !element.has_value()) {
       return status::InvalidArgumentErrorBuilder()
-             << "Map element missing key " << kBugNotice
+             << "Map element missing key or value" << kBugNotice
              << context.ToErrorInfo("In map element definition");
     }
     ASSIGN_OR_RETURN(auto key_element, BuildExpression(element.key()),
-                     _ << "In map element definition of key");
+                     _ << "In map element key expression");
     ASSIGN_OR_RETURN(auto value_element, BuildExpression(element.value()),
-                     _ << "In map element definition of value");
+                     _ << "In map element value expression");
     elements.emplace_back(std::move(key_element));
     elements.emplace_back(std::move(value_element));
   }
   return std::make_unique<MapDefinitionExpression>(this, std::move(elements));
+}
+
+absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildNamedTupleDefinition(
+    const pb::NamedTupleDefinition& tuple_def, const CodeContext& context) {
+  if (tuple_def.element().empty()) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Empty named tuple definition not allowed" << kBugNotice
+           << context.ToErrorInfo("In named tuple definition");
+  }
+  std::vector<std::string> names;
+  std::vector<absl::optional<const TypeSpec*>> types;
+  std::vector<std::unique_ptr<Expression>> values;
+  names.reserve(tuple_def.element().size());
+  types.reserve(tuple_def.element().size());
+  values.reserve(tuple_def.element().size());
+  for (const auto& element : tuple_def.element()) {
+    ASSIGN_OR_RETURN(auto name, NameUtil::ValidatedName(element.name()),
+                     _ << "Invalid tuple element name."
+                       << context.ToErrorInfo("In named tuple definition"));
+    if (!element.has_value()) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Tuple element missing value" << kBugNotice
+             << context.ToErrorInfo("In map element definition");
+    }
+    ASSIGN_OR_RETURN(auto value, BuildExpression(element.value()),
+                     _ << "In tuple value expression");
+    if (element.has_type_spec()) {
+      ASSIGN_OR_RETURN(auto type_spec, FindType(element.type_spec()),
+                       _ << "Finding type for tuple element");
+      types.push_back(CHECK_NOTNULL(type_spec));
+    } else {
+      types.push_back({});
+    }
+    names.emplace_back(std::move(name));
+    values.emplace_back(std::move(value));
+  }
+  return std::make_unique<TupleDefinitionExpression>(
+      this, std::move(names), std::move(types), std::move(values));
 }
 
 namespace {
@@ -1112,7 +1149,10 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildLambdaExpression(
       Function * lambda_function,
       Function::BuildInScope(this, expression, function_name, context),
       _ << "Defining lambda function");
-  return {std::make_unique<LambdaExpression>(this, lambda_function)};
+  RET_CHECK(FunctionGroup::IsFunctionGroup(*lambda_function->parent()));
+  return {std::make_unique<LambdaExpression>(
+      this, lambda_function,
+      static_cast<FunctionGroup*>(lambda_function->parent()))};
 }
 
 absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildDotExpression(
@@ -1149,12 +1189,10 @@ absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildDotExpression(
 class FunctionCallHelper {
  public:
   FunctionCallHelper(Scope* scope, const pb::FunctionCall& expression,
-                     std::unique_ptr<Expression> left_expression,
-                     const CodeContext& context)
+                     std::unique_ptr<Expression> left_expression)
       : scope_(scope),
         expression_(expression),
         left_expression_(std::move(left_expression)),
-        context_(context),
         function_name_store_(scope) {}
   absl::StatusOr<std::unique_ptr<Expression>> PrepareCall() {
     RETURN_IF_ERROR(PrepareLeftExpression());
@@ -1187,9 +1225,18 @@ class FunctionCallHelper {
           _ << "Determining the type of function producing expression.");
       ASSIGN_OR_RETURN(function_binding, BindingFromType(type_spec));
     }
-    return scope_->BuildFunctionApply(
-        std::move(function_binding), std::move(left_expression_),
-        std::move(argument_expressions_), is_method_call_, context_);
+    if (function_binding->fun.has_value()) {
+      ASSIGN_OR_RETURN(
+          auto bound_function,
+          function_binding->fun.value()->Bind(function_binding.get(), true),
+          _ << "Binding function instance");
+      dependent_functions_.insert(bound_function);
+    }
+    auto call_expression = absl::make_unique<FunctionCallExpression>(
+        scope_, std::move(function_binding), std::move(left_expression_),
+        std::move(argument_expressions_), is_method_call_);
+    call_expression->set_dependent_functions(std::move(dependent_functions_));
+    return {std::move(call_expression)};
   }
 
  private:
@@ -1286,7 +1333,6 @@ class FunctionCallHelper {
       call_object_ = nullptr;
     }
     if (call_object_ && Function::IsMethodKind(*call_object_)) {
-      // TODO(catalin): work out this case if becomes a problem
       if (method_source_expression_) {
         arguments_.emplace_back(
             FunctionCallArgument{{}, method_source_expression_, {}});
@@ -1310,15 +1356,22 @@ class FunctionCallHelper {
     return absl::OkStatus();
   }
   absl::StatusOr<std::unique_ptr<FunctionBinding>> BindingFromCallObject() {
+    std::unique_ptr<FunctionBinding> function_binding;
     RET_CHECK(call_object_ != nullptr) << "No call object";
     if (Function::IsFunctionKind(*call_object_)) {
-      return static_cast<Function*>(call_object_)->BindArguments(arguments_);
+      ASSIGN_OR_RETURN(
+          function_binding,
+          static_cast<Function*>(call_object_)->BindArguments(arguments_));
+    } else if (FunctionGroup::IsFunctionGroup(*call_object_)) {
+      ASSIGN_OR_RETURN(
+          function_binding,
+          static_cast<FunctionGroup*>(call_object_)->FindSignature(arguments_));
     }
-    if (FunctionGroup::IsFunctionGroup(*call_object_)) {
-      return static_cast<FunctionGroup*>(call_object_)
-          ->FindSignature(arguments_);
+    if (!function_binding) {
+      ASSIGN_OR_RETURN(function_binding,
+                       BindingFromType(call_object_->type_spec()));
     }
-    return BindingFromType(call_object_->type_spec());
+    return {std::move(function_binding)};
   }
   absl::StatusOr<std::unique_ptr<FunctionBinding>> BindingFromType(
       const TypeSpec* type_spec) {
@@ -1329,10 +1382,29 @@ class FunctionCallHelper {
     const TypeFunction* fun_type_spec =
         static_cast<const TypeFunction*>(type_spec);
     ASSIGN_OR_RETURN(auto function_binding,
-                     FunctionBinding::BindType(
-                         fun_type_spec, scope_->pragma_handler(), arguments_),
+                     scope_->BindType(fun_type_spec, arguments_),
                      _ << "Binding call arguments to function type: "
                        << type_spec->full_name());
+    for (auto fun : fun_type_spec->function_instances()) {
+      ASSIGN_OR_RETURN(auto crt_bind, fun->Bind(function_binding.get(), false),
+                       _ << "Binding function on call");
+      dependent_functions_.insert(crt_bind);
+    }
+    if (call_object_ && VarBase::IsVarKind(*call_object_)) {
+      for (const TypeSpec* type_spec :
+           static_cast<const VarBase*>(call_object_)->assign_types()) {
+        if (fun_type_spec->IsAncestorOf(*type_spec)) {
+          auto crt_fun_type = static_cast<const TypeFunction*>(type_spec);
+          for (auto fun : crt_fun_type->function_instances()) {
+            ASSIGN_OR_RETURN(auto crt_bind,
+                             fun->Bind(function_binding.get(), false),
+                             _ << "Binding function on call on dependency of: "
+                               << call_object_->full_name());
+            dependent_functions_.insert(crt_bind);
+          }
+        }
+      }
+    }
     if (!left_expression_ && call_object_) {
       RET_CHECK(object_name_.has_value());
       left_expression_ = std::make_unique<Identifier>(
@@ -1345,7 +1417,6 @@ class FunctionCallHelper {
   Scope* const scope_;
   const pb::FunctionCall& expression_;
   std::unique_ptr<Expression> left_expression_;
-  const CodeContext& context_;
   // Where to find the function to call:
   NameStore* function_name_store_;
   // The object representing the function call: a Function or a FunctionGroup
@@ -1359,17 +1430,29 @@ class FunctionCallHelper {
   // Prepared arguments for the call:
   std::vector<std::unique_ptr<Expression>> argument_expressions_;
   std::vector<FunctionCallArgument> arguments_;
+  absl::flat_hash_set<Function*> dependent_functions_;
   bool is_method_call_ = false;
 };
 
 absl::StatusOr<std::unique_ptr<Expression>> Scope::BuildFunctionCall(
     const pb::FunctionCall& expression,
     std::unique_ptr<Expression> left_expression, const CodeContext& context) {
-  FunctionCallHelper call_helper(this, expression, std::move(left_expression),
-                                 context);
-  ASSIGN_OR_RETURN(auto call_expression, call_helper.PrepareCall(),
+  auto call_helper = std::make_unique<FunctionCallHelper>(
+      this, expression, std::move(left_expression));
+  absl::Cleanup mark_failed = [this, &call_helper]() {
+    failed_calls_.emplace_back(std::move(call_helper));
+  };
+  ASSIGN_OR_RETURN(auto call_expression, call_helper->PrepareCall(),
                    _ << context.ToErrorInfo("In function call"));
+  std::move(mark_failed).Cancel();
   return {std::move(call_expression)};
+}
+
+absl::StatusOr<std::unique_ptr<FunctionBinding>> Scope::BindType(
+    const TypeFunction* fun_type,
+    const std::vector<FunctionCallArgument>& arguments) {
+  return FunctionBinding::BindType(fun_type, pragma_handler(), arguments,
+                                   &failed_bindings_);
 }
 
 absl::StatusOr<const TypeSpec*> FunctionCallArgument::ArgType(

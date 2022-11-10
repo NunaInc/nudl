@@ -18,7 +18,9 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
+
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
@@ -49,20 +51,32 @@ struct FunctionBinding {
   // The expressions for the arguments - some may be default values.
   // Has the same size as type_arguments.
   std::vector<absl::optional<Expression*>> call_expressions;
+  // Specific bindings done for each arguments, in case they are functions.
+  std::vector<absl::optional<FunctionBinding*>> call_sub_bindings;
   // The names of the arguments. Has the same size as type_arguments.
   std::vector<std::string> names;
+
   // The bound type of the function resulted from the call. This is
   // obtained by binding the type_arguments to the fun->type_spec(),
   // using the default return type of the function.
   const TypeSpec* type_spec = nullptr;
 
+  // NOTE:
+  //    type_arguments, call_expressions, call_sub_bindings and names
+  //    All have the same size. Checked by this:
+  // May switch to a single vector, of a struct, but they are harder to
+  // fill that that way.. to see.
+  void CheckCounts() const;
+
   // Tries to bind a vector of arguments to a function object.
   // TODO(catalin): Can probably change arguments to absl::Span<const...>
   static absl::StatusOr<std::unique_ptr<FunctionBinding>> Bind(
-      Function* fun, const std::vector<FunctionCallArgument>& arguments);
+      Function* fun, const std::vector<FunctionCallArgument>& arguments,
+      std::vector<std::unique_ptr<FunctionBinding>>* failed_bindings);
   static absl::StatusOr<std::unique_ptr<FunctionBinding>> BindType(
       const TypeFunction* fun_type, const PragmaHandler* pragmas,
-      const std::vector<FunctionCallArgument>& arguments);
+      const std::vector<FunctionCallArgument>& arguments,
+      std::vector<std::unique_ptr<FunctionBinding>>* failed_bindings);
 
   // If this binding is less specific than the provided binding.
   bool IsAncestorOf(const FunctionBinding& binding) const;
@@ -83,9 +97,11 @@ struct FunctionBinding {
                             LocalNamesRebinder* rebinder);
   absl::Status UseRemainingArguments(
       const std::vector<FunctionCallArgument>& arguments);
-  absl::StatusOr<const TypeSpec*> RebindFunctionArgument(
-      absl::string_view arg_name, const FunctionCallArgument& call_arg,
-      const TypeSpec* rebuilt_type);
+  absl::StatusOr<std::pair<const TypeSpec*, std::optional<FunctionBinding*>>>
+  RebindFunctionArgument(absl::string_view arg_name,
+                         const FunctionCallArgument& call_arg,
+                         const TypeSpec* call_type,
+                         const TypeSpec* rebuilt_type);
 
   // Storage for return type and other types created during the binding
   // process.
@@ -107,6 +123,11 @@ class FunctionGroup : public Scope {
   pb::ObjectKind kind() const override;
   const TypeSpec* type_spec() const override;
   const std::vector<Function*> functions() const;
+
+  // The last component of the name:
+  std::string call_name() const;
+  // The fully qualified name.
+  ScopedName qualified_call_name() const;
 
   absl::Status AddFunction(Function* fun);
   absl::StatusOr<ScopeName> GetNextFunctionName();
@@ -162,12 +183,19 @@ class Function : public Scope {
   pb::ObjectKind kind() const override;
   // The way in which the result is produced by the function.
   pb::FunctionResultKind result_kind() const;
+  // The function group this function belongs to:
+  FunctionGroup* function_group() const;
   // The scope in which the function was defined.
   Scope* definition_scope() const;
   // All specific type bindings:
   const std::vector<std::unique_ptr<Function>>& bindings() const;
   // A set with all bindings:
-  const absl::flat_hash_set<Function*>& bindings_set() const;
+  const absl::flat_hash_map<Function*, std::pair<size_t, std::string>>&
+  bindings_by_function() const;
+  // A map from binding signature to bound function:
+  const absl::flat_hash_map<std::string,
+                            std::pair<std::optional<size_t>, Function*>>&
+  bindings_by_name() const;
   // Returns true if fun is a binding of this function (or itself):
   bool IsBinding(const Function* fun) const;
 
@@ -184,6 +212,11 @@ class Function : public Scope {
   // The body of the function in proto format, if non native.
   std::shared_ptr<pb::ExpressionBlock> function_body() const;
 
+  // If this function does not have a known concrete implementation
+  // in itself (though it may have some concrete bindings, for specific
+  // types)
+  bool is_abstract() const;
+
   // If the function has a native implementation
   bool is_native() const;
 
@@ -191,6 +224,11 @@ class Function : public Scope {
   bool is_struct_constructor() const;
   // If this native function should not be converted:
   bool is_skip_conversion() const;
+
+  // TypeSignature of this function / corresponding binding:
+  std::string type_signature() const;
+  // The possibly abstract parent that bound this function with types.
+  absl::optional<Function*> binding_parent() const;
 
   // The native implementation blocks:
   const absl::flat_hash_map<std::string, std::string>& native_impl() const;
@@ -204,7 +242,8 @@ class Function : public Scope {
   // Creates a new function in which arguments and types are bound
   // to bound types. Possibly updates the binding->function to
   // a newly created instance
-  absl::Status Bind(FunctionBinding* binding);
+  absl::StatusOr<Function*> Bind(FunctionBinding* binding,
+                                 bool update_function);
 
   // TODO(catalin): Can probably change arguments to absl::Span<const...>
   absl::StatusOr<std::unique_ptr<FunctionBinding>> BindArguments(
@@ -235,7 +274,7 @@ class Function : public Scope {
  protected:
   Function(std::shared_ptr<ScopeName> scope_name,
            absl::string_view function_name, pb::ObjectKind object_kind,
-           Scope* parent, Scope* definition_scope);
+           FunctionGroup* parent, Scope* definition_scope);
 
   // Next functions are used during initialization.
 
@@ -252,7 +291,8 @@ class Function : public Scope {
 
   // Another way to initialize a function, as a bind instance from
   // the function in binding->fun; type_signature provided as a shortcut.
-  absl::Status InitBindInstance(absl::string_view type_signature,
+  absl::Status InitBindInstance(Function* binding_parent,
+                                absl::string_view type_signature,
                                 FunctionBinding* binding);
 
   // Builds the expression from function_body, and binds the computed
@@ -274,6 +314,8 @@ class Function : public Scope {
   // The defined function name - note that name_ may be different,
   // based on instance.
   std::string function_name_;
+  // Function group it belongs to - same as parent, but already typed.
+  FunctionGroup* const function_group_;
   // The scope where the function was defined - may not be the parent_.
   Scope* const definition_scope_;
   // The kind of the function:
@@ -322,10 +364,14 @@ class Function : public Scope {
   absl::optional<Function*> binding_parent_;
   // Functions instantiated per type Bind calls.
   std::vector<std::unique_ptr<Function>> bindings_;
-  // For fast finding of functions bound by this:
-  absl::flat_hash_set<Function*> bindings_set_;
-  // Map from binding type signature to bound function.
-  absl::flat_hash_map<std::string, Function*> bindings_map_;
+  // Maps from bound function to bind index and binding signature.
+  absl::flat_hash_map<Function*, std::pair<size_t, std::string>>
+      bindings_by_function_;
+  // Map from binding type signature to bound function and index in parent.
+  absl::flat_hash_map<std::string, std::pair<std::optional<size_t>, Function*>>
+      bindings_by_name_;
+  // Binds that failed at some point, keep them around for unified destruction.
+  std::vector<std::unique_ptr<Function>> failed_instances_;
 };
 
 // Annotations for semi-native structure implementations, which

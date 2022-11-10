@@ -39,7 +39,9 @@ namespace analysis {
 class Expression;
 class Function;
 struct FunctionBinding;
+class FunctionCallHelper;
 class PragmaHandler;
+class TypeFunction;
 class VarBase;
 
 // An argument provided to a function call.
@@ -127,7 +129,7 @@ class Scope : public BaseNameStore {
   // Parses the provided name and returns the type.
   absl::StatusOr<const TypeSpec*> FindTypeByName(absl::string_view type_name);
   // Returs a local name for unnamed scopes and objects.
-  static inline constexpr absl::string_view kLocalNamePrefix = "__local_";
+  static inline constexpr absl::string_view kLocalNamePrefix = "_local_";
   std::string NextLocalName(absl::string_view name,
                             absl::string_view prefix = kLocalNamePrefix);
 
@@ -211,6 +213,8 @@ class Scope : public BaseNameStore {
       const pb::ArrayDefinition& array_def, const CodeContext& context);
   absl::StatusOr<std::unique_ptr<Expression>> BuildMapDefinition(
       const pb::MapDefinition& map_def, const CodeContext& context);
+  absl::StatusOr<std::unique_ptr<Expression>> BuildNamedTupleDefinition(
+      const pb::NamedTupleDefinition& map_def, const CodeContext& context);
   absl::StatusOr<std::unique_ptr<Expression>> BuildIfExpression(
       const pb::IfExpression& if_expr, const CodeContext& context);
   absl::StatusOr<std::unique_ptr<Expression>> BuildIndexExpression(
@@ -222,12 +226,10 @@ class Scope : public BaseNameStore {
   absl::StatusOr<std::unique_ptr<Expression>> BuildFunctionCall(
       const pb::FunctionCall& expression,
       std::unique_ptr<Expression> left_expression, const CodeContext& context);
+  absl::StatusOr<std::unique_ptr<FunctionBinding>> BindType(
+      const TypeFunction* fun_type,
+      const std::vector<FunctionCallArgument>& arguments);
 
-  absl::StatusOr<std::unique_ptr<Expression>> BuildFunctionApply(
-      std::unique_ptr<FunctionBinding> apply_function,
-      std::unique_ptr<Expression> left_expression,
-      std::vector<std::unique_ptr<Expression>> arguments, bool is_method_call,
-      const CodeContext& context);
   friend class FunctionCallHelper;
 
   std::shared_ptr<ScopeName> const scope_name_;
@@ -245,6 +247,11 @@ class Scope : public BaseNameStore {
   std::vector<std::unique_ptr<Expression>> expressions_;
   // This is more for obtaining better names in bindings.
   absl::flat_hash_map<std::string, size_t> binding_name_index_;
+  // Various object that we keep around after failure, as they
+  // own types and such.
+  std::vector<std::unique_ptr<NamedObject>> failed_names_;
+  std::vector<std::unique_ptr<FunctionCallHelper>> failed_calls_;
+  std::vector<std::unique_ptr<FunctionBinding>> failed_bindings_;
 };
 
 }  // namespace analysis

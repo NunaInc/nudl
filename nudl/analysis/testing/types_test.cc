@@ -62,6 +62,42 @@ static const char* const kNumericTypeNames[] = {
     "Int",    "Int8",   "Int16",   "Int32",   "UInt",    "UInt8",
     "UInt16", "UInt32", "Float32", "Float64", "Decimal", "Integral"};
 
+std::string GetDefaultValue(absl::string_view type_name) {
+  static const auto kDefaultValues =
+      new absl::flat_hash_map<std::string, std::string>({
+          {"Null", R"(literal { null_value: NULL_VALUE })"},
+          {"Int", R"(literal { int_value: 0 })"},
+          {"Int8", R"(literal { int_value: 0 })"},
+          {"Int16", R"(literal { int_value: 0 })"},
+          {"Int32", R"(literal { int_value: 0 })"},
+          {"UInt", R"(literal { uint_value: 0 })"},
+          {"UInt8", R"(literal { uint_value: 0 })"},
+          {"UInt16", R"(literal { uint_value: 0 })"},
+          {"UInt32", R"(literal { uint_value: 0 })"},
+          {"String", R"(literal { str_value: "" })"},
+          {"Bytes", R"(literal { bytes_value: "" })"},
+          {"Bool", R"(literal { bool_value: true })"},
+          {"Float32", R"(literal { float_value: 0 })"},
+          {"Float64", R"(literal { double_value: 0 })"},
+          {"Date", R"(function_call { identifier { name: "default_date" } })"},
+          {"DateTime",
+           R"(function_call { identifier { name: "default_datetime" } })"},
+          {"TimeInterval", R"(literal { time_range { } })"},
+          {"Timestamp",
+           R"(function_call { identifier { name: "default_timestamp" } })"},
+          {"Decimal",
+           R"(function_call { identifier { name: "default_decimal" } })"},
+          {"Array", R"(empty_struct: NULL_VALUE)"},
+          {"Set", R"(empty_struct: NULL_VALUE)"},
+          {"Map", R"(empty_struct: NULL_VALUE)"},
+      });
+  auto it = kDefaultValues->find(type_name);
+  if (it == kDefaultValues->end()) {
+    return "";
+  }
+  return it->second;
+}
+
 absl::string_view BoolValue(bool value) {
   if (value) {
     return "true";
@@ -130,6 +166,13 @@ TEST_F(TypesTest, BaseTypes) {
       EXPECT_EQ(kUnBoundTypes.count(std::string(name)), 0) << "For: " << name;
     } else {
       EXPECT_EQ(kUnBoundTypes.count(std::string(name)), 1) << "For: " << name;
+    }
+    auto default_val = typespec->DefaultValueExpression();
+    auto expected_default = GetDefaultValue(name);
+    if (default_val.ok()) {
+      EXPECT_THAT(default_val.value(), EqualsProto(expected_default));
+    } else {
+      EXPECT_EQ(expected_default, "");
     }
     auto clone = typespec->Clone();
     EXPECT_EQ(clone->type_id(), typespec->type_id());
@@ -267,6 +310,13 @@ TEST_F(TypesTest, Functions) {
   };
   // clang-format on
   CheckTypes(kTypeNames, kIsAncestor, kIsConvertible, kIsBound);
+  ASSERT_OK_AND_ASSIGN(auto fun, FindType("Function"));
+  auto ffun = static_cast<const TypeFunction*>(fun);
+  EXPECT_RAISES_WITH_MESSAGE_THAT(ffun->Bind({}).status(), InvalidArgument,
+                                  testing::HasSubstr("Empty binding"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(ffun->BindWithFunction(*ffun).status(),
+                                  InvalidArgument,
+                                  testing::HasSubstr("Cannot bind abstract"));
 }
 
 TEST_F(TypesTest, Structs) {
@@ -453,6 +503,30 @@ TEST_F(TypesTest, Unions) {
   ASSERT_OK_AND_ASSIGN(auto union2, FindType("Nullable<Numeric>"));
   ASSERT_OK_AND_ASSIGN(auto bound4, union2->Bind({FindType("Int").value()}));
   EXPECT_EQ(bound4->type_id(), pb::TypeId::INT_ID);
+  EXPECT_RAISES(FindType("Union<Int>").status(), InvalidArgument);
+  EXPECT_TRUE(FindType("Nullable<Int>")
+                  .value()
+                  ->IsEqual(*FindType("Nullable<Nullable<Int>>").value()));
+  EXPECT_RAISES(FindType("Nullable<Null>").status(), InvalidArgument);
+  ASSERT_OK_AND_ASSIGN(auto null_type, FindType("Null"));
+  ASSERT_OK_AND_ASSIGN(auto int_type, FindType("Int"));
+  EXPECT_RAISES(null_type->Bind({int_type, int_type}).status(),
+                InvalidArgument);
+  EXPECT_EQ(null_type->Bind({int_type}).value()->full_name(), "Nullable<Int>");
+  EXPECT_EQ(
+      null_type->Bind({FindType("Nullable<Int>").value()}).value()->full_name(),
+      "Nullable<Int>");
+  ASSERT_OK_AND_ASSIGN(auto nullable_type, FindType("Nullable"));
+  auto nullable_int = FindType("Nullable<Int>").value();
+  EXPECT_TRUE(nullable_type->Bind({int_type, null_type})
+                  .value()
+                  ->IsEqual(*nullable_int));
+  EXPECT_RAISES(nullable_int->Bind({FindType("String").value()}).status(),
+                InvalidArgument);
+  EXPECT_TRUE(nullable_int->Bind({FindType("Int8").value()})
+                  .value()
+                  ->IsEqual(*FindType("Int8").value()));
+  EXPECT_TRUE(nullable_int->Clone()->IsEqual(*nullable_int));
 }
 
 TEST_F(TypesTest, Tuples) {
@@ -644,12 +718,22 @@ TEST_F(TypesTest, TypeMemberStore) {
                   type_id: NULLABLE_ID
                   name: "Nullable"
                   parameter { type_id: NULL_ID name: "Null" }
-                  parameter { type_id: NUMERIC_ID name: "Numeric" }
+                  parameter {
+                    type_id: NUMERIC_ID
+                    name: "Numeric"
+                    scope_name { module_name: "foo" module_name: "bar" }
+                  }
+                  scope_name { module_name: "foo" module_name: "bar" }
                 }
                 parameter { type_id: INT_ID name: "Int" }
-                parameter { type_id: NUMERIC_ID name: "Numeric" }
+                parameter {
+                  type_id: NUMERIC_ID
+                  name: "Numeric"
+                  scope_name { module_name: "foo" module_name: "bar" }
+                }
                 parameter_name: "arg_1"
                 parameter_name: "arg_2"
+                scope_name { module_name: "foo" module_name: "bar" }
               )pb"));
 
   EXPECT_OK(ftype->set_name("foobarsky"));
@@ -707,42 +791,40 @@ TEST_F(TypesTest, Decimal) {
   EXPECT_EQ(type_dec->full_name(), "Decimal");
   EXPECT_EQ(type_dec->type_spec()->type_id(), pb::TypeId::TYPE_ID);
   EXPECT_EQ(type_dec->type_spec()->Clone()->type_id(), pb::TypeId::TYPE_ID);
-  ASSERT_OK_AND_ASSIGN(auto td,
-                       type_dec->Bind({TypeBindingArg{10}, TypeBindingArg{3}}));
+  ASSERT_OK_AND_ASSIGN(auto td, type_dec->Bind({10, 3}));
   EXPECT_EQ(td->full_name(), "Decimal<10, 3>");
   EXPECT_THAT(td->ToProto(), EqualsProto(R"pb(type_id: DECIMAL_ID
                                               name: "Decimal"
                                               parameter_value: 10
                                               parameter_value: 3)pb"));
-  EXPECT_RAISES(td->Bind({TypeBindingArg{10}, TypeBindingArg{2}}).status(),
-                InvalidArgument);
-  EXPECT_RAISES(
-      type_dec->Bind({TypeBindingArg{10}, TypeBindingArg{11}}).status(),
-      InvalidArgument);
-  EXPECT_RAISES(type_dec->Bind({TypeBindingArg{0}, TypeBindingArg{0}}).status(),
-                InvalidArgument);
-  EXPECT_RAISES(
-      type_dec->Bind({TypeBindingArg{10}, TypeBindingArg{-1}}).status(),
-      InvalidArgument);
-  EXPECT_RAISES(
-      type_dec
-          ->Bind({TypeBindingArg{10}, TypeBindingArg{1}, TypeBindingArg{22}})
-          .status(),
-      InvalidArgument);
-  EXPECT_RAISES(type_dec
-                    ->Bind({TypeBindingArg{TypeDecimal::kMaxPrecision + 1},
-                            TypeBindingArg{1}})
-                    .status(),
+  EXPECT_THAT(td->ToTypeSpecProto(), EqualsProto(R"pb(
+                identifier { name: "Decimal" }
+                argument { int_value: 10 }
+                argument { int_value: 3 }
+              )pb"));
+  EXPECT_RAISES(td->Bind({10, 2}).status(), InvalidArgument);
+  EXPECT_RAISES(type_dec->Bind({10, 11}).status(), InvalidArgument);
+  EXPECT_RAISES(type_dec->Bind({0, 0}).status(), InvalidArgument);
+  EXPECT_RAISES(type_dec->Bind({10, -1}).status(), InvalidArgument);
+  EXPECT_RAISES(type_dec->Bind({10, 1, 22}).status(), InvalidArgument);
+  EXPECT_RAISES(type_dec->Bind({TypeDecimal::kMaxPrecision + 1, 1}).status(),
                 InvalidArgument);
 }
 
 TEST_F(TypesTest, Dataset) {
   ASSERT_OK_AND_ASSIGN(auto type_dset, FindType("Dataset"));
   EXPECT_EQ(type_dset->full_name(), "Dataset<Any>");
+  EXPECT_EQ(type_dset->ResultType()->full_name(), "Any");
   EXPECT_EQ(type_dset->Clone()->full_name(), "Dataset<Any>");
   auto type_int = const_cast<TypeSpec*>(FindType("Int").value());
-  ASSERT_OK_AND_ASSIGN(auto td2, type_dset->Bind({TypeBindingArg{type_int}}));
+  ASSERT_OK_AND_ASSIGN(auto td2, type_dset->Bind({type_int}));
   EXPECT_EQ(td2->full_name(), "Dataset<Int>");
+  EXPECT_EQ(td2->ResultType()->full_name(), "Int");
+  EXPECT_RAISES(type_dset->Bind({}).status(), InvalidArgument);
+  EXPECT_RAISES(type_dset->Bind({type_int, type_int}), InvalidArgument);
+  EXPECT_RAISES(type_dset->Bind({FindType("Function").value()}),
+                InvalidArgument);
+  EXPECT_RAISES(td2->Bind({FindType("String").value()}), InvalidArgument);
 }
 
 TEST_F(TypesTest, Struct) {
@@ -750,16 +832,14 @@ TEST_F(TypesTest, Struct) {
   EXPECT_RAISES(type_struct->Bind({}).status(), InvalidArgument);
   auto type_int = FindType("Int").value();
   auto type_int8 = FindType("Int8").value();
-  ASSERT_OK_AND_ASSIGN(auto struct1,
-                       type_struct->Bind({TypeBindingArg{type_int}}));
+  ASSERT_OK_AND_ASSIGN(auto struct1, type_struct->Bind({type_int}));
   EXPECT_THAT(struct1->ToProto(), EqualsProto(R"pb(
                 type_id: STRUCT_ID
                 name: "Struct"
                 parameter { type_id: INT_ID name: "Int" }
                 parameter_name: "field_0"
               )pb"));
-  ASSERT_OK_AND_ASSIGN(auto struct2,
-                       struct1->Bind({TypeBindingArg{type_int8}}));
+  ASSERT_OK_AND_ASSIGN(auto struct2, struct1->Bind({type_int8}));
   EXPECT_THAT(struct2->ToProto(), EqualsProto(R"pb(
                 type_id: STRUCT_ID
                 name: "Struct"
@@ -849,21 +929,21 @@ TEST_F(TypesTest, TypesFromBindings) {
       auto f, FindType("Function<Array<Int>, String, Int>", "foo.bar"));
 
   auto type_int = FindType("Int").value();
-  EXPECT_RAISES_WITH_MESSAGE_THAT(
-      type_int->TypesFromBindings({TypeBindingArg{type_int}}), InvalidArgument,
-      testing::HasSubstr("Expecting 0 arguments"));
-  EXPECT_RAISES_WITH_MESSAGE_THAT(f->TypesFromBindings({TypeBindingArg{20}}),
+  EXPECT_RAISES_WITH_MESSAGE_THAT(type_int->TypesFromBindings({type_int}),
                                   InvalidArgument,
+                                  testing::HasSubstr("Expecting 0 arguments"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(f->TypesFromBindings({20}), InvalidArgument,
                                   testing::HasSubstr("Expecting only types"));
-  EXPECT_RAISES_WITH_MESSAGE_THAT(
-      f->TypesFromBindings({TypeBindingArg{type_int}}), InvalidArgument,
-      testing::HasSubstr("Expecting an argument"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(f->TypesFromBindings({type_int}),
+                                  InvalidArgument,
+                                  testing::HasSubstr("Expecting an argument"));
   EXPECT_RAISES_WITH_MESSAGE_THAT(f->TypesFromBindings({}, true, 1),
                                   InvalidArgument,
                                   testing::HasSubstr("Expecting at least 1"));
   EXPECT_RAISES_WITH_MESSAGE_THAT(f->TypesFromBindings({}), InvalidArgument,
                                   testing::HasSubstr("Expecting 3 arguments"));
 }
+
 TEST_F(TypesTest, FunctionAncestry) {
   ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar"));
   ASSERT_OK(store_.AddScope(std::make_shared<ScopeName>(scope_name)));
@@ -874,6 +954,378 @@ TEST_F(TypesTest, FunctionAncestry) {
   EXPECT_TRUE(f2->IsAncestorOf(*f1));
   EXPECT_FALSE(f1->IsAncestorOf(*f2));
   EXPECT_FALSE(f1->IsEqual(*f2));
+}
+
+TEST_F(TypesTest, TupleJoinsSimple) {
+  ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar"));
+  ASSERT_OK(store_.AddScope(std::make_shared<ScopeName>(scope_name)));
+  ASSERT_OK_AND_ASSIGN(auto t1, FindType("Tuple<Int, String, Float64>"));
+  ASSERT_OK_AND_ASSIGN(auto tt1, FindType("TupleJoin<Int, String, Float64>"));
+  EXPECT_TRUE(t1->IsEqual(*tt1))
+      << t1->full_name() << " / " << tt1->full_name();
+  EXPECT_TRUE(tt1->Clone()->IsEqual(*tt1));
+  ASSERT_OK_AND_ASSIGN(auto tt2,
+                       FindType("TupleJoin<Int, Tuple<String, Float64>>"));
+  EXPECT_RAISES(tt2->Bind({}), InvalidArgument);
+  EXPECT_TRUE(!t1->IsEqual(*tt2));
+  ASSERT_OK_AND_ASSIGN(auto tt2_bound,
+                       tt2->Bind({FindType("Int").value(),
+                                  FindType("Tuple<String, Float64>").value()}));
+  EXPECT_TRUE(t1->IsEqual(*tt2_bound))
+      << t1->full_name() << " / " << tt2_bound->full_name();
+  EXPECT_TRUE(tt2->IsAncestorOf(*tt2_bound));
+  EXPECT_TRUE(tt2->IsConvertibleFrom(*tt2_bound));
+  ASSERT_OK_AND_ASSIGN(auto tt3,
+                       FindType("TupleJoin<Tuple<Int, String, Float64>>"));
+  EXPECT_TRUE(!t1->IsEqual(*tt3));
+  ASSERT_OK_AND_ASSIGN(
+      auto tt3_bound,
+      tt3->Bind({FindType("Tuple<Int, String, Float64>").value()}));
+  EXPECT_TRUE(t1->IsEqual(*tt3_bound))
+      << t1->full_name() << " / " << tt3_bound->full_name();
+  ASSERT_OK_AND_ASSIGN(auto tt4,
+                       FindType("TupleJoin<Tuple<Int, String>, Float64>>"));
+  EXPECT_TRUE(!t1->IsEqual(*tt4));
+  ASSERT_OK_AND_ASSIGN(auto tt4_bound,
+                       tt4->Bind({FindType("Tuple<Int, String>").value(),
+                                  FindType("Float64").value()}));
+  EXPECT_TRUE(t1->IsEqual(*tt4_bound))
+      << t1->full_name() << " / " << tt4_bound->full_name();
+}
+
+TEST_F(TypesTest, FunctionDefault) {
+  ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar"));
+  ASSERT_OK_AND_ASSIGN(auto f1, FindType("Function<Int, String, Bool>"));
+  ASSERT_OK_AND_ASSIGN(auto f1_default, f1->DefaultValueExpression());
+  EXPECT_THAT(
+      f1_default, EqualsProto(R"pb(
+        lambda_def {
+          param {
+            name: "arg_1"
+            type_spec { identifier { name: "Int" } }
+          }
+          param {
+            name: "arg_2"
+            type_spec { identifier { name: "String" } }
+          }
+          result_type { identifier { name: "Bool" } }
+          expression_block { expression { literal { bool_value: true } } }
+        })pb"));
+}
+
+TEST_F(TypesTest, FunctionBindWithComponents) {
+  ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar"));
+  ASSERT_OK_AND_ASSIGN(auto f, FindType("Function"));
+  auto args = std::vector<TypeFunction::Argument>(
+      {TypeFunction::Argument{"int_arg", "", FindType("Int").value()},
+       TypeFunction::Argument{"str_arg", "",
+                              FindType("Array<String>").value()}});
+  auto res_type = FindType("Bool").value();
+  auto ff = static_cast<const TypeFunction*>(f);
+  EXPECT_RAISES(ff->BindWithComponents(args, res_type, 3).status(),
+                FailedPrecondition);
+  ASSERT_OK_AND_ASSIGN(auto f2, ff->BindWithComponents(args, res_type, {}));
+  EXPECT_EQ(f2->full_name(),
+            "Function<Bool(int_arg: Int, str_arg: Array<String>)>");
+  auto ff2 = static_cast<const TypeFunction*>(f2.get());
+  ASSERT_OK_AND_ASSIGN(auto f3, ff2->BindWithComponents(args, res_type, {}));
+  EXPECT_EQ(f3->full_name(),
+            "Function<Bool(int_arg: Int, str_arg: Array<String>)>");
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      ff2->BindWithComponents(args, FindType("String").value(), {}).status(),
+      InvalidArgument,
+      testing::HasSubstr("is not compatible with function result type"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      ff2->BindWithComponents(std::vector<TypeFunction::Argument>({args[0]}),
+                              res_type, {})
+          .status(),
+      InvalidArgument, testing::HasSubstr("Not enough arguments"));
+  auto args_many = args;
+  args_many.emplace_back(TypeFunction::Argument{"bool_arg", "", res_type});
+  args_many.emplace_back(TypeFunction::Argument{"bool_arg2", "", res_type});
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      ff2->BindWithComponents(args_many, res_type, {}).status(),
+      InvalidArgument, testing::HasSubstr("Too many arguments"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      ff2->BindWithComponents(args_many, res_type, 3).status(), InvalidArgument,
+      testing::HasSubstr("Too many arguments"));
+  auto args_bad = std::vector<TypeFunction::Argument>(
+      {TypeFunction::Argument{"int_arg", "", FindType("Int").value()},
+       TypeFunction::Argument{"str_arg", "", FindType("String").value()}});
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      ff2->BindWithComponents(args_bad, res_type, {}).status(), InvalidArgument,
+      testing::HasSubstr("Bind argument at index: 1"));
+  const_cast<TypeFunction*>(ff2)->set_first_default_value_index(1);
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      ff2->BindWithComponents(args, res_type, {}).status(), InvalidArgument,
+      testing::HasSubstr("Cannot bind function"));
+}
+
+struct AggregateTupleBuilder {
+  AggregateTupleBuilder(const TypeTuple* base_type, const TypeSpec* val_type)
+      : base_type(base_type), val_type(val_type) {
+    names.emplace_back("_agg");
+    types.emplace_back(val_type);
+  }
+  AggregateTupleBuilder& AddAggregate(absl::string_view aggregate_type,
+                                      absl::string_view field_name,
+                                      const TypeSpec* type_spec) {
+    new_types.emplace_back(std::make_unique<TypeTuple>(
+        base_type->type_store(), base_type->type_member_store_ptr(),
+        std::vector<const TypeSpec*>({type_spec}),
+        std::vector<std::string>({std::string(field_name)})));
+    names.emplace_back(aggregate_type);
+    types.emplace_back(new_types.back().get());
+    return *this;
+  }
+  const TypeSpec* Build() {
+    new_types.emplace_back(std::make_unique<TypeTuple>(
+        base_type->type_store(), base_type->type_member_store_ptr(),
+        std::move(types), std::move(names)));
+    return new_types.back().get();
+  }
+  const TypeTuple* base_type;
+  const TypeSpec* val_type;
+  std::vector<std::string> names;
+  std::vector<const TypeSpec*> types;
+  std::vector<std::unique_ptr<TypeSpec>> new_types;
+};
+
+TEST_F(TypesTest, Aggregate) {
+  ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(FindType("DatasetAggregate<1>").status(),
+                                  InvalidArgument,
+                                  testing::HasSubstr("Extracting types"));
+  ASSERT_OK_AND_ASSIGN(auto agg_type, FindType("DatasetAggregate"));
+  ASSERT_OK_AND_ASSIGN(auto ttype, FindType("Tuple"));
+  auto tuple_type = static_cast<const TypeTuple*>(ttype);
+  ASSERT_OK_AND_ASSIGN(auto struct_type, FindType("Struct<Int, String>"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      agg_type->Bind({FindType("Int").value()}).status(), InvalidArgument,
+      testing::HasSubstr("expected to be a tuple"));
+
+  AggregateTupleBuilder builder1(tuple_type, struct_type);
+  builder1.AddAggregate("count", "my_count", FindType("Int").value())
+      .AddAggregate("sum", "my_sum", FindType("Int").value())
+      .AddAggregate("to_set", "my_set", FindType("String").value())
+      .AddAggregate("to_array", "my_array", FindType("Bytes").value());
+  ASSERT_OK_AND_ASSIGN(auto agg1, agg_type->Bind({builder1.Build()}));
+  EXPECT_EQ(agg1->type_id(), pb::TypeId::DATASET_ID);
+  EXPECT_TRUE(agg_type->IsAncestorOf(*agg1));
+  EXPECT_TRUE(agg_type->IsConvertibleFrom(*agg1));
+  ASSERT_TRUE(agg1->ResultType() != nullptr);
+  auto pb = agg1->ResultType()->ToProto();
+  pb.clear_name();
+  EXPECT_THAT(pb, EqualsProto(R"pb(
+                type_id: STRUCT_ID
+                parameter { type_id: INT_ID name: "Int" }
+                parameter { type_id: INT_ID name: "Int" }
+                parameter {
+                  type_id: SET_ID
+                  name: "Set"
+                  parameter { type_id: STRING_ID name: "String" }
+                }
+                parameter {
+                  type_id: ARRAY_ID
+                  name: "Array"
+                  parameter { type_id: BYTES_ID name: "Bytes" }
+                }
+                parameter_name: "my_count"
+                parameter_name: "my_sum"
+                parameter_name: "my_set"
+                parameter_name: "my_array"
+              )pb"));
+  EXPECT_TRUE(agg1->Clone()->IsEqual(*agg1));
+  ASSERT_OK_AND_ASSIGN(
+      auto agg_base,
+      agg_type->Build({FindType("Tuple<Struct<Int, String>, Tuple>").value()}));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      agg_type->Bind({FindType("Int").value(), FindType("Int").value()})
+          .status(),
+      InvalidArgument, testing::HasSubstr("Expecting exactly one"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      agg_base->Bind({FindType("Int").value()}).status(), InvalidArgument,
+      testing::HasSubstr("Extracting types"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      agg_type->Bind({FindType("Int").value()}).status(), InvalidArgument,
+      testing::HasSubstr("expected to be a tuple"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      agg_type->Bind({FindType("Tuple<Int, Int>").value()}).status(),
+      InvalidArgument, testing::HasSubstr("badly built at index: 1"));
+  AggregateTupleBuilder builder2(tuple_type, struct_type);
+  builder2.AddAggregate("sum", "my_sum", FindType("String").value());
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      agg_type->Bind({builder2.Build()}).status(), InvalidArgument,
+      testing::HasSubstr("expects a numeric value"));
+  AggregateTupleBuilder builder3(tuple_type, struct_type);
+  builder3.AddAggregate("sum", "my_sum", FindType("Function").value());
+  EXPECT_RAISES_WITH_MESSAGE_THAT(agg_type->Bind({builder3.Build()}).status(),
+                                  InvalidArgument,
+                                  testing::HasSubstr("Abstract function"));
+  AggregateTupleBuilder builder4(tuple_type, struct_type);
+  builder4.AddAggregate("count", "my_count", FindType("Int").value())
+      .AddAggregate("sum", "my_count", FindType("Int").value());
+  EXPECT_RAISES_WITH_MESSAGE_THAT(agg_type->Bind({builder4.Build()}).status(),
+                                  InvalidArgument,
+                                  testing::HasSubstr("Duplicated field name"));
+  AggregateTupleBuilder builder5(tuple_type, struct_type);
+  builder5.AddAggregate("count", "arg_2", FindType("Int").value())
+      .AddAggregate("sum", "", FindType("Int").value())
+      .AddAggregate("count", "", FindType("Int").value())
+      .AddAggregate("sum", "", FindType("Int").value());
+  ASSERT_OK_AND_ASSIGN(auto agg2, agg_type->Bind({builder5.Build()}));
+  pb = agg2->ResultType()->ToProto();
+  pb.clear_name();
+  EXPECT_THAT(pb, EqualsProto(R"pb(
+                type_id: STRUCT_ID
+                parameter { type_id: INT_ID name: "Int" }
+                parameter { type_id: INT_ID name: "Int" }
+                parameter { type_id: INT_ID name: "Int" }
+                parameter { type_id: INT_ID name: "Int" }
+                parameter_name: "arg_2"
+                parameter_name: "arg_3"
+                parameter_name: "arg_4"
+                parameter_name: "arg_5"
+              )pb"));
+}
+
+struct JoinTupleBuilder {
+  JoinTupleBuilder(const TypeTuple* base_type, const TypeSpec* dataset_type)
+      : base_type(base_type), dataset_type(dataset_type) {}
+  JoinTupleBuilder& AddJoin(absl::string_view join_type,
+                            absl::string_view join_field,
+                            const TypeSpec* struct_type,
+                            const TypeSpec* fun_type) {
+    new_types.emplace_back(dataset_type->Bind({struct_type}).value());
+    new_types.emplace_back(std::make_unique<TypeTuple>(
+        base_type->type_store(), base_type->type_member_store_ptr(),
+        std::vector<const TypeSpec*>({new_types.back().get(), fun_type}),
+        std::vector<std::string>({std::string(join_type), "key"})));
+    names.emplace_back(join_field);
+    types.emplace_back(new_types.back().get());
+    return *this;
+  }
+  const TypeSpec* Build() {
+    new_types.emplace_back(std::make_unique<TypeTuple>(
+        base_type->type_store(), base_type->type_member_store_ptr(),
+        std::move(types), std::move(names)));
+    return new_types.back().get();
+  }
+  const TypeTuple* base_type;
+  const TypeSpec* dataset_type;
+  std::vector<std::string> names;
+  std::vector<const TypeSpec*> types;
+  std::vector<std::unique_ptr<TypeSpec>> new_types;
+};
+
+TEST_F(TypesTest, Joins) {
+  // Preparations
+  ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar"));
+  ASSERT_OK_AND_ASSIGN(auto join_type, FindType("DatasetJoin"));
+  ASSERT_OK_AND_ASSIGN(auto dataset_type, FindType("Dataset"));
+  ASSERT_OK_AND_ASSIGN(auto ttype, FindType("Tuple"));
+  auto tuple_type = static_cast<const TypeTuple*>(ttype);
+  ASSERT_OK_AND_ASSIGN(auto struct_type, FindType("Struct<Int, String>"));
+  ASSERT_OK_AND_ASSIGN(auto int_fun_type,
+                       FindType("Function<Struct<Int, String>, Int>"));
+  ASSERT_OK_AND_ASSIGN(auto string_fun_type,
+                       FindType("Function<Struct<Int, String>, String>"));
+
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      FindType("DatasetJoin<Int>").status(), InvalidArgument,
+      testing::HasSubstr("Expecting exactly three"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      FindType("DatasetJoin<1, 2, 3>").status(), InvalidArgument,
+      testing::HasSubstr("Extracting types from bindings"));
+
+  JoinTupleBuilder builder(tuple_type, dataset_type);
+  builder.AddJoin("right", "foo", FindType("Struct<UInt, Float64>").value(),
+                  int_fun_type);
+  builder.AddJoin("right_multi", "bar",
+                  FindType("Struct<Float32, String>").value(), int_fun_type);
+  ASSERT_OK_AND_ASSIGN(
+      auto j1, join_type->Bind({struct_type, int_fun_type, builder.Build()}));
+  EXPECT_EQ(j1->type_id(), pb::TypeId::DATASET_ID);
+  EXPECT_TRUE(join_type->IsAncestorOf(*j1));
+  EXPECT_TRUE(join_type->IsConvertibleFrom(*j1));
+  ASSERT_TRUE(j1->ResultType() != nullptr);
+  auto pb = j1->ResultType()->ToProto();
+  pb.clear_name();
+  EXPECT_THAT(pb, EqualsProto(R"pb(
+                type_id: STRUCT_ID
+                parameter { type_id: INT_ID name: "Int" }
+                parameter { type_id: STRING_ID name: "String" }
+                parameter {
+                  type_id: NULLABLE_ID
+                  name: "Nullable"
+                  parameter { type_id: NULL_ID name: "Null" }
+                  parameter {
+                    type_id: STRUCT_ID
+                    name: "Struct"
+                    parameter { type_id: UINT_ID name: "UInt" }
+                    parameter { type_id: FLOAT64_ID name: "Float64" }
+                    parameter_name: "field_0"
+                    parameter_name: "field_1"
+                  }
+                }
+                parameter {
+                  type_id: ARRAY_ID
+                  name: "Array"
+                  parameter {
+                    type_id: STRUCT_ID
+                    name: "Struct"
+                    parameter { type_id: FLOAT32_ID name: "Float32" }
+                    parameter { type_id: STRING_ID name: "String" }
+                    parameter_name: "field_0"
+                    parameter_name: "field_1"
+                  }
+                }
+                parameter_name: "field_0"
+                parameter_name: "field_1"
+                parameter_name: "foo"
+                parameter_name: "bar"
+              )pb"));
+
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      join_type->Bind({struct_type}), InvalidArgument,
+      testing::HasSubstr("Expecting exactly three arguments"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      join_type->Bind({struct_type, 0}), InvalidArgument,
+      testing::HasSubstr("Expecting exactly three"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      join_type->Bind({struct_type, int_fun_type, FindType("Int").value()}),
+      InvalidArgument, testing::HasSubstr("Expecting the third type argument"));
+
+  JoinTupleBuilder builder2(tuple_type, dataset_type);
+  builder2.AddJoin("right", "foo", FindType("Struct<UInt, Float64>").value(),
+                   string_fun_type);
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      join_type->Bind({struct_type, int_fun_type, builder2.Build()}).status(),
+      InvalidArgument,
+      testing::HasSubstr("Right side expression of a join differs"));
+
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      join_type
+          ->Bind({struct_type, int_fun_type, FindType("Tuple<Int>").value()})
+          .status(),
+      InvalidArgument, testing::HasSubstr("Invalid tuple type argument"));
+
+  JoinTupleBuilder builder3(tuple_type, dataset_type);
+  builder3.AddJoin("right", "foo", FindType("Int").value(), int_fun_type);
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      join_type->Bind({struct_type, int_fun_type, builder3.Build()}).status(),
+      InvalidArgument,
+      testing::HasSubstr(
+          "Join dataset inner type not specified or not a structure"));
+
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      join_type->Bind({FindType("Int").value(), int_fun_type, builder.Build()})
+          .status(),
+      InvalidArgument, testing::HasSubstr("Expecting a dataset type"));
+  EXPECT_RAISES_WITH_MESSAGE_THAT(
+      join_type->Bind({struct_type, FindType("Int").value(), builder.Build()})
+          .status(),
+      InvalidArgument, testing::HasSubstr("Expecting a valid function type"));
 }
 
 }  // namespace analysis

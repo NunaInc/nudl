@@ -33,7 +33,7 @@ class PythonConvertState;
 
 class PythonConverter : public Converter {
  public:
-  PythonConverter();
+  explicit PythonConverter(bool bindings_on_use = false);
 
  protected:
   absl::StatusOr<std::unique_ptr<ConvertState>> BeginModule(
@@ -60,6 +60,9 @@ class PythonConverter : public Converter {
       ConvertState* state) const override;
   absl::Status ConvertMapDefinition(
       const analysis::MapDefinitionExpression& expression,
+      ConvertState* state) const override;
+  absl::Status ConvertTupleDefinition(
+      const analysis::TupleDefinitionExpression& expression,
       ConvertState* state) const override;
   absl::Status ConvertIfExpression(const analysis::IfExpression& expression,
                                    ConvertState* state) const override;
@@ -96,15 +99,31 @@ class PythonConverter : public Converter {
 
   std::string GetTypeString(const analysis::TypeSpec* type_spec,
                             PythonConvertState* state) const;
-  absl::StatusOr<bool> ConvertFunction(analysis::Function* fun,
+  absl::StatusOr<bool> ConvertFunction(analysis::Function* fun, bool is_on_use,
                                        ConvertState* state) const;
+  absl::Status ConvertFunctionGroup(analysis::FunctionGroup* group,
+                                    PythonConvertState* state) const;
   absl::StatusOr<bool> ConvertBindings(analysis::Function* fun,
-                                       ConvertState* state) const;
-  absl::Status ConvertInlineExpression(const analysis::Expression& expression,
                                        PythonConvertState* state) const;
+  absl::Status ConvertStructType(const analysis::TypeStruct* ts,
+                                 PythonConvertState* state) const;
+  absl::Status ConvertInlineExpression(
+      const analysis::Expression& expression, PythonConvertState* state,
+      absl::optional<std::string*> str = {}) const;
   absl::Status ConvertNativeFunctionCallExpression(
       const analysis::FunctionCallExpression& expression,
       analysis::Function* fun, PythonConvertState* state) const;
+  std::string GetStructTypeName(const analysis::TypeSpec* type_spec,
+                                PythonConvertState* state) const;
+  absl::Status AddTypeName(const analysis::TypeSpec* type_spec,
+                           PythonConvertState* state) const;
+  absl::StatusOr<std::string> LocalFunctionName(analysis::Function* fun,
+                                                bool is_on_use,
+                                                ConvertState* state) const;
+
+  // If we define function bindings where they are used, as opposed
+  // to where they are defined.
+  const bool bindings_on_use_;
 };
 
 // Changes the possible composed name, to a 'python_safe' version.

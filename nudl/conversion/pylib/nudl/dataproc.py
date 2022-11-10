@@ -25,7 +25,7 @@ import typing
 from dataschema import schema_synth, data_writer
 
 
-def read_csv(filename: str, seed: typing.Any,
+def read_csv(seed: typing.Any, filename: str,
              dialect: str) -> collections.abc.Iterable[typing.Any]:
     with open(filename) as file_csv:
         reader = dataclass_csv.DataclassReader(file_csv, type(seed))
@@ -33,19 +33,35 @@ def read_csv(filename: str, seed: typing.Any,
             yield row
 
 
-# Whatever - just for now - we cheat a bit:
-DEFAULT_RE = [
-    ('.*npi_id', ('str', (3, 'ABC'))),
-    ('.*_id', ('str', (6, '0123456789ABCDEF'))),
-    ('.*_id_syn', ('str', (4, '01234'))),
-]
+# A sensible sets of defaults
+DEFAULT_RE = (
+    ('.*_id', ('str', (12, '0123456789ABCDEF'))),
+    ('(.*_|^)first_name', ('faker', 'first_name')),
+    ('(.*_|^)last_name', ('faker', 'last_name')),
+    ('(.*_|^)city', ('faker', 'city')),
+    ('(.*_|^)state', ('faker', 'state')),
+    ('(.*_|^)zip_code', ('faker', 'zipcode')),
+    ('(.*_|^)sex', ('choice', (['M', 'F'],))),
+    ('(.*_|^)phone', ('faker', 'phone_number')),
+    ('(.*_|^)address', ('faker', 'street_address')),
+    ('(.*_|^)ssn', ('faker', 'ssn')),
+    ('(.*_|^)tin', ('faker', 'ssn')),
+    ('(.*_|^)cents', ('toint', ('exp', 5000))),
+    ('(.*_|^)language',
+     ('choice', (['en', 'es', 'fr', 'zh', 'pt', 'vi', 'ro', 'it', 'de'],))),
+)
 
-
-def generate_csv(gendir: str, seed: typing.Any, count: int) -> str:
-    builder = schema_synth.Builder(re_generators=DEFAULT_RE)
-    writer = data_writer.CsvWriter()
-    gens = builder.schema_generator(output_type=writer.data_types()[0],
-                                    data_classes=[type(seed)])
+def _generate_data(seeds: typing.Tuple, gendir: str, count: int,
+                   writer: data_writer.BaseWriter,
+                   generators: typing.Optional[typing.Tuple]
+                   ) -> typing.List[str]:
+    if not generators:
+        generators = DEFAULT_RE
+    builder = schema_synth.Builder(re_generators=list(generators))
+    gens = builder.schema_generator(
+        output_type=writer.data_types()[0],
+        data_classes=[type(seed[1]) if isinstance(seed, typing.Tuple)
+                      else type(seed) for seed in seeds])
     for gen in gens:
         gen.pregenerate_keys(count)
     fileinfo = [
@@ -53,4 +69,20 @@ def generate_csv(gendir: str, seed: typing.Any, count: int) -> str:
         for gen in gens
     ]
     result = schema_synth.GenerateFiles(fileinfo, writer, gendir)
-    return result[fileinfo[0].generator.name()][0]
+    return [result[fi.generator.name()][0]
+            for fi in fileinfo]
+
+def generate_csv(seeds: typing.Tuple, gendir: str,
+                 count: int, generators: typing.Optional[typing.Tuple]
+                 ) -> typing.List[str]:
+    return _generate_data(seeds, gendir, count,
+                          data_writer.CsvWriter(),
+                          generators)
+
+
+def generate_parquet(seeds: typing.Tuple, gendir: str,
+                    count: int, generators: typing.Optional[typing.Tuple]
+                    ) -> typing.List[str]:
+    return _generate_data(seeds, gendir, count,
+                          data_writer.ParquetWriter(no_uint=True),
+                          generators)

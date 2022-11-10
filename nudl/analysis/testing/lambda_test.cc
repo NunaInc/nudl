@@ -94,6 +94,17 @@ def add(x: Int) => {
   adder = (s: Int) : Int => s + 10;
   adder(x)
 })");
+  // This was a nice try, but I reverted - could not close
+  // all the corner cases in a timely fashion, so giving up
+  // for now.
+  /*
+  CheckCode("lambda_test", "abstract_lambda_var", R"(
+def add(x: Int) => {
+  adder = (s => s + 10);
+  adder(x)
+})");
+  */
+  // This is still an error:
   CheckError("abstract_lambda_var", R"(
 def add(x: Int) => {
   adder = (s => s + 10);
@@ -113,7 +124,7 @@ def h(x: Int) => f(g, x)
 def f(x: Function<{X}, X>, val: {X}) => x(val)
 def g(x: Int, y: Int = 1) => x + y
 def g(x: Float64, y: Float64 = 1.2) => x + y
-def h(x: Int) => f(g.g, x)
+def h(x: Int) => f(g.g__i0, x)
 )");
   CheckCode("lambda_test", "full_any", R"(
 def f(x: {X}, val: Int) => x(val)

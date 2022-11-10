@@ -21,7 +21,6 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
-#include "absl/flags/flag.h"
 #include "absl/strings/escaping.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
@@ -29,9 +28,7 @@
 #include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
 #include "nudl/status/status.h"
-
-ABSL_FLAG(bool, pyconvert_print_name_changes, false,
-          "If we should output the name changes done for python conversion");
+#include "nudl/testing/stacktrace.h"
 
 namespace nudl {
 namespace conversion {
@@ -71,6 +68,10 @@ class PythonConvertState : public ConvertState {
 
   // Records that this function was processed.
   bool RegisterFunction(analysis::Function* fun);
+  // Records that this function group was processed.
+  bool RegisterFunctionGroup(analysis::FunctionGroup* group);
+  // Records that this structure was processed.
+  bool RegisterStructType(const analysis::TypeStruct* ts);
 
   // Used to mark the current function call in order
   // to use the proper names in identifier & dot expressiosn.
@@ -113,6 +114,8 @@ class PythonConvertState : public ConvertState {
   size_t indent_ = 0;
   std::string indent_str_;
   absl::flat_hash_set<analysis::Function*> converted_functions_;
+  absl::flat_hash_set<analysis::FunctionGroup*> converted_groups_;
+  absl::flat_hash_set<std::string> converted_structs_;
   std::vector<analysis::Function*> in_function_call_;
   absl::flat_hash_set<std::string> imports_;
   bool is_inline_ = true;
@@ -181,11 +184,15 @@ PythonConvertState* PythonConvertState::top_superstate() const {
 }
 
 bool PythonConvertState::RegisterFunction(analysis::Function* fun) {
-  if (converted_functions_.contains(fun)) {
-    return false;
-  }
-  converted_functions_.emplace(fun);
-  return true;
+  return converted_functions_.emplace(fun).second;
+}
+
+bool PythonConvertState::RegisterFunctionGroup(analysis::FunctionGroup* group) {
+  return converted_groups_.emplace(group).second;
+}
+
+bool PythonConvertState::RegisterStructType(const analysis::TypeStruct* ts) {
+  return converted_structs_.emplace(ts->name()).second;
 }
 
 absl::Status PythonConvertState::CheckInline(
@@ -258,7 +265,8 @@ void PythonConvertState::pop_in_function_call() {
   in_function_call_.pop_back();
 }
 
-PythonConverter::PythonConverter() : Converter() {}
+PythonConverter::PythonConverter(bool bindings_on_use)
+    : Converter(), bindings_on_use_(bindings_on_use) {}
 
 absl::StatusOr<std::unique_ptr<ConvertState>> PythonConverter::BeginModule(
     analysis::Module* module) const {
@@ -272,10 +280,14 @@ absl::StatusOr<std::string> PythonConverter::FinishModule(
 }
 
 absl::Status PythonConverter::ConvertInlineExpression(
-    const analysis::Expression& expression, PythonConvertState* state) const {
+    const analysis::Expression& expression, PythonConvertState* state,
+    std::optional<std::string*> str) const {
   PythonConvertState expression_state(state, true);
   RETURN_IF_ERROR(ConvertExpression(expression, &expression_state));
   RETURN_IF_ERROR(expression_state.CheckInline(expression));
+  if (str.has_value()) {
+    *str.value() = expression_state.out_str();
+  }
   RETURN_IF_ERROR(state->AddState(expression_state));
   return absl::OkStatus();
 }
@@ -350,7 +362,7 @@ absl::optional<std::pair<std::string, std::string>> PythonTypeName(
            {"collections.abc.Callable", "collections.abc"}},
           {pb::TypeId::UNION_ID, {"typing.Union", "typing"}},
           {pb::TypeId::NULLABLE_ID, {"typing.Optional", "typing"}},
-          {pb::TypeId::DATASET_ID, {"nudl.Dataset", "nudl"}},
+          {pb::TypeId::DATASET_ID, {"nudl.dataset.Dataset", "nudl.dataset"}},
           {pb::TypeId::TYPE_ID, {"type", ""}},
           {pb::TypeId::MODULE_ID, {"types.ModuleType", "types"}},
           {pb::TypeId::INTEGRAL_ID, {"int", ""}},
@@ -365,13 +377,29 @@ absl::optional<std::pair<std::string, std::string>> PythonTypeName(
   }
   return it->second;
 }
+bool HasType(const analysis::Expression& expression, pb::TypeId type_id) {
+  return (expression.stored_type_spec().has_value() &&
+          (expression.stored_type_spec().value()->type_id() == type_id));
+}
 
-std::string GetStructTypeName(const analysis::TypeSpec* type_spec,
-                              PythonConvertState* state) {
+bool IsExternalType(const analysis::TypeSpec* type_spec,
+                    PythonConvertState* state) {
+  return (!type_spec->scope_name().empty() &&
+          type_spec->scope_name().name() != state->module()->name());
+}
+}  // namespace
+
+std::string PythonConverter::GetStructTypeName(
+    const analysis::TypeSpec* type_spec, PythonConvertState* state) const {
   std::string module_name;
   std::string prefix;
-  if (!type_spec->scope_name().empty() &&
-      type_spec->scope_name().name() != state->module()->name()) {
+  if (IsExternalType(type_spec, state)) {
+    // TODO(catalin): for now, to prevent circular dependencies, as functions
+    // defined in external modules may be binded (in those modules)
+    // with types defined in places from where they are called.
+    // One more reason to place the bindings in the module they are used !!
+    return "typing.Any";
+    /*
     if (!type_spec->scope_name().module_names().empty()) {
       state->add_import(absl::StrCat(
           "import ", PythonSafeName(type_spec->scope_name().module_name(),
@@ -379,15 +407,20 @@ std::string GetStructTypeName(const analysis::TypeSpec* type_spec,
     }
     prefix = PythonSafeName(scope_name(type_spec->scope_name(), true),
                             type_spec->definition_scope());
+    */
   }
   return absl::StrCat(
       prefix, PythonSafeName(type_spec->name(),
                              const_cast<analysis::TypeSpec*>(type_spec)));
 }
 
-absl::Status AddTypeName(const analysis::TypeSpec* type_spec,
-                         PythonConvertState* state) {
+absl::Status PythonConverter::AddTypeName(const analysis::TypeSpec* type_spec,
+                                          PythonConvertState* state) const {
   if (type_spec->type_id() == pb::TypeId::STRUCT_ID) {
+    if (!IsExternalType(type_spec, state)) {
+      RETURN_IF_ERROR(ConvertStructType(
+          static_cast<const analysis::TypeStruct*>(type_spec), state));
+    }
     state->out() << GetStructTypeName(type_spec, state);
     return absl::OkStatus();
   }
@@ -400,7 +433,10 @@ absl::Status AddTypeName(const analysis::TypeSpec* type_spec,
     state->add_import(absl::StrCat("import ", pytype_spec.value().second));
   }
   state->out() << pytype_spec.value().first;
-  if (type_spec->parameters().empty()) {
+  if (type_spec->parameters().empty() ||
+      type_spec->type_id() == pb::TypeId::DATASET_ID
+      // We end up with very, very big tuples just skip the args there.
+      || type_spec->type_id() == pb::TypeId::TUPLE_ID) {
     return absl::OkStatus();
   }
   state->out() << "[";
@@ -417,6 +453,22 @@ absl::Status AddTypeName(const analysis::TypeSpec* type_spec,
     RETURN_IF_ERROR(AddTypeName(type_spec->parameters().back(), state));
   } else if (type_spec->type_id() == pb::TypeId::NULLABLE_ID) {
     RETURN_IF_ERROR(AddTypeName(type_spec->parameters().back(), state));
+  } else if (type_spec->type_id() == pb::TypeId::TUPLE_ID &&
+             static_cast<const analysis::TypeTuple*>(type_spec)->is_named()) {
+    auto tuple_type = static_cast<const analysis::TypeTuple*>(type_spec);
+    for (size_t i = 0; i < type_spec->parameters().size(); ++i) {
+      if (i) {
+        state->out() << ", ";
+      }
+      const bool is_named = !tuple_type->names()[i].empty();
+      if (is_named) {
+        state->out() << "typing.Tuple[str, ";
+      }
+      RETURN_IF_ERROR(AddTypeName(type_spec->parameters()[i], state));
+      if (is_named) {
+        state->out() << "]";
+      }
+    }
   } else {
     for (size_t i = 0; i < type_spec->parameters().size(); ++i) {
       if (i) {
@@ -428,11 +480,6 @@ absl::Status AddTypeName(const analysis::TypeSpec* type_spec,
   state->out() << "]";
   return absl::OkStatus();
 }
-bool HasType(const analysis::Expression& expression, pb::TypeId type_id) {
-  return (expression.stored_type_spec().has_value() &&
-          (expression.stored_type_spec().value()->type_id() == type_id));
-}
-}  // namespace
 
 absl::Status PythonConverter::ConvertAssignment(
     const analysis::Assignment& expression, ConvertState* state) const {
@@ -555,12 +602,34 @@ absl::Status PythonConverter::ConvertIdentifier(
   auto bstate = static_cast<PythonConvertState*>(state);
   auto binding = GetFunctionBinding(expression, bstate);
   if (binding.has_value()) {
-    analysis::ScopedName local_name(expression.scoped_name().scope_name_ptr(),
-                                    binding.value()->call_name());
-    bstate->out() << PythonSafeName(scoped_name(local_name), binding.value());
+    if (bindings_on_use_) {
+      ASSIGN_OR_RETURN(auto name,
+                       LocalFunctionName(binding.value(), true, state));
+      bstate->out() << name;
+    } else if (binding.value()->is_abstract()) {
+      // TODO(catalin): function groups
+      auto group = binding.value()->function_group();
+      analysis::ScopedName local_name(expression.scoped_name().scope_name_ptr(),
+                                      group->call_name());
+      bstate->out() << PythonSafeName(scoped_name(local_name), group);
+    } else {
+      analysis::ScopedName local_name(expression.scoped_name().scope_name_ptr(),
+                                      binding.value()->call_name());
+      bstate->out() << PythonSafeName(scoped_name(local_name), binding.value());
+    }
   } else {
-    bstate->out() << PythonSafeName(scoped_name(expression.scoped_name()),
-                                    expression.named_object());
+    auto object = expression.named_object();
+    if (!object.has_value() ||
+        !analysis::Function::IsFunctionKind(*object.value())) {
+      bstate->out() << PythonSafeName(scoped_name(expression.scoped_name()),
+                                      expression.named_object());
+    } else {
+      analysis::ScopedName fun_scoped_name(
+          expression.scoped_name().scope_name_ptr(),
+          static_cast<const analysis::Function*>(object.value())->call_name());
+      bstate->out() << PythonSafeName(scoped_name(fun_scoped_name),
+                                      expression.named_object());
+    }
   }
   return absl::OkStatus();
 }
@@ -602,8 +671,11 @@ absl::Status PythonConverter::ConvertArrayDefinition(
     ConvertState* state) const {
   auto bstate = static_cast<PythonConvertState*>(state);
   const bool is_set = HasType(expression, pb::TypeId::SET_ID);
+  const bool is_tuple = !is_set && HasType(expression, pb::TypeId::TUPLE_ID);
   if (is_set) {
     bstate->out() << "{" << std::endl;
+  } else if (is_tuple) {
+    bstate->out() << "(" << std::endl;
   } else {
     bstate->out() << "[" << std::endl;
   }
@@ -617,7 +689,7 @@ absl::Status PythonConverter::ConvertArrayDefinition(
     RETURN_IF_ERROR(ConvertInlineExpression(*expr, bstate))
         << "In array def: " << i;
   }
-  bstate->out() << (is_set ? "}" : "]");
+  bstate->out() << (is_set ? "}" : (is_tuple ? ",)" : "]"));
   bstate->dec_indent(2);
   return absl::OkStatus();
 }
@@ -646,6 +718,28 @@ absl::Status PythonConverter::ConvertMapDefinition(
         << "In map def " << (last_key ? "key" : "value");
   }
   bstate->out() << "}";
+  bstate->dec_indent(2);
+  return absl::OkStatus();
+}
+
+absl::Status PythonConverter::ConvertTupleDefinition(
+    const analysis::TupleDefinitionExpression& expression,
+    ConvertState* state) const {
+  auto bstate = static_cast<PythonConvertState*>(state);
+  bstate->out() << "(";
+  expression.CheckSizes();
+  bstate->inc_indent(2);
+  for (size_t i = 0; i < expression.names().size(); ++i) {
+    // Names are checked to be valid identifiers - no need to escape
+    bstate->out() << bstate->indent() << "(\"" << expression.names()[i]
+                  << "\", ";
+    RETURN_IF_ERROR(ConvertInlineExpression(*expression.children()[i], bstate))
+        << "In tuple element definition";
+    bstate->out() << "),\n";
+  }
+  bstate->dec_indent();
+  bstate->out() << ")";
+  bstate->dec_indent();
   return absl::OkStatus();
 }
 
@@ -727,23 +821,66 @@ absl::Status PythonConverter::ConvertIndexExpression(
 absl::Status PythonConverter::ConvertTupleIndexExpression(
     const analysis::TupleIndexExpression& expression,
     ConvertState* state) const {
-  return ConvertIndexExpression(expression, state);
+  auto bstate = static_cast<PythonConvertState*>(state);
+  RETURN_IF_ERROR(ConvertIndexExpression(expression, state));
+  auto type_spec = expression.children().front()->stored_type_spec();
+  if (type_spec.has_value() &&
+      analysis::TypeUtils::IsNamedTupleType(*type_spec.value())) {
+    bstate->out() << "[1]";
+  }
+  return absl::OkStatus();
 }
 
 absl::Status PythonConverter::ConvertLambdaExpression(
     const analysis::LambdaExpression& expression, ConvertState* state) const {
   auto bstate = static_cast<PythonConvertState*>(state);
-  ASSIGN_OR_RETURN(bool converted,
-                   ConvertFunction(expression.lambda_function(), bstate));
-  analysis::Function* fun =
-      static_cast<analysis::Function*>(expression.named_object().value());
+  analysis::Function* const lambda_fun = expression.lambda_function();
+  ASSIGN_OR_RETURN(
+      bool converted,
+      ConvertFunction(
+          !bindings_on_use_ && lambda_fun->binding_parent().has_value()
+              ? lambda_fun->binding_parent().value()
+              : lambda_fun,
+          false, bstate));
+  if (expression.lambda_group()) {
+    RETURN_IF_ERROR(ConvertFunctionGroup(expression.lambda_group(), bstate));
+  }
+  RET_CHECK(expression.named_object().has_value());
+  analysis::NamedObject* const obj = expression.named_object().value();
+  RET_CHECK(analysis::Function::IsFunctionKind(*obj));
+  analysis::Function* fun = static_cast<analysis::Function*>(obj);
+  if (bindings_on_use_ && !converted) {
+    ASSIGN_OR_RETURN(converted, ConvertFunction(fun, true, bstate));
+    LOG(INFO) << " ---- Converted lambda: " << fun->full_name();
+  }
   if (!converted) {
     return status::InternalErrorBuilder()
            << "Cannot convert unbound / missing expression function: "
-           << fun->full_name();
+           << expression.lambda_function()->full_name();
   }
+  const std::string group_name =
+      PythonSafeName(fun->function_group()->call_name(), fun->function_group());
+  if (fun->is_abstract()) {
+    RET_CHECK(!bindings_on_use_) << "For: " << fun->full_name();
+    // This means the function is used in a x = .. or similar situation
+    bstate->out() << group_name;
+    return absl::OkStatus();
+  }
+  if (!fun->first_default_value_index().has_value()) {
+    if (bindings_on_use_) {
+      ASSIGN_OR_RETURN(auto name, LocalFunctionName(fun, true, state));
+      bstate->out() << name;
+    } else {
+      bstate->out() << group_name << "." << fun->type_signature();
+    }
+    return absl::OkStatus();
+  }
+  // Else we create a local lambda to capture any local parameters.
+  // TODO(catalin): maybe we need to just use the above if no local
+  //  parameters are provided as default values.
   bstate->out() << "lambda ";
-  RET_CHECK(fun->arguments().size() == fun->default_values().size());
+  RET_CHECK(fun->arguments().size() == fun->default_values().size())
+      << "For: " << fun->full_name();
   for (size_t i = 0; i < fun->arguments().size(); ++i) {
     if (i > 0) {
       bstate->out() << ", ";
@@ -757,7 +894,17 @@ absl::Status PythonConverter::ConvertLambdaExpression(
           << "For default expression in lambda: " << i;
     }
   }
-  bstate->out() << ": " << PythonSafeName(fun->call_name(), fun) << "(";
+  // TODO(catalin):  --- test the waters here - whats the binding here ???
+  // is type_signature good enough for all cases ?
+  // bstate->out() << ": " << PythonSafeName(fun->call_name(), fun) << "(";
+  bstate->out() << ": ";
+  if (bindings_on_use_) {
+    ASSIGN_OR_RETURN(auto name, LocalFunctionName(fun, true, state));
+    bstate->out() << name;
+  } else {
+    bstate->out() << group_name << "." << fun->type_signature();
+  }
+  bstate->out() << "(";
   for (size_t i = 0; i < fun->arguments().size(); ++i) {
     if (i > 0) {
       bstate->out() << ", ";
@@ -778,8 +925,18 @@ absl::Status PythonConverter::ConvertDotAccessExpression(
   bstate->out() << ".";
   auto binding = GetFunctionBinding(expression, bstate);
   if (binding.has_value()) {
-    bstate->out() << PythonSafeName(binding.value()->call_name(),
-                                    binding.value());
+    if (!bindings_on_use_) {
+      ASSIGN_OR_RETURN(auto name,
+                       LocalFunctionName(binding.value(), true, state));
+      bstate->out() << name;
+    } else if (binding.value()->is_abstract()) {
+      // TODO(catalin): function groups
+      auto group = binding.value()->function_group();
+      bstate->out() << PythonSafeName(group->call_name(), group);
+    } else {
+      bstate->out() << PythonSafeName(binding.value()->call_name(),
+                                      binding.value());
+    }
   } else {
     bstate->out() << PythonSafeName(expression.name().name(),
                                     expression.named_object());
@@ -860,7 +1017,16 @@ struct NativeConvert {
       state->add_import("import copy");
       code = absl::StrCat("copy.deepcopy(", args_str, ")");
     } else {
-      code = absl::StrCat(it->second, "(", args_str, ")");
+      std::string name;
+      if (state->module() != fun->module_scope()) {
+        name = PythonSafeName(
+            absl::StrCat(scope_name(fun->module_scope()->scope_name(), true),
+                         it->second),
+            fun);
+      } else {
+        name = PythonSafeName(it->second, fun);
+      }
+      code = absl::StrCat(name, "(", args_str, ")");
     }
     return true;
   }
@@ -872,6 +1038,33 @@ struct NativeConvert {
   absl::flat_hash_set<std::string> skipped;
   std::vector<std::string> arguments_ordered;
 };
+
+namespace {
+void ConvertArgumentSubBinding(
+    absl::string_view function_name, const analysis::Expression* call_binding,
+    analysis::TypeBindingArg type_spec,
+    std::optional<analysis::FunctionBinding*> sub_binding,
+    PythonConvertState* state) {
+  auto obj = call_binding->named_object();
+  if (!obj.has_value() ||
+      !analysis::FunctionGroup::IsFunctionGroup(*obj.value())) {
+    return;
+  }
+  std::string signature;
+  if (sub_binding.has_value()) {
+    signature = analysis::TypeSpec::TypeBindingSignature(
+        sub_binding.value()->type_arguments);
+  } else if (!std::holds_alternative<const analysis::TypeSpec*>(type_spec)) {
+    return;
+  } else {
+    // One may think we can use type_spec for signature - however that
+    // is wrong - is the type signature of the function we call not of
+    // the object we expect - so bummer.
+    return;
+  }
+  state->out() << "." << signature;
+}
+}  // namespace
 
 absl::Status PythonConverter::ConvertNativeFunctionCallExpression(
     const analysis::FunctionCallExpression& expression, analysis::Function* fun,
@@ -892,6 +1085,11 @@ absl::Status PythonConverter::ConvertNativeFunctionCallExpression(
         << "For argument " << i << " : " << arg_name
         << " of inline native function " << fun->call_name();
     state->AddImports(expression_state);
+    CHECK_LT(i, expression.function_binding()->call_sub_bindings.size());
+    ConvertArgumentSubBinding(
+        fun->call_name(), expr.value(),
+        expression.function_binding()->type_arguments[i],
+        expression.function_binding()->call_sub_bindings[i], &expression_state);
     convert.add_arg(arg_name, expression_state.out_str());
   }
   ASSIGN_OR_RETURN(std::string replaced, convert.Replace());
@@ -899,62 +1097,105 @@ absl::Status PythonConverter::ConvertNativeFunctionCallExpression(
   return absl::OkStatus();
 }
 
+namespace {
+
+template <class F>
+std::string FunSafeCallName(F* f, analysis::Module* module) {
+  if (module != f->module_scope()) {
+    return PythonSafeName(scoped_name(f->qualified_call_name()), f);
+  }
+  return PythonSafeName(f->call_name(), f);
+}
+
+std::pair<std::string, bool> GetCallBindingFunctionName(
+    analysis::Function* fun, analysis::Module* module) {
+  if (fun->is_abstract()) {
+    return std::make_pair(FunSafeCallName(fun->function_group(), module), true);
+  }
+  return std::make_pair(FunSafeCallName(fun, module), false);
+}
+}  // namespace
+
 absl::Status PythonConverter::ConvertFunctionCallExpression(
     const analysis::FunctionCallExpression& expression,
     ConvertState* state) const {
   auto bstate = static_cast<PythonConvertState*>(state);
-  if (expression.function_binding()->fun.has_value() &&
-      expression.function_binding()->fun.value()->is_native()) {
+  auto binding = expression.function_binding();  // shortcut
+  if (bindings_on_use_) {
+    if (binding->fun.has_value()) {
+      RETURN_IF_ERROR(
+          ConvertFunction(binding->fun.value(), true, bstate).status());
+    } else if (analysis::TypeUtils::IsFunctionType(*binding->type_spec)) {
+      auto fun_type =
+          static_cast<const analysis::TypeFunction*>(binding->type_spec);
+      for (auto fun : fun_type->function_instances()) {
+        RETURN_IF_ERROR(ConvertFunction(fun, true, bstate).status());
+      }
+    }
+  }
+  if (binding->fun.has_value() && binding->fun.value()->is_native()) {
     RETURN_IF_ERROR(ConvertNativeFunctionCallExpression(
-        expression, expression.function_binding()->fun.value(), bstate));
+        expression, binding->fun.value(), bstate));
     return absl::OkStatus();
   }
+  bool add_signature = false;
+  std::string function_name;
   if (expression.left_expression().has_value() &&
       !expression.is_method_call()) {
-    if (expression.function_binding()->fun.has_value()) {
-      PythonConvertState::FunctionPusher pusher(
-          bstate, expression.function_binding()->fun.value());
+    if (binding->fun.has_value()) {
+      PythonConvertState::FunctionPusher pusher(bstate, binding->fun.value());
       RETURN_IF_ERROR(ConvertInlineExpression(
-          *expression.left_expression().value(), bstate));
+          *expression.left_expression().value(), bstate, &function_name));
     } else {
       RETURN_IF_ERROR(ConvertInlineExpression(
-          *expression.left_expression().value(), bstate));
+          *expression.left_expression().value(), bstate, &function_name));
     }
   } else {
-    RET_CHECK(expression.function_binding()->fun.has_value());
-    analysis::Function* fun = expression.function_binding()->fun.value();
-    if (bstate->module() != fun->module_scope()) {
-      bstate->out() << PythonSafeName(scoped_name(fun->qualified_call_name()),
-                                      fun);
+    RET_CHECK(binding->fun.has_value());
+    if (bindings_on_use_) {
+      ASSIGN_OR_RETURN(function_name,
+                       LocalFunctionName(binding->fun.value(), true, state));
     } else {
-      bstate->out() << PythonSafeName(fun->call_name(), fun);
+      // TODO(catalin): function groups
+      std::tie(function_name, add_signature) =
+          GetCallBindingFunctionName(binding->fun.value(), bstate->module());
     }
+    bstate->out() << function_name;
   }
+  // TODO(catalin): function group
+  if (add_signature) {
+    const std::string signature(
+        analysis::TypeSpec::TypeBindingSignature(binding->type_arguments));
+    bstate->out() << "." << signature;
+  }
+
   // TODO(catalin): this in practice is a bit more complicated, but
   //  we do something simple.
-  RET_CHECK(expression.function_binding()->call_expressions.size() ==
-            expression.function_binding()->names.size());
+  RET_CHECK(binding->call_expressions.size() == binding->names.size());
+  RET_CHECK(binding->call_sub_bindings.size() == binding->names.size());
   bstate->out() << "(\n";
   bstate->inc_indent(2);
   bool has_arguments = false;
-  for (size_t i = 0; i < expression.function_binding()->names.size(); ++i) {
-    if (!expression.function_binding()->call_expressions[i].has_value()) {
+  for (size_t i = 0; i < binding->names.size(); ++i) {
+    auto expr = binding->call_expressions[i];
+    if (!expr.has_value()) {
       continue;
     }
     if (has_arguments) {
       bstate->out() << "," << std::endl;
     }
     has_arguments = true;
-    if (expression.function_binding()->fun.has_value()) {
-      bstate->out() << bstate->indent()
-                    << expression.function_binding()->names[i] << "=";
+    if (binding->fun.has_value()) {
+      bstate->out() << bstate->indent() << binding->names[i] << "=";
     }
     // TODO(catalin): note - this may convert the default expressions
     // as well, which may not be valid in this scope - will want to massage
     // this a bit - Note - actually this may be ok, because we would prefix
     // all names w/ proper module names - need to proper test.
-    RETURN_IF_ERROR(ConvertInlineExpression(
-        *expression.function_binding()->call_expressions[i].value(), bstate));
+    RETURN_IF_ERROR(ConvertInlineExpression(*expr.value(), bstate));
+    ConvertArgumentSubBinding(function_name, expr.value(),
+                              binding->type_arguments[i],
+                              binding->call_sub_bindings[i], bstate);
   }
   bstate->out() << ")";
   bstate->dec_indent(2);
@@ -994,45 +1235,57 @@ absl::Status PythonConverter::ConvertFunctionDefinition(
   if (analysis::FunctionGroup::IsFunctionGroup(*fun_object)) {
     auto function_group = static_cast<analysis::FunctionGroup*>(fun_object);
     for (analysis::Function* fun : function_group->functions()) {
-      RETURN_IF_ERROR(ConvertFunction(fun, state).status());
+      RETURN_IF_ERROR(ConvertFunction(fun, false, state).status());
     }
+    RETURN_IF_ERROR(ConvertFunctionGroup(function_group, bstate));
   } else if (analysis::Function::IsFunctionKind(*fun_object)) {
     RETURN_IF_ERROR(
-        ConvertFunction(static_cast<analysis::Function*>(fun_object), state)
+        ConvertFunction(static_cast<analysis::Function*>(fun_object), false,
+                        state)
             .status());
   }
-  return ConvertFunction(expression.def_function(), state).status();
+  return ConvertFunction(expression.def_function(), false, state).status();
+}
+
+absl::Status PythonConverter::ConvertStructType(
+    const analysis::TypeStruct* ts, PythonConvertState* state) const {
+  auto superstate = state->top_superstate();
+  if (!superstate->RegisterStructType(ts)) {
+    return absl::OkStatus();
+  }
+  PythonConvertState local_state(superstate);
+  auto& out = local_state.out();
+  local_state.add_import("import dataclasses");
+  out << std::endl
+      << "@dataclasses.dataclass" << std::endl
+      << "class "
+      << PythonSafeName(ts->name(), const_cast<analysis::TypeStruct*>(ts))
+      << ":" << std::endl;
+  local_state.inc_indent();
+  for (const auto& field : ts->fields()) {
+    ASSIGN_OR_RETURN(auto field_obj,
+                     ts->type_member_store()->GetName(field.name, true),
+                     _ << "Finding field object: " << field.name);
+    out << local_state.indent() << PythonSafeName(field.name, field_obj)
+        << ": ";
+    RETURN_IF_ERROR(AddTypeName(field.type_spec, &local_state))
+        << "In type of field: " << field.name << " in " << ts->name();
+    // TODO(catalin) - Need the default values + constructor & stuff when
+    //    they come
+    out << std::endl;
+  }
+  local_state.dec_indent();
+  out << std::endl;
+  superstate->out() << local_state.out_str();
+  superstate->AddImports(local_state);
+  return absl::OkStatus();
 }
 
 absl::Status PythonConverter::ConvertSchemaDefinition(
     const analysis::SchemaDefinitionExpression& expression,
     ConvertState* state) const {
-  auto bstate = static_cast<PythonConvertState*>(state);
-  bstate->clear_inline();
-  bstate->add_import("import dataclasses");
-  auto ts = CHECK_NOTNULL(expression.def_schema());
-  bstate->out() << std::endl
-                << "@dataclasses.dataclass" << std::endl
-                << "class "
-                << PythonSafeName(ts->name(),
-                                  const_cast<analysis::TypeStruct*>(ts))
-                << ":" << std::endl;
-  bstate->inc_indent();
-  for (const auto& field : ts->fields()) {
-    ASSIGN_OR_RETURN(auto field_obj,
-                     ts->type_member_store()->GetName(field.name, true),
-                     _ << "Finding field object: " << field.name);
-    bstate->out() << bstate->indent() << PythonSafeName(field.name, field_obj)
-                  << ": ";
-    RETURN_IF_ERROR(AddTypeName(field.type_spec, bstate))
-        << "In type of field: " << field.name << " in " << ts->name();
-    // TODO(catalin) - Need the default values + constructor & stuff when
-    //    they come
-    bstate->out() << std::endl;
-  }
-  bstate->dec_indent();
-  bstate->out() << std::endl;
-  return absl::OkStatus();
+  return ConvertStructType(CHECK_NOTNULL(expression.def_schema()),
+                           static_cast<PythonConvertState*>(state));
 }
 
 absl::Status PythonConverter::ConvertTypeDefinition(
@@ -1049,26 +1302,99 @@ absl::Status PythonConverter::ConvertTypeDefinition(
   return absl::OkStatus();
 }
 
-absl::StatusOr<bool> PythonConverter::ConvertBindings(
-    analysis::Function* fun, ConvertState* state) const {
-  bool has_conversions = false;
-  for (const auto& binding : fun->bindings()) {
-    ASSIGN_OR_RETURN(const bool has_converted,
-                     ConvertFunction(binding.get(), state));
-    if (has_converted) {
-      has_conversions = true;
+absl::Status PythonConverter::ConvertFunctionGroup(
+    analysis::FunctionGroup* group, PythonConvertState* state) const {
+  auto superstate = state->top_superstate();
+  if (!superstate->RegisterFunctionGroup(group)) {
+    return absl::OkStatus();
+  }
+  if (bindings_on_use_) {
+    return absl::OkStatus();
+  }
+  absl::flat_hash_map<std::string, analysis::Function*> bindings_map;
+  bool skip_all_conversion = true;
+  for (const auto fun : group->functions()) {
+    if (!fun->is_skip_conversion()) {
+      skip_all_conversion = false;
+    }
+    for (const auto& it : fun->bindings_by_name()) {
+      analysis::Function* crt_fun = CHECK_NOTNULL(it.second.second);
+      if ((crt_fun->is_native() || !crt_fun->expressions().empty()) &&
+          !crt_fun->is_skip_conversion()) {
+        bindings_map.emplace(it.first, crt_fun);
+      }
     }
   }
-  return has_conversions;
+  if (skip_all_conversion) {
+    return absl::OkStatus();
+  }
+  PythonConvertState local_state(superstate);
+  local_state.out() << std::endl
+                    << "class " << PythonSafeName(group->call_name(), group)
+                    << ":" << std::endl;
+  local_state.inc_indent();
+  for (const auto& it : bindings_map) {
+    auto fun = it.second;
+    local_state.out() << local_state.indent() << it.first << ": ";
+    RETURN_IF_ERROR(AddTypeName(fun->type_spec(), &local_state))
+        << "Adding function group type for function: " << fun->full_name();
+    local_state.out() << " = " << PythonSafeName(fun->call_name(), fun)
+                      << std::endl;
+  }
+  local_state.out() << local_state.indent()
+                    << "def __new__(cls, *args):" << std::endl;
+  local_state.inc_indent();
+  if (group->functions().size() == 1 && !bindings_map.empty()) {
+    // This allows the call of a function group - for variables
+    // defined as a function, then called.
+    local_state.out() << local_state.indent() << "return cls."
+                      << bindings_map.begin()->first << "(*args)";
+  } else {
+    // TODO(catalin): Here basically we hope for best - need to be better.
+    local_state.out() << local_state.indent() << "pass";
+  }
+  local_state.dec_indent();
+  local_state.out() << std::endl;
+  local_state.dec_indent();
+  local_state.out() << std::endl;
+  superstate->AddImports(local_state);
+  superstate->out() << local_state.out_str();
+  return absl::OkStatus();
+}
+
+absl::StatusOr<bool> PythonConverter::ConvertBindings(
+    analysis::Function* fun, PythonConvertState* state) const {
+  bool has_converted = false;
+  for (const auto& it : fun->bindings_by_name()) {
+    analysis::Function* crt_fun = CHECK_NOTNULL(it.second.second);
+    bool crt_converted = false;
+    if ((crt_fun->is_native() || !crt_fun->expressions().empty()) &&
+        !crt_fun->is_skip_conversion()) {
+      // bool crt_converted = !it.second.first.has_value();
+      // if (!crt_converted) {
+      ASSIGN_OR_RETURN(crt_converted, ConvertFunction(crt_fun, false, state));
+    }
+    if (crt_converted) {
+      has_converted = true;
+    }
+  }
+  return has_converted;
 }
 
 absl::StatusOr<bool> PythonConverter::ConvertFunction(
-    analysis::Function* fun, ConvertState* state) const {
+    analysis::Function* fun, bool is_on_use, ConvertState* state) const {
   const bool is_lambda = fun->kind() == pb::ObjectKind::OBJ_LAMBDA;
-  if (!fun->is_native() && fun->expressions().empty()) {  // && !is_lambda) {
-    return ConvertBindings(fun, state);  // Untyped and unused function.
-  }
   auto bstate = static_cast<PythonConvertState*>(state);
+  if (!fun->is_native() && fun->expressions().empty()) {  // && !is_lambda) {
+    if (bindings_on_use_) {
+      RET_CHECK(!is_on_use) << stacktrace::ToString();
+      return true;
+    }
+    return ConvertBindings(fun, bstate);  // Untyped and unused function.
+  }
+  if (bindings_on_use_ && fun->binding_parent().has_value() && !is_on_use) {
+    return true;
+  }
   auto superstate = bstate->top_superstate();
   if (!superstate->RegisterFunction(fun)) {
     return true;  // Already converted
@@ -1076,11 +1402,18 @@ absl::StatusOr<bool> PythonConverter::ConvertFunction(
   if (fun->is_skip_conversion()) {
     return true;  // No need to convert this one
   }
-  const bool is_pure_native = fun->is_native() && !fun->is_struct_constructor();
+  const bool is_pure_native =
+      (fun->is_native() && !fun->is_struct_constructor());
   PythonConvertState local_state(superstate);
   auto& out = local_state.out();
-  out << std::endl
-      << "def " << PythonSafeName(fun->call_name(), fun) << "(" << std::endl;
+  out << std::endl << "def ";
+  if (bindings_on_use_) {
+    ASSIGN_OR_RETURN(auto name, LocalFunctionName(fun, false, state));
+    out << name;
+  } else {
+    out << PythonSafeName(fun->call_name(), fun);
+  }
+  out << "(" << std::endl;
   local_state.inc_indent(2);
   RET_CHECK(fun->arguments().size() == fun->default_values().size());
   for (size_t i = 0; i < fun->arguments().size(); ++i) {
@@ -1132,448 +1465,31 @@ absl::StatusOr<bool> PythonConverter::ConvertFunction(
   out << std::endl;
   superstate->out() << local_state.out_str();
   superstate->AddImports(local_state);
-  RETURN_IF_ERROR(ConvertBindings(fun, state).status());
+  RETURN_IF_ERROR(ConvertBindings(fun, bstate).status());
   return true;
 }
 
-namespace {
-std::string PythonSafeNameUnit(absl::string_view name,
-                               absl::optional<analysis::NamedObject*> object) {
-  const bool is_python_special = IsPythonSpecialName(name);
-  const bool is_python_keyword = IsPythonKeyword(name);
-  const bool is_nudl_name = absl::EndsWith(name, kPythonRenameEnding);
-  bool is_python_builtin = IsPythonBuiltin(name);
-  if (object.has_value() &&
-      object.value()->kind() == pb::ObjectKind::OBJ_FIELD) {
-    is_python_builtin = false;
+absl::StatusOr<std::string> PythonConverter::LocalFunctionName(
+    analysis::Function* fun, bool is_on_use, ConvertState* state) const {
+  RET_CHECK(bindings_on_use_);
+  if (fun->is_abstract()) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Cannot call abstract function: " << fun->name();
   }
-  if (!is_python_special && !is_python_special && !is_nudl_name &&
-      !is_python_builtin) {
-    return std::string(name);
+  if (is_on_use) {
+    RETURN_IF_ERROR(ConvertFunction(fun, true, state).status());
   }
-  const std::string new_name(absl::StrCat(name, kPythonRenameEnding));
-  if (absl::GetFlag(FLAGS_pyconvert_print_name_changes)) {
-    std::cerr << "Renaming: `" << name << "` as `" << new_name << "`"
-              << (is_python_special ? " Is Python special function name;" : "")
-              << (is_python_keyword ? " Is Python keyword;" : "")
-              << (is_nudl_name ? " Is a nudl python-safe name;" : "")
-              << (is_python_builtin ? " Is Python builtin / standard name;"
-                                    : "")
-              << std::endl;
+  if (state->module() == fun->module_scope()) {
+    return PythonSafeName(fun->call_name(), fun);
   }
-  return new_name;
-}
-}  // namespace
-
-// TODO(catalin): May want to tweak this one if creates too much damage:
-std::string PythonSafeName(absl::string_view name,
-                           absl::optional<analysis::NamedObject*> object) {
-  if (object.has_value() &&
-      analysis::Function::IsFunctionKind(*object.value()) &&
-      (static_cast<analysis::Function*>(object.value())
-           ->is_skip_conversion())) {
-    return std::string(name);
+  if (state->module() == fun->built_in_scope()) {
+    return PythonSafeName(absl::StrCat("__builtin__", fun->call_name()), fun);
   }
-  std::vector<std::string> comp = absl::StrSplit(name, ".");
-  std::reverse(comp.begin(), comp.end());
-  std::vector<std::string> result;
-  result.reserve(comp.size());
-  auto crt_object = object;
-  for (const auto& s : comp) {
-    result.emplace_back(PythonSafeNameUnit(s, crt_object));
-    do {
-      if (crt_object.has_value()) {
-        crt_object = crt_object.value()->parent_store();
-      } else {
-        crt_object = {};
-      }
-    } while (crt_object.has_value() &&
-             analysis::FunctionGroup::IsFunctionGroup(*crt_object.value()));
-  }
-  std::reverse(result.begin(), result.end());
-  return absl::StrJoin(result, ".");
-}
-
-bool IsPythonKeyword(absl::string_view name) {
-  static const auto kPythonKeywords = new absl::flat_hash_set<std::string>({
-      // Keywords:
-      "await",    "else",  "import", "pass",    "None",   "break",  "except",
-      "in",       "raise", "class",  "finally", "is",     "return", "and",
-      "continue", "for",   "lambda", "try",     "as",     "def",    "from",
-      "nonlocal", "while", "assert", "del",     "global", "not",    "with",
-      "async",    "elif",  "if",     "or",      "yield",  "False",  "True",
-  });
-  return kPythonKeywords->contains(name);
-}
-
-bool IsPythonBuiltin(absl::string_view name) {
-  static const auto kPythonNames = new absl::flat_hash_set<std::string>({
-      // Builtins
-      "__name__",
-      "__doc__",
-      "__package__",
-      "__loader__",
-      "__spec__",
-      "__build_class__",
-      "__import__",
-      "abs",
-      "all",
-      "any",
-      "ascii",
-      "bin",
-      "breakpoint",
-      "callable",
-      "chr",
-      "compile",
-      "delattr",
-      "dir",
-      "divmod",
-      "eval",
-      "exec",
-      "format",
-      "getattr",
-      "globals",
-      "hasattr",
-      "hash",
-      "hex",
-      "id",
-      "input",
-      "isinstance",
-      "issubclass",
-      "iter",
-      "len",
-      "locals",
-      "max",
-      "min",
-      "next",
-      "oct",
-      "ord",
-      "pow",
-      "print",
-      "repr",
-      "round",
-      "setattr",
-      "sorted",
-      "sum",
-      "vars",
-      "None",
-      "Ellipsis",
-      "NotImplemented",
-      "bool",
-      "memoryview",
-      "bytearray",
-      "bytes",
-      "classmethod",
-      "complex",
-      "dict",
-      "enumerate",
-      "filter",
-      "float",
-      "frozenset",
-      "property",
-      "int",
-      "list",
-      "map",
-      "object",
-      "range",
-      "reversed",
-      "set",
-      "slice",
-      "staticmethod",
-      "str",
-      "super",
-      "tuple",
-      "type",
-      "zip",
-      "__debug__",
-      "BaseException",
-      "Exception",
-      "TypeError",
-      "StopAsyncIteration",
-      "StopIteration",
-      "GeneratorExit",
-      "SystemExit",
-      "KeyboardInterrupt",
-      "ImportError",
-      "ModuleNotFoundError",
-      "OSError",
-      "EnvironmentError",
-      "IOError",
-      "EOFError",
-      "RuntimeError",
-      "RecursionError",
-      "NotImplementedError",
-      "NameError",
-      "UnboundLocalError",
-      "AttributeError",
-      "SyntaxError",
-      "IndentationError",
-      "TabError",
-      "LookupError",
-      "IndexError",
-      "KeyError",
-      "ValueError",
-      "UnicodeError",
-      "UnicodeEncodeError",
-      "UnicodeDecodeError",
-      "UnicodeTranslateError",
-      "AssertionError",
-      "ArithmeticError",
-      "FloatingPointError",
-      "OverflowError",
-      "ZeroDivisionError",
-      "SystemError",
-      "ReferenceError",
-      "MemoryError",
-      "BufferError",
-      "Warning",
-      "UserWarning",
-      "DeprecationWarning",
-      "PendingDeprecationWarning",
-      "SyntaxWarning",
-      "RuntimeWarning",
-      "FutureWarning",
-      "ImportWarning",
-      "UnicodeWarning",
-      "BytesWarning",
-      "ResourceWarning",
-      "ConnectionError",
-      "BlockingIOError",
-      "BrokenPipeError",
-      "ChildProcessError",
-      "ConnectionAbortedError",
-      "ConnectionRefusedError",
-      "ConnectionResetError",
-      "FileExistsError",
-      "FileNotFoundError",
-      "IsADirectoryError",
-      "NotADirectoryError",
-      "InterruptedError",
-      "PermissionError",
-      "ProcessLookupError",
-      "TimeoutError",
-      "open",
-      "quit",
-      "exit",
-      "copyright",
-      "credits",
-      "license",
-      "help",
-      "_",
-      // General module names:
-      "__future__",
-      "__main__",
-      "_thread",
-      "abc",
-      "aifc",
-      "argparse",
-      "array",
-      "ast",
-      "asynchat",
-      "asyncio",
-      "asyncore",
-      "atexit",
-      "audioop",
-      "base64",
-      "bdb",
-      "binascii",
-      "bisect",
-      "builtins",
-      "bz2",
-      "calendar",
-      "cgi",
-      "cgitb",
-      "chunk",
-      "cmath",
-      "cmd",
-      "code",
-      "codecs",
-      "codeop",
-      "collections",
-      "colorsys",
-      "compileall",
-      "concurrent",
-      "contextlib",
-      "contextvars",
-      "copy",
-      "copyreg",
-      "cProfile",
-      "csv",
-      "ctypes",
-      "curses",
-      "dataclasses",
-      "datetime",
-      "dbm",
-      "decimal",
-      "difflib",
-      "dis",
-      "distutils",
-      "doctest",
-      "email",
-      "encodings",
-      "ensurepip",
-      "enum",
-      "errno",
-      "faulthandler",
-      "fcntl",
-      "filecmp",
-      "fileinput",
-      "fnmatch",
-      "fractions",
-      "ftplib",
-      "functools",
-      "gc",
-      "getopt",
-      "getpass",
-      "gettext",
-      "glob",
-      "graphlib",
-      "grp",
-      "gzip",
-      "hashlib",
-      "heapq",
-      "hmac",
-      "html",
-      "http",
-      "idlelib",
-      "imaplib",
-      "imghdr",
-      "imp",
-      "importlib",
-      "inspect",
-      "io",
-      "ipaddress",
-      "itertools",
-      "json",
-      "keyword",
-      "lib2to3",
-      "linecache",
-      "locale",
-      "logging",
-      "lzma",
-      "mailbox",
-      "mailcap",
-      "marshal",
-      "math",
-      "mimetypes",
-      "mmap",
-      "modulefinder",
-      "msilib",
-      "msvcrt",
-      "multiprocessing",
-      "netrc",
-      "nis",
-      "nntplib",
-      "numbers",
-      "operator",
-      "optparse",
-      "os",
-      "ossaudiodev",
-      "pathlib",
-      "pdb",
-      "pickle",
-      "pickletools",
-      "pipes",
-      "pkgutil",
-      "platform",
-      "plistlib",
-      "poplib",
-      "posix",
-      "pprint",
-      "profile",
-      "pstats",
-      "pty",
-      "pwd",
-      "py_compile",
-      "pyclbr",
-      "pydoc",
-      "queue",
-      "quopri",
-      "random",
-      "re",
-      "readline",
-      "reprlib",
-      "resource",
-      "rlcompleter",
-      "runpy",
-      "sched",
-      "secrets",
-      "select",
-      "selectors",
-      "shelve",
-      "shlex",
-      "shutil",
-      "signal",
-      "site",
-      "smtpd",
-      "smtplib",
-      "sndhdr",
-      "socket",
-      "socketserver",
-      "spwd",
-      "sqlite3",
-      "ssl",
-      "stat",
-      "statistics",
-      "string",
-      "stringprep",
-      "struct",
-      "subprocess",
-      "sunau",
-      "symtable",
-      "sys",
-      "sysconfig",
-      "syslog",
-      "tabnanny",
-      "tarfile",
-      "telnetlib",
-      "tempfile",
-      "termios",
-      "test",
-      "textwrap",
-      "threading",
-      "time",
-      "timeit",
-      "tkinter",
-      "token",
-      "tokenize",
-      "tomllib",
-      "trace",
-      "traceback",
-      "tracemalloc",
-      "tty",
-      "turtle",
-      "turtledemo",
-      "types",
-      "typing",
-      "unicodedata",
-      "unittest",
-      "urllib",
-      "uu",
-      "uuid",
-      "venv",
-      "warnings",
-      "wave",
-      "weakref",
-      "webbrowser",
-      "winreg",
-      "winsound",
-      "wsgiref",
-      "xdrlib",
-      "xml",
-      "xmlrpc",
-      "zipapp",
-      "zipfile",
-      "zipimport",
-      "zlib",
-      "zoneinfo",
-  });
-  return kPythonNames->contains(name);
-}
-
-bool IsPythonSpecialName(absl::string_view name) {
-  // Cut out all the __init__ and related python name.
-  return absl::StartsWith(name, "__") && absl::EndsWith(name, "__");
+  return PythonSafeName(
+      absl::StrCat(
+          absl::StrJoin(absl::StrSplit(fun->module_scope()->name(), "."), "__"),
+          "__", fun->call_name()),
+      fun);
 }
 
 }  // namespace conversion

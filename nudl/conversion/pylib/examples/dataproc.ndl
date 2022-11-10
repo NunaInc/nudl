@@ -13,17 +13,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+// This contains some more specific utilities for demo / example purpose
+//
 
-def read_csv(filename: String,
-             seed: {T: Struct},
+def read_csv(seed: {T: Struct},
+             filename: String,
              dialect: String = "excel") : Generator<T> =>
 [[pyimport]]import nudl.dataproc[[end]]
-[[pyinline]]nudl.dataproc.read_csv(${filename}, ${seed}, ${dialect})[[end]]
+[[pyinline]]nudl.dataproc.read_csv(${seed}, ${filename}, ${dialect})[[end]]
 
 
 def generate_csv(
-  gendir: String,
   seed: {T: Struct},
-  count: Int) : String =>
+  gendir: String,
+  count: Int,
+  generators: Nullable<Tuple> = null) : String =>
 [[pyimport]]import nudl.dataproc[[end]]
-[[pyinline]]nudl.dataproc.generate_csv(${gendir}, ${seed}, ${count})[[end]]
+[[pyinline]]nudl.dataproc.generate_csv((${seed},), ${gendir}, ${count}, ${generators})[0][[end]]
+
+def generate_csv(
+  seeds: Tuple,
+  gendir: String,
+  count: Int,
+  generators: Nullable<Tuple> = null) : Array<String> =>
+[[pyimport]]import nudl.dataproc[[end]]
+[[pyinline]]nudl.dataproc.generate_csv(${seeds}, ${gendir}, ${count}, ${generators})[[end]]
+
+def generate_parquet(
+  seed: {T: Struct},
+  gendir: String,
+  count: Int,
+  generators: Nullable<Tuple> = null) : String =>
+[[pyimport]]import nudl.dataproc[[end]]
+[[pyinline]]nudl.dataproc.generate_parquet((${seed}, ), ${gendir}, ${count}, ${generators})[0][[end]]
+
+def generate_parquet(
+  seeds: Tuple,
+  gendir: String,
+  count: Int,
+  generators: Nullable<Tuple> = null) : Array<String> =>
+[[pyimport]]import nudl.dataproc[[end]]
+[[pyinline]]nudl.dataproc.generate_parquet(${seeds}, ${gendir}, ${count}, ${generators})[[end]]
+
+// This is supposed to be provided by execution environment.
+def spark_init_session(name: String) : Null =>
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.spark_init_session(${name})[[end]]

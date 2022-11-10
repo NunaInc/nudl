@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "full_any::f::f"
+      name: "full_any::f::f__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -23,11 +23,11 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "full_any.f"
+      full_name: "full_any.f__i0"
     }
     binding {
       scope_name {
-        name: "full_any::f::f__bind_1"
+        name: "full_any::f::f__i0__bind_1"
       }
       kind: OBJ_FUNCTION
       parameter {
@@ -47,7 +47,7 @@ expression {
       }
       function_name: "f"
       qualified_name {
-        full_name: "full_any.f__bind_1"
+        full_name: "full_any.f__i0__bind_1"
       }
       body {
         kind: EXPR_BLOCK
@@ -88,7 +88,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "full_any::g::g"
+      name: "full_any::g::g__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -114,7 +114,7 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "full_any.g"
+      full_name: "full_any.g__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -125,7 +125,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "__add__"
+            full_name: "__add____i0"
           }
           argument {
             name: "x"
@@ -157,7 +157,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "full_any::h::h"
+      name: "full_any::h::h__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -171,7 +171,7 @@ expression {
     }
     function_name: "h"
     qualified_name {
-      full_name: "full_any.h"
+      full_name: "full_any.h__i0"
     }
     body {
       kind: EXPR_BLOCK

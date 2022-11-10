@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "dot_call::f::f"
+      name: "dot_call::f::f__i0"
     }
     kind: OBJ_FUNCTION
     result_type {
@@ -11,7 +11,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "dot_call.f"
+      full_name: "dot_call.f__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -19,7 +19,7 @@ expression {
         kind: EXPR_LAMBDA
         function_spec {
           scope_name {
-            name: "dot_call::f::f::__local_lambda_1::__local_lambda_1"
+            name: "dot_call::f::f__i0::_local_lambda_1::_local_lambda_1__i0"
           }
           kind: OBJ_LAMBDA
           parameter {
@@ -31,9 +31,9 @@ expression {
           result_type {
             name: "Int"
           }
-          function_name: "__local_lambda_1"
+          function_name: "_local_lambda_1"
           qualified_name {
-            full_name: "dot_call.__local_lambda_1"
+            full_name: "dot_call._local_lambda_1__i0"
           }
           body {
             kind: EXPR_BLOCK
@@ -44,7 +44,7 @@ expression {
               }
               call_spec {
                 call_name {
-                  full_name: "__add__"
+                  full_name: "__add____i0"
                 }
                 argument {
                   name: "x"
@@ -79,7 +79,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "dot_call::g::g"
+      name: "dot_call::g::g__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -93,7 +93,7 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "dot_call.g"
+      full_name: "dot_call.g__i0"
     }
     body {
       kind: EXPR_BLOCK

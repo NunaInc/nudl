@@ -336,6 +336,32 @@ absl::Status PseudoConverter::ConvertMapDefinition(
   bstate->out() << "}";
   return absl::OkStatus();
 }
+
+absl::Status PseudoConverter::ConvertTupleDefinition(
+    const analysis::TupleDefinitionExpression& expression,
+    ConvertState* state) const {
+  auto bstate = static_cast<PseudoConvertState*>(state);
+  bstate->out() << "{";
+  expression.CheckSizes();
+  bstate->inc_indent();
+  bstate->inc_indent();
+  for (size_t i = 0; i < expression.names().size(); ++i) {
+    if (i) {
+      bstate->out() << "," << std::endl;
+    }
+    bstate->out() << bstate->indent() << expression.names()[i];
+    if (expression.types()[i].has_value()) {
+      bstate->out() << ": " << expression.types()[i].value()->full_name();
+    }
+    bstate->out() << " = ";
+    RETURN_IF_ERROR(ConvertExpression(*expression.children()[i], state));
+  }
+  bstate->out() << "}";
+  bstate->dec_indent();
+  bstate->dec_indent();
+  return absl::OkStatus();
+}
+
 absl::Status PseudoConverter::ConvertIfExpression(
     const analysis::IfExpression& expression, ConvertState* state) const {
   auto bstate = static_cast<PseudoConvertState*>(state);
@@ -391,8 +417,15 @@ absl::Status PseudoConverter::ConvertLambdaExpression(
   auto bstate = static_cast<PseudoConvertState*>(state);
   RETURN_IF_ERROR(ConvertFunction(expression.lambda_function(), bstate));
   bstate->out() << "lambda ";
-  analysis::Function* fun =
-      static_cast<analysis::Function*>(expression.named_object().value());
+  RET_CHECK(expression.named_object().has_value());
+  auto obj = expression.named_object().value();
+  analysis::Function* fun = nullptr;
+  if (analysis::FunctionGroup::IsFunctionGroup(*obj)) {
+    fun = expression.lambda_function();
+  } else {
+    RET_CHECK(analysis::Function::IsFunctionKind(*obj));
+    fun = static_cast<analysis::Function*>(obj);
+  }
   RET_CHECK(fun->arguments().size() == fun->default_values().size());
   for (size_t i = 0; i < fun->arguments().size(); ++i) {
     if (i > 0) {

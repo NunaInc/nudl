@@ -8,7 +8,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "array__bind_1"
+        full_name: "array__i0"
       }
       is_method: true
       argument {
@@ -20,7 +20,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "timestamp"
+              full_name: "timestamp__i0"
             }
             is_method: true
             binding_type {
@@ -44,7 +44,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "array__bind_2"
+        full_name: "array__i0"
       }
       is_method: true
       argument {
@@ -56,7 +56,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "date"
+              full_name: "date__i0"
             }
             is_method: true
             binding_type {
@@ -80,7 +80,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "array__bind_3"
+        full_name: "array__i0"
       }
       is_method: true
       argument {
@@ -92,7 +92,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "array__bind_2__bind_1"
+              full_name: "array__i0"
             }
             is_method: true
             argument {
@@ -104,7 +104,7 @@ expression {
                 }
                 call_spec {
                   call_name {
-                    full_name: "date"
+                    full_name: "date__i0"
                   }
                   is_method: true
                   binding_type {

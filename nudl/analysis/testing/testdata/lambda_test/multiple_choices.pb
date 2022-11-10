@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "multiple_choices::f::f"
+      name: "multiple_choices::f::f__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -23,17 +23,17 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "multiple_choices.f"
+      full_name: "multiple_choices.f__i0"
     }
     binding {
       scope_name {
-        name: "multiple_choices::f::f__bind_1"
+        name: "multiple_choices::f::f__i0__bind_1"
       }
       kind: OBJ_FUNCTION
       parameter {
         name: "x"
         type_spec {
-          name: "Function<Int(arg_1: Int)>"
+          name: "Function<Int(x: Int)>"
         }
       }
       parameter {
@@ -47,7 +47,7 @@ expression {
       }
       function_name: "f"
       qualified_name {
-        full_name: "multiple_choices.f__bind_1"
+        full_name: "multiple_choices.f__i0__bind_1"
       }
       body {
         kind: EXPR_BLOCK
@@ -64,7 +64,7 @@ expression {
               }
             }
             argument {
-              name: "arg_1"
+              name: "x"
               value {
                 kind: EXPR_IDENTIFIER
                 identifier {
@@ -73,7 +73,7 @@ expression {
               }
             }
             binding_type {
-              name: "Function<Int(arg_1: Int)>"
+              name: "Function<Int(x: Int)>"
             }
           }
         }
@@ -85,7 +85,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "multiple_choices::g::g"
+      name: "multiple_choices::g::g__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -111,7 +111,7 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "multiple_choices.g"
+      full_name: "multiple_choices.g__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -122,7 +122,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "__add__"
+            full_name: "__add____i0"
           }
           argument {
             name: "x"
@@ -154,7 +154,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "multiple_choices::g::g__1__"
+      name: "multiple_choices::g::g__i1"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -180,7 +180,7 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "multiple_choices.g__1__"
+      full_name: "multiple_choices.g__i1"
     }
     body {
       kind: EXPR_BLOCK
@@ -191,7 +191,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "__add__"
+            full_name: "__add____i0"
           }
           argument {
             name: "x"
@@ -223,7 +223,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "multiple_choices::h::h"
+      name: "multiple_choices::h::h__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -237,7 +237,7 @@ expression {
     }
     function_name: "h"
     qualified_name {
-      full_name: "multiple_choices.h"
+      full_name: "multiple_choices.h__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -258,7 +258,7 @@ expression {
             value {
               kind: EXPR_IDENTIFIER
               identifier {
-                full_name: "g.g"
+                full_name: "g.g__i0"
               }
             }
           }
@@ -272,7 +272,7 @@ expression {
             }
           }
           binding_type {
-            name: "Function<Int(x: Function<Int(arg_1: Int)>, val: Int)>"
+            name: "Function<Int(x: Function<Int(x: Int)>, val: Int)>"
           }
         }
       }

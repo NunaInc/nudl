@@ -19,7 +19,7 @@
 #include <utility>
 
 #include "glog/logging.h"
-#include "nudl/analysis/types.h"
+#include "nudl/analysis/type_utils.h"
 #include "nudl/grammar/dsl.h"
 #include "nudl/status/status.h"
 
@@ -193,8 +193,9 @@ absl::StatusOr<const TypeSpec*> ScopeTypeStore::FindType(
       bind_arguments.emplace_back(TypeBindingArg(std::move(subtype)));
     }
   }
-  ASSIGN_OR_RETURN(auto bound_type, spec->Bind(bind_arguments),
+  ASSIGN_OR_RETURN(auto bound_type, spec->Build(bind_arguments),
                    _ << "Binding type: " << spec->name());
+  bound_type->set_scope_name(lookup_scope);
   bound_types_.emplace_back(std::move(bound_type));
   return bound_types_.back().get();
 }
@@ -282,9 +283,9 @@ absl::StatusOr<const TypeSpec*> ScopeTypeStore::DeclareType(
            << "Cannot redeclare existing type `" << name << "`"
            << " in scope: `" << scope_name_->name() << "`";
   }
-  const TypeSpec* result = type_spec.get();
-  types_.emplace(std::string(name), std::move(type_spec));
-  return result;
+  type_spec->set_scope_name(*scope_name_);
+  return types_.emplace(std::string(name), std::move(type_spec))
+      .first->second.get();
 }
 
 }  // namespace analysis

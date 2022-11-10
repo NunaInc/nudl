@@ -13,7 +13,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "import_alias::_init_object_Foo::_init_object_Foo"
+      name: "import_alias::_init_object_Foo::_init_object_Foo__i0"
     }
     kind: OBJ_CONSTRUCTOR
     parameter {
@@ -52,7 +52,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "cdm._init_object_HumanName"
+            full_name: "cdm._init_object_HumanName__i0"
           }
           is_method: true
           argument {
@@ -105,7 +105,7 @@ expression {
     }
     function_name: "_init_object_Foo"
     qualified_name {
-      full_name: "import_alias._init_object_Foo"
+      full_name: "import_alias._init_object_Foo__i0"
     }
     native_snippet {
       name: "__struct_object_constructor__"
@@ -117,7 +117,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "import_alias::_init_copy_Foo::_init_copy_Foo"
+      name: "import_alias::_init_copy_Foo::_init_copy_Foo__i0"
     }
     kind: OBJ_CONSTRUCTOR
     parameter {
@@ -131,7 +131,7 @@ expression {
     }
     function_name: "_init_copy_Foo"
     qualified_name {
-      full_name: "import_alias._init_copy_Foo"
+      full_name: "import_alias._init_copy_Foo__i0"
     }
     native_snippet {
       name: "__struct_copy_constructor__"
@@ -143,7 +143,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "import_alias::f::f"
+      name: "import_alias::f::f__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -157,7 +157,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "import_alias.f"
+      full_name: "import_alias.f__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -194,7 +194,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "import_alias::g::g"
+      name: "import_alias::g::g__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -208,7 +208,7 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "import_alias.g"
+      full_name: "import_alias.g__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -245,7 +245,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "import_alias::h::h"
+      name: "import_alias::h::h__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -259,7 +259,7 @@ expression {
     }
     function_name: "h"
     qualified_name {
-      full_name: "import_alias.h"
+      full_name: "import_alias.h__i0"
     }
     body {
       kind: EXPR_BLOCK

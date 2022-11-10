@@ -77,6 +77,9 @@ class Converter {
   virtual absl::Status ConvertMapDefinition(
       const analysis::MapDefinitionExpression& expression,
       ConvertState* state) const = 0;
+  virtual absl::Status ConvertTupleDefinition(
+      const analysis::TupleDefinitionExpression& expression,
+      ConvertState* state) const = 0;
   virtual absl::Status ConvertIfExpression(
       const analysis::IfExpression& expression, ConvertState* state) const = 0;
   virtual absl::Status ConvertExpressionBlock(

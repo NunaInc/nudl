@@ -47,6 +47,8 @@ class VarBase : public WrappedNameStore {
   const TypeSpec* original_type() const;
   // To which type we should convert this for conversion:
   const TypeSpec* converted_type() const;
+  // Which named objects are assigned into this:
+  // absl::flat_hash_set<NamedObject*> assigned_named_objects() const;
 
   // Marks the assignment of a variable / field with an expression
   // The value of the status or can be a new expression that was
@@ -84,6 +86,7 @@ class VarBase : public WrappedNameStore {
   absl::optional<NameStore*> const parent_store_;
   absl::flat_hash_map<std::string, NamedObject*> local_fields_map_;
   std::vector<std::unique_ptr<NamedObject>> local_fields_;
+  std::vector<std::unique_ptr<Expression>> failed_assignments_;
   std::vector<Expression*> assignments_;
   std::vector<const TypeSpec*> assign_types_;
 };

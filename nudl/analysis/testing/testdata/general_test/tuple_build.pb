@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "tuple_build::f::f"
+      name: "tuple_build::f::f__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -17,7 +17,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "tuple_build.f"
+      full_name: "tuple_build.f__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -28,7 +28,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "__add__"
+            full_name: "__add____i0"
           }
           argument {
             name: "x"

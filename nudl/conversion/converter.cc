@@ -72,6 +72,10 @@ absl::Status Converter::ConvertExpression(
       return ConvertMapDefinition(
           static_cast<const analysis::MapDefinitionExpression&>(expression),
           state);
+    case pb::ExpressionKind::EXPR_TUPLE_DEF:
+      return ConvertTupleDefinition(
+          static_cast<const analysis::TupleDefinitionExpression&>(expression),
+          state);
     case pb::ExpressionKind::EXPR_IF:
       return ConvertIfExpression(
           static_cast<const analysis::IfExpression&>(expression), state);

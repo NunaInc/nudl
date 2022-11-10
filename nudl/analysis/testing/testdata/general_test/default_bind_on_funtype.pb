@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "default_bind_on_funtype::f::f"
+      name: "default_bind_on_funtype::f::f__i0"
     }
     kind: OBJ_FUNCTION
     result_type {
@@ -11,7 +11,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "default_bind_on_funtype.f"
+      full_name: "default_bind_on_funtype.f__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -19,7 +19,7 @@ expression {
         kind: EXPR_LAMBDA
         function_spec {
           scope_name {
-            name: "default_bind_on_funtype::f::f::__local_lambda_1::__local_lambda_1"
+            name: "default_bind_on_funtype::f::f__i0::_local_lambda_1::_local_lambda_1__i0"
           }
           kind: OBJ_LAMBDA
           parameter {
@@ -49,9 +49,9 @@ expression {
           result_type {
             name: "Int"
           }
-          function_name: "__local_lambda_1"
+          function_name: "_local_lambda_1"
           qualified_name {
-            full_name: "default_bind_on_funtype.__local_lambda_1"
+            full_name: "default_bind_on_funtype._local_lambda_1__i0"
           }
           body {
             kind: EXPR_BLOCK
@@ -62,7 +62,7 @@ expression {
               }
               call_spec {
                 call_name {
-                  full_name: "__add__"
+                  full_name: "__add____i0"
                 }
                 argument {
                   name: "x"
@@ -97,7 +97,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "default_bind_on_funtype::g::g"
+      name: "default_bind_on_funtype::g::g__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -111,7 +111,7 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "default_bind_on_funtype.g"
+      full_name: "default_bind_on_funtype.g__i0"
     }
     body {
       kind: EXPR_BLOCK
