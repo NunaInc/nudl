@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-11-10 21:45:44</td>
+            <td class="headerValue">2022-11-10 22:23:26</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">34</td>
@@ -134,7 +134,7 @@
 <a name="72"><span class="lineNum">      72 </span>            : </a>
 <a name="73"><span class="lineNum">      73 </span><span class="lineCov">      39794 : NamedObject::~NamedObject() {}</span></a>
 <a name="74"><span class="lineNum">      74 </span>            : </a>
-<a name="75"><span class="lineNum">      75 </span><span class="lineCov">     110254 : const std::string&amp; NamedObject::name() const { return name_; }</span></a>
+<a name="75"><span class="lineNum">      75 </span><span class="lineCov">     110263 : const std::string&amp; NamedObject::name() const { return name_; }</span></a>
 <a name="76"><span class="lineNum">      76 </span>            : </a>
 <a name="77"><span class="lineNum">      77 </span><span class="lineCov">        864 : absl::string_view NamedObject::kind_name() const {</span></a>
 <a name="78"><span class="lineNum">      78 </span><span class="lineCov">        864 :   return ObjectKindName(kind());</span></a>
@@ -176,9 +176,9 @@
 <a name="114"><span class="lineNum">     114 </span>            : </a>
 <a name="115"><span class="lineNum">     115 </span><span class="lineCov">          1 : absl::optional&lt;NameStore*&gt; NameStore::name_store() { return this; }</span></a>
 <a name="116"><span class="lineNum">     116 </span>            : </a>
-<a name="117"><span class="lineNum">     117 </span><span class="lineCov">      87527 : absl::string_view NameStore::NormalizeLocalName(</span></a>
+<a name="117"><span class="lineNum">     117 </span><span class="lineCov">      87528 : absl::string_view NameStore::NormalizeLocalName(</span></a>
 <a name="118"><span class="lineNum">     118 </span>            :     absl::string_view local_name) const {</a>
-<a name="119"><span class="lineNum">     119 </span><span class="lineCov">      87527 :   return absl::StripPrefix(local_name, &quot;::&quot;);</span></a>
+<a name="119"><span class="lineNum">     119 </span><span class="lineCov">      87528 :   return absl::StripPrefix(local_name, &quot;::&quot;);</span></a>
 <a name="120"><span class="lineNum">     120 </span>            : }</a>
 <a name="121"><span class="lineNum">     121 </span>            : </a>
 <a name="122"><span class="lineNum">     122 </span><span class="lineCov">      12110 : BaseNameStore::BaseNameStore(absl::string_view name) : NameStore(name) {}</span></a>
@@ -246,16 +246,16 @@
 <a name="184"><span class="lineNum">     184 </span><span class="lineCov">      20564 :          named_objects_.contains(NormalizeLocalName(local_name));</span></a>
 <a name="185"><span class="lineNum">     185 </span>            : }</a>
 <a name="186"><span class="lineNum">     186 </span>            : </a>
-<a name="187"><span class="lineNum">     187 </span><span class="lineCov">       4994 : absl::StatusOr&lt;NamedObject*&gt; BaseNameStore::GetName(</span></a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">       4995 : absl::StatusOr&lt;NamedObject*&gt; BaseNameStore::GetName(</span></a>
 <a name="188"><span class="lineNum">     188 </span>            :     absl::string_view local_name, bool in_self_only) {</a>
-<a name="189"><span class="lineNum">     189 </span><span class="lineCov">       4994 :   if (local_name.empty()) {</span></a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">       4995 :   if (local_name.empty()) {</span></a>
 <a name="190"><span class="lineNum">     190 </span><span class="lineNoCov">          0 :     return this;</span></a>
 <a name="191"><span class="lineNum">     191 </span>            :   }</a>
-<a name="192"><span class="lineNum">     192 </span><span class="lineCov">       4994 :   auto it = named_objects_.find(NormalizeLocalName(local_name));</span></a>
-<a name="193"><span class="lineNum">     193 </span><span class="lineCov">       4994 :   if (it == named_objects_.end()) {</span></a>
-<a name="194"><span class="lineNum">     194 </span><span class="lineCov">       3850 :     return status::NotFoundErrorBuilder()</span></a>
-<a name="195"><span class="lineNum">     195 </span><span class="lineCov">       1925 :            &lt;&lt; &quot;Cannot find local name: `&quot; &lt;&lt; local_name &lt;&lt; &quot;` in &quot;</span></a>
-<a name="196"><span class="lineNum">     196 </span><span class="lineCov">       3850 :            &lt;&lt; full_name();</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">       4995 :   auto it = named_objects_.find(NormalizeLocalName(local_name));</span></a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">       4995 :   if (it == named_objects_.end()) {</span></a>
+<a name="194"><span class="lineNum">     194 </span><span class="lineCov">       3852 :     return status::NotFoundErrorBuilder()</span></a>
+<a name="195"><span class="lineNum">     195 </span><span class="lineCov">       1926 :            &lt;&lt; &quot;Cannot find local name: `&quot; &lt;&lt; local_name &lt;&lt; &quot;` in &quot;</span></a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineCov">       3852 :            &lt;&lt; full_name();</span></a>
 <a name="197"><span class="lineNum">     197 </span>            :   }</a>
 <a name="198"><span class="lineNum">     198 </span><span class="lineCov">       3069 :   return it-&gt;second;</span></a>
 <a name="199"><span class="lineNum">     199 </span>            : }</a>
