@@ -31,17 +31,17 @@
             <td class="headerValue">_coverage_report.dat</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">6</td>
-            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">2</td>
             <td class="headerCovTableEntryHi">100.0 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-30 01:22:14</td>
+            <td class="headerValue">2022-11-10 21:45:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">23</td>
-            <td class="headerCovTableEntry">23</td>
+            <td class="headerCovTableEntry">22</td>
+            <td class="headerCovTableEntry">22</td>
             <td class="headerCovTableEntryHi">100.0 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
@@ -88,582 +88,570 @@
 <a name="26"><span class="lineNum">      26 </span>            : #include &quot;glog/logging.h&quot;</a>
 <a name="27"><span class="lineNum">      27 </span>            : #include &quot;nudl/analysis/type_spec.h&quot;</a>
 <a name="28"><span class="lineNum">      28 </span>            : #include &quot;nudl/analysis/type_store.h&quot;</a>
-<a name="29"><span class="lineNum">      29 </span>            : #include &quot;nudl/proto/analysis.pb.h&quot;</a>
-<a name="30"><span class="lineNum">      30 </span>            : </a>
-<a name="31"><span class="lineNum">      31 </span>            : namespace nudl {</a>
-<a name="32"><span class="lineNum">      32 </span>            : namespace analysis {</a>
-<a name="33"><span class="lineNum">      33 </span>            : </a>
-<a name="34"><span class="lineNum">      34 </span>            : class StoredTypeSpec : public TypeSpec {</a>
-<a name="35"><span class="lineNum">      35 </span>            :  public:</a>
-<a name="36"><span class="lineNum">      36 </span>            :   StoredTypeSpec(TypeStore* type_store, int type_id, absl::string_view name,</a>
-<a name="37"><span class="lineNum">      37 </span>            :                  std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="38"><span class="lineNum">      38 </span>            :                  bool is_bound_type = false, const TypeSpec* ancestor = nullptr,</a>
-<a name="39"><span class="lineNum">      39 </span>            :                  std::vector&lt;const TypeSpec*&gt; parameters = {});</a>
-<a name="40"><span class="lineNum">      40 </span>            : </a>
-<a name="41"><span class="lineNum">      41 </span>            :   template &lt;class C&gt;</a>
-<a name="42"><span class="lineNum">      42 </span><span class="lineCov">       1488 :   std::unique_ptr&lt;TypeSpec&gt; CloneType() const {</span></a>
-<a name="43"><span class="lineNum">      43 </span><span class="lineCov">       1488 :     return std::make_unique&lt;C&gt;(type_store_, type_member_store_);</span></a>
-<a name="44"><span class="lineNum">      44 </span>            :   }</a>
-<a name="45"><span class="lineNum">      45 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="46"><span class="lineNum">      46 </span>            :   const TypeSpec* type_spec() const override;</a>
-<a name="47"><span class="lineNum">      47 </span>            :   const ScopeName&amp; scope_name() const override;</a>
-<a name="48"><span class="lineNum">      48 </span>            :   void set_scope_name(ScopeName scope_name);</a>
-<a name="49"><span class="lineNum">      49 </span>            : </a>
-<a name="50"><span class="lineNum">      50 </span>            :  protected:</a>
-<a name="51"><span class="lineNum">      51 </span>            :   TypeStore* const type_store_;</a>
-<a name="52"><span class="lineNum">      52 </span>            :   const TypeSpec* const object_type_spec_;</a>
-<a name="53"><span class="lineNum">      53 </span>            :   std::optional&lt;ScopeName&gt; scope_name_;</a>
-<a name="54"><span class="lineNum">      54 </span>            : };</a>
-<a name="55"><span class="lineNum">      55 </span>            : </a>
-<a name="56"><span class="lineNum">      56 </span>            : class BaseTypesStore : public ScopeTypeStore {</a>
-<a name="57"><span class="lineNum">      57 </span>            :  public:</a>
-<a name="58"><span class="lineNum">      58 </span><span class="lineCov">         54 :   explicit BaseTypesStore(TypeStore* global_store)</span></a>
-<a name="59"><span class="lineNum">      59 </span><span class="lineCov">         54 :       : ScopeTypeStore(absl::make_unique&lt;ScopeName&gt;(), global_store) {</span></a>
-<a name="60"><span class="lineNum">      60 </span><span class="lineCov">         54 :     CreateBaseTypes();</span></a>
-<a name="61"><span class="lineNum">      61 </span><span class="lineCov">         54 :   }</span></a>
-<a name="62"><span class="lineNum">      62 </span>            : </a>
-<a name="63"><span class="lineNum">      63 </span>            :  private:</a>
-<a name="64"><span class="lineNum">      64 </span>            :   void CreateBaseTypes();</a>
-<a name="65"><span class="lineNum">      65 </span>            : };</a>
-<a name="66"><span class="lineNum">      66 </span>            : </a>
-<a name="67"><span class="lineNum">      67 </span>            : // Names for all standard types.</a>
-<a name="68"><span class="lineNum">      68 </span>            : inline constexpr absl::string_view kTypeNameUnknown = &quot;Unknown&quot;;</a>
-<a name="69"><span class="lineNum">      69 </span>            : inline constexpr absl::string_view kTypeNameAny = &quot;Any&quot;;</a>
-<a name="70"><span class="lineNum">      70 </span>            : inline constexpr absl::string_view kTypeNameNull = &quot;Null&quot;;</a>
-<a name="71"><span class="lineNum">      71 </span>            : inline constexpr absl::string_view kTypeNameNumeric = &quot;Numeric&quot;;</a>
-<a name="72"><span class="lineNum">      72 </span>            : inline constexpr absl::string_view kTypeNameInt = &quot;Int&quot;;</a>
-<a name="73"><span class="lineNum">      73 </span>            : inline constexpr absl::string_view kTypeNameInt8 = &quot;Int8&quot;;</a>
-<a name="74"><span class="lineNum">      74 </span>            : inline constexpr absl::string_view kTypeNameInt16 = &quot;Int16&quot;;</a>
-<a name="75"><span class="lineNum">      75 </span>            : inline constexpr absl::string_view kTypeNameInt32 = &quot;Int32&quot;;</a>
-<a name="76"><span class="lineNum">      76 </span>            : inline constexpr absl::string_view kTypeNameUInt = &quot;UInt&quot;;</a>
-<a name="77"><span class="lineNum">      77 </span>            : inline constexpr absl::string_view kTypeNameUInt8 = &quot;UInt8&quot;;</a>
-<a name="78"><span class="lineNum">      78 </span>            : inline constexpr absl::string_view kTypeNameUInt16 = &quot;UInt16&quot;;</a>
-<a name="79"><span class="lineNum">      79 </span>            : inline constexpr absl::string_view kTypeNameUInt32 = &quot;UInt32&quot;;</a>
-<a name="80"><span class="lineNum">      80 </span>            : inline constexpr absl::string_view kTypeNameString = &quot;String&quot;;</a>
-<a name="81"><span class="lineNum">      81 </span>            : inline constexpr absl::string_view kTypeNameBytes = &quot;Bytes&quot;;</a>
-<a name="82"><span class="lineNum">      82 </span>            : inline constexpr absl::string_view kTypeNameBool = &quot;Bool&quot;;</a>
-<a name="83"><span class="lineNum">      83 </span>            : inline constexpr absl::string_view kTypeNameFloat32 = &quot;Float32&quot;;</a>
-<a name="84"><span class="lineNum">      84 </span>            : inline constexpr absl::string_view kTypeNameFloat64 = &quot;Float64&quot;;</a>
-<a name="85"><span class="lineNum">      85 </span>            : inline constexpr absl::string_view kTypeNameDate = &quot;Date&quot;;</a>
-<a name="86"><span class="lineNum">      86 </span>            : inline constexpr absl::string_view kTypeNameDateTime = &quot;DateTime&quot;;</a>
-<a name="87"><span class="lineNum">      87 </span>            : inline constexpr absl::string_view kTypeNameTimeInterval = &quot;TimeInterval&quot;;</a>
-<a name="88"><span class="lineNum">      88 </span>            : inline constexpr absl::string_view kTypeNameTimestamp = &quot;Timestamp&quot;;</a>
-<a name="89"><span class="lineNum">      89 </span>            : inline constexpr absl::string_view kTypeNameDecimal = &quot;Decimal&quot;;</a>
-<a name="90"><span class="lineNum">      90 </span>            : inline constexpr absl::string_view kTypeNameIterable = &quot;Iterable&quot;;</a>
-<a name="91"><span class="lineNum">      91 </span>            : inline constexpr absl::string_view kTypeNameArray = &quot;Array&quot;;</a>
-<a name="92"><span class="lineNum">      92 </span>            : inline constexpr absl::string_view kTypeNameTuple = &quot;Tuple&quot;;</a>
-<a name="93"><span class="lineNum">      93 </span>            : inline constexpr absl::string_view kTypeNameSet = &quot;Set&quot;;</a>
-<a name="94"><span class="lineNum">      94 </span>            : inline constexpr absl::string_view kTypeNameMap = &quot;Map&quot;;</a>
-<a name="95"><span class="lineNum">      95 </span>            : inline constexpr absl::string_view kTypeNameStruct = &quot;Struct&quot;;</a>
-<a name="96"><span class="lineNum">      96 </span>            : inline constexpr absl::string_view kTypeNameFunction = &quot;Function&quot;;</a>
-<a name="97"><span class="lineNum">      97 </span>            : inline constexpr absl::string_view kTypeNameUnion = &quot;Union&quot;;</a>
-<a name="98"><span class="lineNum">      98 </span>            : inline constexpr absl::string_view kTypeNameNullable = &quot;Nullable&quot;;</a>
-<a name="99"><span class="lineNum">      99 </span>            : inline constexpr absl::string_view kTypeNameDataset = &quot;Dataset&quot;;</a>
-<a name="100"><span class="lineNum">     100 </span>            : inline constexpr absl::string_view kTypeNameType = &quot;Type&quot;;</a>
-<a name="101"><span class="lineNum">     101 </span>            : inline constexpr absl::string_view kTypeNameModule = &quot;Module&quot;;</a>
-<a name="102"><span class="lineNum">     102 </span>            : inline constexpr absl::string_view kTypeNameIntegral = &quot;Integral&quot;;</a>
-<a name="103"><span class="lineNum">     103 </span>            : inline constexpr absl::string_view kTypeNameContainer = &quot;Container&quot;;</a>
-<a name="104"><span class="lineNum">     104 </span>            : inline constexpr absl::string_view kTypeNameGenerator = &quot;Generator&quot;;</a>
-<a name="105"><span class="lineNum">     105 </span>            : </a>
-<a name="106"><span class="lineNum">     106 </span>            : class TypeUtils {</a>
-<a name="107"><span class="lineNum">     107 </span>            :  public:</a>
-<a name="108"><span class="lineNum">     108 </span>            :   // Utility that converts a type id to one of the names above.</a>
-<a name="109"><span class="lineNum">     109 </span>            :   static absl::string_view BaseTypeName(pb::TypeId type_id);</a>
-<a name="110"><span class="lineNum">     110 </span>            : </a>
-<a name="111"><span class="lineNum">     111 </span>            :   // Remove duplicate types in provided span:</a>
-<a name="112"><span class="lineNum">     112 </span>            :   static std::vector&lt;const TypeSpec*&gt; DedupTypes(</a>
-<a name="113"><span class="lineNum">     113 </span>            :       absl::Span&lt;const TypeSpec*&gt; parameters);</a>
-<a name="114"><span class="lineNum">     114 </span>            : </a>
-<a name="115"><span class="lineNum">     115 </span>            :   // This is used for standard type construction.</a>
-<a name="116"><span class="lineNum">     116 </span>            :   // If spec is not null we return it, else we check that the provided type</a>
-<a name="117"><span class="lineNum">     117 </span>            :   // name can be found in the store and return it.</a>
-<a name="118"><span class="lineNum">     118 </span>            :   static const TypeSpec* EnsureType(TypeStore* type_store,</a>
-<a name="119"><span class="lineNum">     119 </span>            :                                     absl::string_view name,</a>
-<a name="120"><span class="lineNum">     120 </span>            :                                     const TypeSpec* spec = nullptr);</a>
-<a name="121"><span class="lineNum">     121 </span>            : </a>
-<a name="122"><span class="lineNum">     122 </span>            :   // Finds specific types in type_spec or parameters that are unbound.</a>
-<a name="123"><span class="lineNum">     123 </span>            :   static void FindUnboundTypes(const TypeSpec* type_spec,</a>
-<a name="124"><span class="lineNum">     124 </span>            :                                absl::flat_hash_set&lt;std::string&gt;* type_names);</a>
-<a name="125"><span class="lineNum">     125 </span>            : </a>
-<a name="126"><span class="lineNum">     126 </span>            :   // Classifying parameters:</a>
-<a name="127"><span class="lineNum">     127 </span>            :   static bool IsIntType(const TypeSpec&amp; type_spec);</a>
-<a name="128"><span class="lineNum">     128 </span>            :   static bool IsUIntType(const TypeSpec&amp; type_spec);</a>
-<a name="129"><span class="lineNum">     129 </span>            :   static bool IsFloatType(const TypeSpec&amp; type_spec);</a>
-<a name="130"><span class="lineNum">     130 </span>            :   static bool IsNullType(const TypeSpec&amp; type_spec);</a>
-<a name="131"><span class="lineNum">     131 </span>            :   static bool IsNullableType(const TypeSpec&amp; type_spec);</a>
-<a name="132"><span class="lineNum">     132 </span>            :   static bool IsAnyType(const TypeSpec&amp; type_spec);</a>
-<a name="133"><span class="lineNum">     133 </span>            : </a>
-<a name="134"><span class="lineNum">     134 </span>            :   // If this type when passed as an arg to a function, cannot yield</a>
-<a name="135"><span class="lineNum">     135 </span>            :   // us much information, and would mostly fail the function if</a>
-<a name="136"><span class="lineNum">     136 </span>            :   // we try to parse its expressions.</a>
-<a name="137"><span class="lineNum">     137 </span>            :   static bool IsUndefinedArgType(const TypeSpec* arg_type);</a>
-<a name="138"><span class="lineNum">     138 </span>            : </a>
-<a name="139"><span class="lineNum">     139 </span>            :   // Builds and returns a union of int and uint.</a>
-<a name="140"><span class="lineNum">     140 </span>            :   // This expects the provided store to be fully built and initialized</a>
-<a name="141"><span class="lineNum">     141 </span>            :   // with the standard types, else check fails.</a>
-<a name="142"><span class="lineNum">     142 </span>            :   static std::unique_ptr&lt;TypeSpec&gt; IntIndexType(TypeStore* type_store);</a>
-<a name="143"><span class="lineNum">     143 </span>            :   // Builds and returns a nullable of provided type.</a>
-<a name="144"><span class="lineNum">     144 </span>            :   // This expects the provided store to be fully built and initialized</a>
-<a name="145"><span class="lineNum">     145 </span>            :   // with the standard types, else check fails.</a>
-<a name="146"><span class="lineNum">     146 </span>            :   static std::unique_ptr&lt;TypeSpec&gt; NullableType(TypeStore* type_store,</a>
-<a name="147"><span class="lineNum">     147 </span>            :                                                 const TypeSpec* type_spec);</a>
+<a name="29"><span class="lineNum">      29 </span>            : #include &quot;nudl/analysis/type_utils.h&quot;</a>
+<a name="30"><span class="lineNum">      30 </span>            : #include &quot;nudl/proto/analysis.pb.h&quot;</a>
+<a name="31"><span class="lineNum">      31 </span>            : </a>
+<a name="32"><span class="lineNum">      32 </span>            : namespace nudl {</a>
+<a name="33"><span class="lineNum">      33 </span>            : namespace analysis {</a>
+<a name="34"><span class="lineNum">      34 </span>            : </a>
+<a name="35"><span class="lineNum">      35 </span>            : class StoredTypeSpec : public TypeSpec {</a>
+<a name="36"><span class="lineNum">      36 </span>            :  public:</a>
+<a name="37"><span class="lineNum">      37 </span>            :   StoredTypeSpec(TypeStore* type_store, int type_id, absl::string_view name,</a>
+<a name="38"><span class="lineNum">      38 </span>            :                  std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="39"><span class="lineNum">      39 </span>            :                  bool is_bound_type = false, const TypeSpec* ancestor = nullptr,</a>
+<a name="40"><span class="lineNum">      40 </span>            :                  std::vector&lt;const TypeSpec*&gt; parameters = {},</a>
+<a name="41"><span class="lineNum">      41 </span>            :                  absl::optional&lt;const TypeSpec*&gt; original_bind = {});</a>
+<a name="42"><span class="lineNum">      42 </span>            : </a>
+<a name="43"><span class="lineNum">      43 </span>            :   template &lt;class C&gt;</a>
+<a name="44"><span class="lineNum">      44 </span><span class="lineCov">       1540 :   std::unique_ptr&lt;TypeSpec&gt; CloneType() const {</span></a>
+<a name="45"><span class="lineNum">      45 </span><span class="lineCov">       1540 :     return std::make_unique&lt;C&gt;(type_store_, type_member_store_);</span></a>
+<a name="46"><span class="lineNum">      46 </span>            :   }</a>
+<a name="47"><span class="lineNum">      47 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="48"><span class="lineNum">      48 </span>            :   const TypeSpec* type_spec() const override;</a>
+<a name="49"><span class="lineNum">      49 </span>            :   const ScopeName&amp; scope_name() const override;</a>
+<a name="50"><span class="lineNum">      50 </span>            :   TypeStore* type_store() const;</a>
+<a name="51"><span class="lineNum">      51 </span>            : </a>
+<a name="52"><span class="lineNum">      52 </span>            :  protected:</a>
+<a name="53"><span class="lineNum">      53 </span>            :   TypeStore* const type_store_;</a>
+<a name="54"><span class="lineNum">      54 </span>            :   const TypeSpec* const object_type_spec_;</a>
+<a name="55"><span class="lineNum">      55 </span>            : };</a>
+<a name="56"><span class="lineNum">      56 </span>            : </a>
+<a name="57"><span class="lineNum">      57 </span>            : // Type that represents the type of a type named object.</a>
+<a name="58"><span class="lineNum">      58 </span>            : class TypeType : public StoredTypeSpec {</a>
+<a name="59"><span class="lineNum">      59 </span>            :  public:</a>
+<a name="60"><span class="lineNum">      60 </span>            :   TypeType(TypeStore* type_store,</a>
+<a name="61"><span class="lineNum">      61 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="62"><span class="lineNum">      62 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="63"><span class="lineNum">      63 </span>            : };</a>
+<a name="64"><span class="lineNum">      64 </span>            : </a>
+<a name="65"><span class="lineNum">      65 </span>            : class TypeAny : public StoredTypeSpec {</a>
+<a name="66"><span class="lineNum">      66 </span>            :  public:</a>
+<a name="67"><span class="lineNum">      67 </span>            :   TypeAny(TypeStore* type_store,</a>
+<a name="68"><span class="lineNum">      68 </span>            :           std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="69"><span class="lineNum">      69 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="70"><span class="lineNum">      70 </span>            : };</a>
+<a name="71"><span class="lineNum">      71 </span>            : </a>
+<a name="72"><span class="lineNum">      72 </span>            : class TypeModule : public StoredTypeSpec {</a>
+<a name="73"><span class="lineNum">      73 </span>            :  public:</a>
+<a name="74"><span class="lineNum">      74 </span>            :   TypeModule(TypeStore* type_store, absl::string_view module_name,</a>
+<a name="75"><span class="lineNum">      75 </span>            :              NameStore* module);</a>
+<a name="76"><span class="lineNum">      76 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="77"><span class="lineNum">      77 </span>            : </a>
+<a name="78"><span class="lineNum">      78 </span>            :  protected:</a>
+<a name="79"><span class="lineNum">      79 </span>            :   std::string module_name_;</a>
+<a name="80"><span class="lineNum">      80 </span>            :   NameStore* const module_;</a>
+<a name="81"><span class="lineNum">      81 </span>            : };</a>
+<a name="82"><span class="lineNum">      82 </span>            : </a>
+<a name="83"><span class="lineNum">      83 </span>            : class TypeNull : public StoredTypeSpec {</a>
+<a name="84"><span class="lineNum">      84 </span>            :  public:</a>
+<a name="85"><span class="lineNum">      85 </span>            :   TypeNull(TypeStore* type_store,</a>
+<a name="86"><span class="lineNum">      86 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="87"><span class="lineNum">      87 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="88"><span class="lineNum">      88 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="89"><span class="lineNum">      89 </span>            :   // Binding on null returns a new null or nullable</a>
+<a name="90"><span class="lineNum">      90 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="91"><span class="lineNum">      91 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="92"><span class="lineNum">      92 </span>            : };</a>
+<a name="93"><span class="lineNum">      93 </span>            : </a>
+<a name="94"><span class="lineNum">      94 </span>            : class TypeNumeric : public StoredTypeSpec {</a>
+<a name="95"><span class="lineNum">      95 </span>            :  public:</a>
+<a name="96"><span class="lineNum">      96 </span>            :   TypeNumeric(TypeStore* type_store,</a>
+<a name="97"><span class="lineNum">      97 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="98"><span class="lineNum">      98 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="99"><span class="lineNum">      99 </span>            : };</a>
+<a name="100"><span class="lineNum">     100 </span>            : </a>
+<a name="101"><span class="lineNum">     101 </span>            : class TypeIntegral : public StoredTypeSpec {</a>
+<a name="102"><span class="lineNum">     102 </span>            :  public:</a>
+<a name="103"><span class="lineNum">     103 </span>            :   TypeIntegral(TypeStore* type_store,</a>
+<a name="104"><span class="lineNum">     104 </span>            :                std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="105"><span class="lineNum">     105 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="106"><span class="lineNum">     106 </span>            : };</a>
+<a name="107"><span class="lineNum">     107 </span>            : </a>
+<a name="108"><span class="lineNum">     108 </span>            : class TypeInt : public StoredTypeSpec {</a>
+<a name="109"><span class="lineNum">     109 </span>            :  public:</a>
+<a name="110"><span class="lineNum">     110 </span>            :   TypeInt(TypeStore* type_store,</a>
+<a name="111"><span class="lineNum">     111 </span>            :           std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="112"><span class="lineNum">     112 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="113"><span class="lineNum">     113 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="114"><span class="lineNum">     114 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="115"><span class="lineNum">     115 </span>            : };</a>
+<a name="116"><span class="lineNum">     116 </span>            : </a>
+<a name="117"><span class="lineNum">     117 </span>            : class TypeInt8 : public StoredTypeSpec {</a>
+<a name="118"><span class="lineNum">     118 </span>            :  public:</a>
+<a name="119"><span class="lineNum">     119 </span>            :   TypeInt8(TypeStore* type_store,</a>
+<a name="120"><span class="lineNum">     120 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="121"><span class="lineNum">     121 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="122"><span class="lineNum">     122 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="123"><span class="lineNum">     123 </span>            : };</a>
+<a name="124"><span class="lineNum">     124 </span>            : </a>
+<a name="125"><span class="lineNum">     125 </span>            : class TypeInt16 : public StoredTypeSpec {</a>
+<a name="126"><span class="lineNum">     126 </span>            :  public:</a>
+<a name="127"><span class="lineNum">     127 </span>            :   TypeInt16(TypeStore* type_store,</a>
+<a name="128"><span class="lineNum">     128 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="129"><span class="lineNum">     129 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="130"><span class="lineNum">     130 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="131"><span class="lineNum">     131 </span>            : };</a>
+<a name="132"><span class="lineNum">     132 </span>            : </a>
+<a name="133"><span class="lineNum">     133 </span>            : class TypeInt32 : public StoredTypeSpec {</a>
+<a name="134"><span class="lineNum">     134 </span>            :  public:</a>
+<a name="135"><span class="lineNum">     135 </span>            :   TypeInt32(TypeStore* type_store,</a>
+<a name="136"><span class="lineNum">     136 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="137"><span class="lineNum">     137 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="138"><span class="lineNum">     138 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="139"><span class="lineNum">     139 </span>            : };</a>
+<a name="140"><span class="lineNum">     140 </span>            : </a>
+<a name="141"><span class="lineNum">     141 </span>            : class TypeUInt : public StoredTypeSpec {</a>
+<a name="142"><span class="lineNum">     142 </span>            :  public:</a>
+<a name="143"><span class="lineNum">     143 </span>            :   TypeUInt(TypeStore* type_store,</a>
+<a name="144"><span class="lineNum">     144 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="145"><span class="lineNum">     145 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="146"><span class="lineNum">     146 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="147"><span class="lineNum">     147 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
 <a name="148"><span class="lineNum">     148 </span>            : };</a>
 <a name="149"><span class="lineNum">     149 </span>            : </a>
-<a name="150"><span class="lineNum">     150 </span>            : // Type that represents the type of a type named object.</a>
-<a name="151"><span class="lineNum">     151 </span>            : class TypeType : public StoredTypeSpec {</a>
-<a name="152"><span class="lineNum">     152 </span>            :  public:</a>
-<a name="153"><span class="lineNum">     153 </span>            :   TypeType(TypeStore* type_store,</a>
-<a name="154"><span class="lineNum">     154 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="155"><span class="lineNum">     155 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="150"><span class="lineNum">     150 </span>            : class TypeUInt8 : public StoredTypeSpec {</a>
+<a name="151"><span class="lineNum">     151 </span>            :  public:</a>
+<a name="152"><span class="lineNum">     152 </span>            :   TypeUInt8(TypeStore* type_store,</a>
+<a name="153"><span class="lineNum">     153 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="154"><span class="lineNum">     154 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="155"><span class="lineNum">     155 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
 <a name="156"><span class="lineNum">     156 </span>            : };</a>
 <a name="157"><span class="lineNum">     157 </span>            : </a>
-<a name="158"><span class="lineNum">     158 </span>            : class TypeAny : public StoredTypeSpec {</a>
+<a name="158"><span class="lineNum">     158 </span>            : class TypeUInt16 : public StoredTypeSpec {</a>
 <a name="159"><span class="lineNum">     159 </span>            :  public:</a>
-<a name="160"><span class="lineNum">     160 </span>            :   TypeAny(TypeStore* type_store,</a>
-<a name="161"><span class="lineNum">     161 </span>            :           std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="160"><span class="lineNum">     160 </span>            :   TypeUInt16(TypeStore* type_store,</a>
+<a name="161"><span class="lineNum">     161 </span>            :              std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
 <a name="162"><span class="lineNum">     162 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="163"><span class="lineNum">     163 </span>            : };</a>
-<a name="164"><span class="lineNum">     164 </span>            : </a>
-<a name="165"><span class="lineNum">     165 </span>            : class TypeModule : public StoredTypeSpec {</a>
-<a name="166"><span class="lineNum">     166 </span>            :  public:</a>
-<a name="167"><span class="lineNum">     167 </span>            :   TypeModule(TypeStore* type_store, absl::string_view module_name,</a>
-<a name="168"><span class="lineNum">     168 </span>            :              NameStore* module);</a>
-<a name="169"><span class="lineNum">     169 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="170"><span class="lineNum">     170 </span>            : </a>
-<a name="171"><span class="lineNum">     171 </span>            :  protected:</a>
-<a name="172"><span class="lineNum">     172 </span>            :   std::string module_name_;</a>
-<a name="173"><span class="lineNum">     173 </span>            :   NameStore* const module_;</a>
-<a name="174"><span class="lineNum">     174 </span>            : };</a>
-<a name="175"><span class="lineNum">     175 </span>            : </a>
-<a name="176"><span class="lineNum">     176 </span>            : class TypeNull : public StoredTypeSpec {</a>
-<a name="177"><span class="lineNum">     177 </span>            :  public:</a>
-<a name="178"><span class="lineNum">     178 </span>            :   TypeNull(TypeStore* type_store,</a>
-<a name="179"><span class="lineNum">     179 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="180"><span class="lineNum">     180 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="181"><span class="lineNum">     181 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="182"><span class="lineNum">     182 </span>            :   // Binding on null returns a new null or nullable</a>
-<a name="183"><span class="lineNum">     183 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="184"><span class="lineNum">     184 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
-<a name="185"><span class="lineNum">     185 </span>            : };</a>
-<a name="186"><span class="lineNum">     186 </span>            : </a>
-<a name="187"><span class="lineNum">     187 </span>            : class TypeNumeric : public StoredTypeSpec {</a>
-<a name="188"><span class="lineNum">     188 </span>            :  public:</a>
-<a name="189"><span class="lineNum">     189 </span>            :   TypeNumeric(TypeStore* type_store,</a>
-<a name="190"><span class="lineNum">     190 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="191"><span class="lineNum">     191 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="192"><span class="lineNum">     192 </span>            : };</a>
-<a name="193"><span class="lineNum">     193 </span>            : </a>
-<a name="194"><span class="lineNum">     194 </span>            : class TypeIntegral : public StoredTypeSpec {</a>
-<a name="195"><span class="lineNum">     195 </span>            :  public:</a>
-<a name="196"><span class="lineNum">     196 </span>            :   TypeIntegral(TypeStore* type_store,</a>
-<a name="197"><span class="lineNum">     197 </span>            :                std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="198"><span class="lineNum">     198 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="199"><span class="lineNum">     199 </span>            : };</a>
-<a name="200"><span class="lineNum">     200 </span>            : </a>
-<a name="201"><span class="lineNum">     201 </span>            : class TypeInt : public StoredTypeSpec {</a>
-<a name="202"><span class="lineNum">     202 </span>            :  public:</a>
-<a name="203"><span class="lineNum">     203 </span>            :   TypeInt(TypeStore* type_store,</a>
-<a name="204"><span class="lineNum">     204 </span>            :           std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="205"><span class="lineNum">     205 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="206"><span class="lineNum">     206 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="207"><span class="lineNum">     207 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="208"><span class="lineNum">     208 </span>            : };</a>
-<a name="209"><span class="lineNum">     209 </span>            : </a>
-<a name="210"><span class="lineNum">     210 </span>            : class TypeInt8 : public StoredTypeSpec {</a>
-<a name="211"><span class="lineNum">     211 </span>            :  public:</a>
-<a name="212"><span class="lineNum">     212 </span>            :   TypeInt8(TypeStore* type_store,</a>
-<a name="213"><span class="lineNum">     213 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="214"><span class="lineNum">     214 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="215"><span class="lineNum">     215 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="216"><span class="lineNum">     216 </span>            : };</a>
-<a name="217"><span class="lineNum">     217 </span>            : </a>
-<a name="218"><span class="lineNum">     218 </span>            : class TypeInt16 : public StoredTypeSpec {</a>
-<a name="219"><span class="lineNum">     219 </span>            :  public:</a>
-<a name="220"><span class="lineNum">     220 </span>            :   TypeInt16(TypeStore* type_store,</a>
-<a name="221"><span class="lineNum">     221 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="222"><span class="lineNum">     222 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="223"><span class="lineNum">     223 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="224"><span class="lineNum">     224 </span>            : };</a>
-<a name="225"><span class="lineNum">     225 </span>            : </a>
-<a name="226"><span class="lineNum">     226 </span>            : class TypeInt32 : public StoredTypeSpec {</a>
-<a name="227"><span class="lineNum">     227 </span>            :  public:</a>
-<a name="228"><span class="lineNum">     228 </span>            :   TypeInt32(TypeStore* type_store,</a>
-<a name="229"><span class="lineNum">     229 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="230"><span class="lineNum">     230 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="231"><span class="lineNum">     231 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="232"><span class="lineNum">     232 </span>            : };</a>
-<a name="233"><span class="lineNum">     233 </span>            : </a>
-<a name="234"><span class="lineNum">     234 </span>            : class TypeUInt : public StoredTypeSpec {</a>
-<a name="235"><span class="lineNum">     235 </span>            :  public:</a>
-<a name="236"><span class="lineNum">     236 </span>            :   TypeUInt(TypeStore* type_store,</a>
-<a name="237"><span class="lineNum">     237 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="238"><span class="lineNum">     238 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="239"><span class="lineNum">     239 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="240"><span class="lineNum">     240 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="241"><span class="lineNum">     241 </span>            : };</a>
-<a name="242"><span class="lineNum">     242 </span>            : </a>
-<a name="243"><span class="lineNum">     243 </span>            : class TypeUInt8 : public StoredTypeSpec {</a>
-<a name="244"><span class="lineNum">     244 </span>            :  public:</a>
-<a name="245"><span class="lineNum">     245 </span>            :   TypeUInt8(TypeStore* type_store,</a>
-<a name="246"><span class="lineNum">     246 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="247"><span class="lineNum">     247 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="248"><span class="lineNum">     248 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="249"><span class="lineNum">     249 </span>            : };</a>
-<a name="250"><span class="lineNum">     250 </span>            : </a>
-<a name="251"><span class="lineNum">     251 </span>            : class TypeUInt16 : public StoredTypeSpec {</a>
-<a name="252"><span class="lineNum">     252 </span>            :  public:</a>
-<a name="253"><span class="lineNum">     253 </span>            :   TypeUInt16(TypeStore* type_store,</a>
-<a name="254"><span class="lineNum">     254 </span>            :              std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="255"><span class="lineNum">     255 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="256"><span class="lineNum">     256 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="257"><span class="lineNum">     257 </span>            : };</a>
-<a name="258"><span class="lineNum">     258 </span>            : </a>
-<a name="259"><span class="lineNum">     259 </span>            : class TypeUInt32 : public StoredTypeSpec {</a>
-<a name="260"><span class="lineNum">     260 </span>            :  public:</a>
-<a name="261"><span class="lineNum">     261 </span>            :   TypeUInt32(TypeStore* type_store,</a>
-<a name="262"><span class="lineNum">     262 </span>            :              std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="263"><span class="lineNum">     263 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="264"><span class="lineNum">     264 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="163"><span class="lineNum">     163 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="164"><span class="lineNum">     164 </span>            : };</a>
+<a name="165"><span class="lineNum">     165 </span>            : </a>
+<a name="166"><span class="lineNum">     166 </span>            : class TypeUInt32 : public StoredTypeSpec {</a>
+<a name="167"><span class="lineNum">     167 </span>            :  public:</a>
+<a name="168"><span class="lineNum">     168 </span>            :   TypeUInt32(TypeStore* type_store,</a>
+<a name="169"><span class="lineNum">     169 </span>            :              std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="170"><span class="lineNum">     170 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="171"><span class="lineNum">     171 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="172"><span class="lineNum">     172 </span>            : };</a>
+<a name="173"><span class="lineNum">     173 </span>            : </a>
+<a name="174"><span class="lineNum">     174 </span>            : class TypeFloat64 : public StoredTypeSpec {</a>
+<a name="175"><span class="lineNum">     175 </span>            :  public:</a>
+<a name="176"><span class="lineNum">     176 </span>            :   TypeFloat64(TypeStore* type_store,</a>
+<a name="177"><span class="lineNum">     177 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="178"><span class="lineNum">     178 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="179"><span class="lineNum">     179 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="180"><span class="lineNum">     180 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="181"><span class="lineNum">     181 </span>            : };</a>
+<a name="182"><span class="lineNum">     182 </span>            : </a>
+<a name="183"><span class="lineNum">     183 </span>            : class TypeFloat32 : public StoredTypeSpec {</a>
+<a name="184"><span class="lineNum">     184 </span>            :  public:</a>
+<a name="185"><span class="lineNum">     185 </span>            :   TypeFloat32(TypeStore* type_store,</a>
+<a name="186"><span class="lineNum">     186 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="187"><span class="lineNum">     187 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="188"><span class="lineNum">     188 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="189"><span class="lineNum">     189 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="190"><span class="lineNum">     190 </span>            : };</a>
+<a name="191"><span class="lineNum">     191 </span>            : </a>
+<a name="192"><span class="lineNum">     192 </span>            : class TypeString : public StoredTypeSpec {</a>
+<a name="193"><span class="lineNum">     193 </span>            :  public:</a>
+<a name="194"><span class="lineNum">     194 </span>            :   TypeString(TypeStore* type_store,</a>
+<a name="195"><span class="lineNum">     195 </span>            :              std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="196"><span class="lineNum">     196 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="197"><span class="lineNum">     197 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="198"><span class="lineNum">     198 </span>            : };</a>
+<a name="199"><span class="lineNum">     199 </span>            : </a>
+<a name="200"><span class="lineNum">     200 </span>            : class TypeBytes : public StoredTypeSpec {</a>
+<a name="201"><span class="lineNum">     201 </span>            :  public:</a>
+<a name="202"><span class="lineNum">     202 </span>            :   TypeBytes(TypeStore* type_store,</a>
+<a name="203"><span class="lineNum">     203 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="204"><span class="lineNum">     204 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="205"><span class="lineNum">     205 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="206"><span class="lineNum">     206 </span>            : };</a>
+<a name="207"><span class="lineNum">     207 </span>            : </a>
+<a name="208"><span class="lineNum">     208 </span>            : class TypeBool : public StoredTypeSpec {</a>
+<a name="209"><span class="lineNum">     209 </span>            :  public:</a>
+<a name="210"><span class="lineNum">     210 </span>            :   TypeBool(TypeStore* type_store,</a>
+<a name="211"><span class="lineNum">     211 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="212"><span class="lineNum">     212 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="213"><span class="lineNum">     213 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="214"><span class="lineNum">     214 </span>            : };</a>
+<a name="215"><span class="lineNum">     215 </span>            : </a>
+<a name="216"><span class="lineNum">     216 </span>            : class TypeTimestamp : public StoredTypeSpec {</a>
+<a name="217"><span class="lineNum">     217 </span>            :  public:</a>
+<a name="218"><span class="lineNum">     218 </span>            :   TypeTimestamp(TypeStore* type_store,</a>
+<a name="219"><span class="lineNum">     219 </span>            :                 std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="220"><span class="lineNum">     220 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="221"><span class="lineNum">     221 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="222"><span class="lineNum">     222 </span>            : };</a>
+<a name="223"><span class="lineNum">     223 </span>            : </a>
+<a name="224"><span class="lineNum">     224 </span>            : class TypeDate : public StoredTypeSpec {</a>
+<a name="225"><span class="lineNum">     225 </span>            :  public:</a>
+<a name="226"><span class="lineNum">     226 </span>            :   TypeDate(TypeStore* type_store,</a>
+<a name="227"><span class="lineNum">     227 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="228"><span class="lineNum">     228 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="229"><span class="lineNum">     229 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="230"><span class="lineNum">     230 </span>            : };</a>
+<a name="231"><span class="lineNum">     231 </span>            : </a>
+<a name="232"><span class="lineNum">     232 </span>            : class TypeDateTime : public StoredTypeSpec {</a>
+<a name="233"><span class="lineNum">     233 </span>            :  public:</a>
+<a name="234"><span class="lineNum">     234 </span>            :   TypeDateTime(TypeStore* type_store,</a>
+<a name="235"><span class="lineNum">     235 </span>            :                std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="236"><span class="lineNum">     236 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="237"><span class="lineNum">     237 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="238"><span class="lineNum">     238 </span>            : };</a>
+<a name="239"><span class="lineNum">     239 </span>            : </a>
+<a name="240"><span class="lineNum">     240 </span>            : class TypeTimeInterval : public StoredTypeSpec {</a>
+<a name="241"><span class="lineNum">     241 </span>            :  public:</a>
+<a name="242"><span class="lineNum">     242 </span>            :   TypeTimeInterval(TypeStore* type_store,</a>
+<a name="243"><span class="lineNum">     243 </span>            :                    std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="244"><span class="lineNum">     244 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="245"><span class="lineNum">     245 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="246"><span class="lineNum">     246 </span>            : };</a>
+<a name="247"><span class="lineNum">     247 </span>            : </a>
+<a name="248"><span class="lineNum">     248 </span>            : class TypeDecimal : public StoredTypeSpec {</a>
+<a name="249"><span class="lineNum">     249 </span>            :  public:</a>
+<a name="250"><span class="lineNum">     250 </span>            :   TypeDecimal(TypeStore* type_store,</a>
+<a name="251"><span class="lineNum">     251 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="252"><span class="lineNum">     252 </span>            :               int precision = -1, int scale = -1);</a>
+<a name="253"><span class="lineNum">     253 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="254"><span class="lineNum">     254 </span>            :   std::string full_name() const override;</a>
+<a name="255"><span class="lineNum">     255 </span>            :   pb::ExpressionTypeSpec ToProto() const override;</a>
+<a name="256"><span class="lineNum">     256 </span>            :   pb::TypeSpec ToTypeSpecProto() const override;</a>
+<a name="257"><span class="lineNum">     257 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="258"><span class="lineNum">     258 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="259"><span class="lineNum">     259 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="260"><span class="lineNum">     260 </span>            :   static constexpr int kMaxPrecision = 78;</a>
+<a name="261"><span class="lineNum">     261 </span>            : </a>
+<a name="262"><span class="lineNum">     262 </span>            :  protected:</a>
+<a name="263"><span class="lineNum">     263 </span>            :   const int precision_ = -1;</a>
+<a name="264"><span class="lineNum">     264 </span>            :   const int scale_ = -1;</a>
 <a name="265"><span class="lineNum">     265 </span>            : };</a>
 <a name="266"><span class="lineNum">     266 </span>            : </a>
-<a name="267"><span class="lineNum">     267 </span>            : class TypeFloat64 : public StoredTypeSpec {</a>
+<a name="267"><span class="lineNum">     267 </span>            : class TypeIterable : public StoredTypeSpec {</a>
 <a name="268"><span class="lineNum">     268 </span>            :  public:</a>
-<a name="269"><span class="lineNum">     269 </span>            :   TypeFloat64(TypeStore* type_store,</a>
-<a name="270"><span class="lineNum">     270 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="271"><span class="lineNum">     271 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="272"><span class="lineNum">     272 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="273"><span class="lineNum">     273 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="269"><span class="lineNum">     269 </span>            :   TypeIterable(TypeStore* type_store,</a>
+<a name="270"><span class="lineNum">     270 </span>            :                std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="271"><span class="lineNum">     271 </span>            :                const TypeSpec* param = nullptr);</a>
+<a name="272"><span class="lineNum">     272 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="273"><span class="lineNum">     273 </span>            :   bool IsIterable() const override;</a>
 <a name="274"><span class="lineNum">     274 </span>            : };</a>
 <a name="275"><span class="lineNum">     275 </span>            : </a>
-<a name="276"><span class="lineNum">     276 </span>            : class TypeFloat32 : public StoredTypeSpec {</a>
+<a name="276"><span class="lineNum">     276 </span>            : class TypeGenerator : public StoredTypeSpec {</a>
 <a name="277"><span class="lineNum">     277 </span>            :  public:</a>
-<a name="278"><span class="lineNum">     278 </span>            :   TypeFloat32(TypeStore* type_store,</a>
-<a name="279"><span class="lineNum">     279 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="280"><span class="lineNum">     280 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="281"><span class="lineNum">     281 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="282"><span class="lineNum">     282 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="283"><span class="lineNum">     283 </span>            : };</a>
-<a name="284"><span class="lineNum">     284 </span>            : </a>
-<a name="285"><span class="lineNum">     285 </span>            : class TypeString : public StoredTypeSpec {</a>
-<a name="286"><span class="lineNum">     286 </span>            :  public:</a>
-<a name="287"><span class="lineNum">     287 </span>            :   TypeString(TypeStore* type_store,</a>
-<a name="288"><span class="lineNum">     288 </span>            :              std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
+<a name="278"><span class="lineNum">     278 </span>            :   TypeGenerator(TypeStore* type_store,</a>
+<a name="279"><span class="lineNum">     279 </span>            :                 std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="280"><span class="lineNum">     280 </span>            :                 const TypeSpec* param = nullptr);</a>
+<a name="281"><span class="lineNum">     281 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="282"><span class="lineNum">     282 </span>            : };</a>
+<a name="283"><span class="lineNum">     283 </span>            : </a>
+<a name="284"><span class="lineNum">     284 </span>            : class TypeContainer : public StoredTypeSpec {</a>
+<a name="285"><span class="lineNum">     285 </span>            :  public:</a>
+<a name="286"><span class="lineNum">     286 </span>            :   TypeContainer(TypeStore* type_store,</a>
+<a name="287"><span class="lineNum">     287 </span>            :                 std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="288"><span class="lineNum">     288 </span>            :                 const TypeSpec* param = nullptr);</a>
 <a name="289"><span class="lineNum">     289 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="290"><span class="lineNum">     290 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="291"><span class="lineNum">     291 </span>            : };</a>
-<a name="292"><span class="lineNum">     292 </span>            : </a>
-<a name="293"><span class="lineNum">     293 </span>            : class TypeBytes : public StoredTypeSpec {</a>
-<a name="294"><span class="lineNum">     294 </span>            :  public:</a>
-<a name="295"><span class="lineNum">     295 </span>            :   TypeBytes(TypeStore* type_store,</a>
-<a name="296"><span class="lineNum">     296 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="297"><span class="lineNum">     297 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="298"><span class="lineNum">     298 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="299"><span class="lineNum">     299 </span>            : };</a>
-<a name="300"><span class="lineNum">     300 </span>            : </a>
-<a name="301"><span class="lineNum">     301 </span>            : class TypeBool : public StoredTypeSpec {</a>
-<a name="302"><span class="lineNum">     302 </span>            :  public:</a>
-<a name="303"><span class="lineNum">     303 </span>            :   TypeBool(TypeStore* type_store,</a>
-<a name="304"><span class="lineNum">     304 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="305"><span class="lineNum">     305 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="306"><span class="lineNum">     306 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="307"><span class="lineNum">     307 </span>            : };</a>
-<a name="308"><span class="lineNum">     308 </span>            : </a>
-<a name="309"><span class="lineNum">     309 </span>            : class TypeTimestamp : public StoredTypeSpec {</a>
-<a name="310"><span class="lineNum">     310 </span>            :  public:</a>
-<a name="311"><span class="lineNum">     311 </span>            :   TypeTimestamp(TypeStore* type_store,</a>
-<a name="312"><span class="lineNum">     312 </span>            :                 std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="313"><span class="lineNum">     313 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="314"><span class="lineNum">     314 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="315"><span class="lineNum">     315 </span>            : };</a>
+<a name="290"><span class="lineNum">     290 </span>            : };</a>
+<a name="291"><span class="lineNum">     291 </span>            : </a>
+<a name="292"><span class="lineNum">     292 </span>            : class TypeArray : public StoredTypeSpec {</a>
+<a name="293"><span class="lineNum">     293 </span>            :  public:</a>
+<a name="294"><span class="lineNum">     294 </span>            :   TypeArray(TypeStore* type_store,</a>
+<a name="295"><span class="lineNum">     295 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="296"><span class="lineNum">     296 </span>            :             const TypeSpec* param = nullptr);</a>
+<a name="297"><span class="lineNum">     297 </span>            :   const TypeSpec* IndexType() const override;</a>
+<a name="298"><span class="lineNum">     298 </span>            :   const TypeSpec* IndexedType() const override;</a>
+<a name="299"><span class="lineNum">     299 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="300"><span class="lineNum">     300 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="301"><span class="lineNum">     301 </span>            : </a>
+<a name="302"><span class="lineNum">     302 </span>            :  private:</a>
+<a name="303"><span class="lineNum">     303 </span>            :   mutable std::unique_ptr&lt;TypeSpec&gt; index_type_;</a>
+<a name="304"><span class="lineNum">     304 </span>            :   mutable std::unique_ptr&lt;TypeSpec&gt; indexed_type_;</a>
+<a name="305"><span class="lineNum">     305 </span>            : };</a>
+<a name="306"><span class="lineNum">     306 </span>            : </a>
+<a name="307"><span class="lineNum">     307 </span>            : class TypeSet : public StoredTypeSpec {</a>
+<a name="308"><span class="lineNum">     308 </span>            :  public:</a>
+<a name="309"><span class="lineNum">     309 </span>            :   TypeSet(TypeStore* type_store,</a>
+<a name="310"><span class="lineNum">     310 </span>            :           std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="311"><span class="lineNum">     311 </span>            :           const TypeSpec* param = nullptr);</a>
+<a name="312"><span class="lineNum">     312 </span>            :   const TypeSpec* IndexType() const override;</a>
+<a name="313"><span class="lineNum">     313 </span>            :   const TypeSpec* IndexedType() const override;</a>
+<a name="314"><span class="lineNum">     314 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="315"><span class="lineNum">     315 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
 <a name="316"><span class="lineNum">     316 </span>            : </a>
-<a name="317"><span class="lineNum">     317 </span>            : class TypeDate : public StoredTypeSpec {</a>
-<a name="318"><span class="lineNum">     318 </span>            :  public:</a>
-<a name="319"><span class="lineNum">     319 </span>            :   TypeDate(TypeStore* type_store,</a>
-<a name="320"><span class="lineNum">     320 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="321"><span class="lineNum">     321 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="322"><span class="lineNum">     322 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="323"><span class="lineNum">     323 </span>            : };</a>
-<a name="324"><span class="lineNum">     324 </span>            : </a>
-<a name="325"><span class="lineNum">     325 </span>            : class TypeDateTime : public StoredTypeSpec {</a>
-<a name="326"><span class="lineNum">     326 </span>            :  public:</a>
-<a name="327"><span class="lineNum">     327 </span>            :   TypeDateTime(TypeStore* type_store,</a>
-<a name="328"><span class="lineNum">     328 </span>            :                std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="329"><span class="lineNum">     329 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="330"><span class="lineNum">     330 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="331"><span class="lineNum">     331 </span>            : };</a>
-<a name="332"><span class="lineNum">     332 </span>            : </a>
-<a name="333"><span class="lineNum">     333 </span>            : class TypeTimeInterval : public StoredTypeSpec {</a>
-<a name="334"><span class="lineNum">     334 </span>            :  public:</a>
-<a name="335"><span class="lineNum">     335 </span>            :   TypeTimeInterval(TypeStore* type_store,</a>
-<a name="336"><span class="lineNum">     336 </span>            :                    std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="337"><span class="lineNum">     337 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="338"><span class="lineNum">     338 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="339"><span class="lineNum">     339 </span>            : };</a>
-<a name="340"><span class="lineNum">     340 </span>            : </a>
-<a name="341"><span class="lineNum">     341 </span>            : class TypeDecimal : public StoredTypeSpec {</a>
-<a name="342"><span class="lineNum">     342 </span>            :  public:</a>
-<a name="343"><span class="lineNum">     343 </span>            :   TypeDecimal(TypeStore* type_store,</a>
-<a name="344"><span class="lineNum">     344 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="345"><span class="lineNum">     345 </span>            :               int precision = -1, int scale = -1);</a>
-<a name="346"><span class="lineNum">     346 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="347"><span class="lineNum">     347 </span>            :   std::string full_name() const override;</a>
-<a name="348"><span class="lineNum">     348 </span>            :   pb::ExpressionTypeSpec ToProto() const override;</a>
-<a name="349"><span class="lineNum">     349 </span>            :   pb::TypeSpec ToTypeSpecProto() const override;</a>
-<a name="350"><span class="lineNum">     350 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="351"><span class="lineNum">     351 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
-<a name="352"><span class="lineNum">     352 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="353"><span class="lineNum">     353 </span>            :   static constexpr int kMaxPrecision = 78;</a>
-<a name="354"><span class="lineNum">     354 </span>            : </a>
-<a name="355"><span class="lineNum">     355 </span>            :  protected:</a>
-<a name="356"><span class="lineNum">     356 </span>            :   const int precision_ = -1;</a>
-<a name="357"><span class="lineNum">     357 </span>            :   const int scale_ = -1;</a>
-<a name="358"><span class="lineNum">     358 </span>            : };</a>
-<a name="359"><span class="lineNum">     359 </span>            : </a>
-<a name="360"><span class="lineNum">     360 </span>            : class TypeIterable : public StoredTypeSpec {</a>
-<a name="361"><span class="lineNum">     361 </span>            :  public:</a>
-<a name="362"><span class="lineNum">     362 </span>            :   TypeIterable(TypeStore* type_store,</a>
-<a name="363"><span class="lineNum">     363 </span>            :                std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="364"><span class="lineNum">     364 </span>            :                const TypeSpec* param = nullptr);</a>
+<a name="317"><span class="lineNum">     317 </span>            :  private:</a>
+<a name="318"><span class="lineNum">     318 </span>            :   const TypeSpec* const bool_type_;</a>
+<a name="319"><span class="lineNum">     319 </span>            : };</a>
+<a name="320"><span class="lineNum">     320 </span>            : </a>
+<a name="321"><span class="lineNum">     321 </span>            : class TypeTuple : public StoredTypeSpec {</a>
+<a name="322"><span class="lineNum">     322 </span>            :  public:</a>
+<a name="323"><span class="lineNum">     323 </span>            :   TypeTuple(TypeStore* type_store,</a>
+<a name="324"><span class="lineNum">     324 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="325"><span class="lineNum">     325 </span>            :             std::vector&lt;const TypeSpec*&gt; parameters = {},</a>
+<a name="326"><span class="lineNum">     326 </span>            :             std::vector&lt;std::string&gt; names = {},</a>
+<a name="327"><span class="lineNum">     327 </span>            :             absl::optional&lt;const TypeSpec*&gt; original_bind = {});</a>
+<a name="328"><span class="lineNum">     328 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="329"><span class="lineNum">     329 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="330"><span class="lineNum">     330 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="331"><span class="lineNum">     331 </span>            :   const TypeSpec* IndexType() const override;</a>
+<a name="332"><span class="lineNum">     332 </span>            :   std::string full_name() const override;</a>
+<a name="333"><span class="lineNum">     333 </span>            :   bool IsBound() const override;</a>
+<a name="334"><span class="lineNum">     334 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
+<a name="335"><span class="lineNum">     335 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="336"><span class="lineNum">     336 </span>            : </a>
+<a name="337"><span class="lineNum">     337 </span>            :   const std::vector&lt;std::string&gt;&amp; names() const;</a>
+<a name="338"><span class="lineNum">     338 </span>            :   bool is_named() const;</a>
+<a name="339"><span class="lineNum">     339 </span>            : </a>
+<a name="340"><span class="lineNum">     340 </span>            :   void UpdateNames(const TypeSpec* type_spec);</a>
+<a name="341"><span class="lineNum">     341 </span>            : </a>
+<a name="342"><span class="lineNum">     342 </span>            :  private:</a>
+<a name="343"><span class="lineNum">     343 </span>            :   bool ComputeIsNamed() const;</a>
+<a name="344"><span class="lineNum">     344 </span>            : </a>
+<a name="345"><span class="lineNum">     345 </span>            :   mutable std::unique_ptr&lt;TypeSpec&gt; index_type_;</a>
+<a name="346"><span class="lineNum">     346 </span>            :   std::vector&lt;std::string&gt; names_;</a>
+<a name="347"><span class="lineNum">     347 </span>            :   bool is_named_ = false;</a>
+<a name="348"><span class="lineNum">     348 </span>            : };</a>
+<a name="349"><span class="lineNum">     349 </span>            : </a>
+<a name="350"><span class="lineNum">     350 </span>            : // This behaves exactly as a TypeTuple, except it overrides</a>
+<a name="351"><span class="lineNum">     351 </span>            : // Bind and Clone, and is registered under a different name.</a>
+<a name="352"><span class="lineNum">     352 </span>            : // In effect we would have only an abstract instance of,</a>
+<a name="353"><span class="lineNum">     353 </span>            : // TypeTupleJoin as its Bind creates tuples.</a>
+<a name="354"><span class="lineNum">     354 </span>            : class TypeTupleJoin : public TypeTuple {</a>
+<a name="355"><span class="lineNum">     355 </span>            :  public:</a>
+<a name="356"><span class="lineNum">     356 </span>            :   TypeTupleJoin(TypeStore* type_store,</a>
+<a name="357"><span class="lineNum">     357 </span>            :                 std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="358"><span class="lineNum">     358 </span>            :                 std::vector&lt;const TypeSpec*&gt; parameters = {});</a>
+<a name="359"><span class="lineNum">     359 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Build(</a>
+<a name="360"><span class="lineNum">     360 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="361"><span class="lineNum">     361 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="362"><span class="lineNum">     362 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="363"><span class="lineNum">     363 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
+<a name="364"><span class="lineNum">     364 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
 <a name="365"><span class="lineNum">     365 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="366"><span class="lineNum">     366 </span>            :   bool IsIterable() const override;</a>
-<a name="367"><span class="lineNum">     367 </span>            : };</a>
-<a name="368"><span class="lineNum">     368 </span>            : </a>
-<a name="369"><span class="lineNum">     369 </span>            : class TypeGenerator : public StoredTypeSpec {</a>
+<a name="366"><span class="lineNum">     366 </span>            : };</a>
+<a name="367"><span class="lineNum">     367 </span>            : </a>
+<a name="368"><span class="lineNum">     368 </span>            : class StructMemberStore;</a>
+<a name="369"><span class="lineNum">     369 </span>            : class TypeStruct : public StoredTypeSpec {</a>
 <a name="370"><span class="lineNum">     370 </span>            :  public:</a>
-<a name="371"><span class="lineNum">     371 </span>            :   TypeGenerator(TypeStore* type_store,</a>
-<a name="372"><span class="lineNum">     372 </span>            :                 std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="373"><span class="lineNum">     373 </span>            :                 const TypeSpec* param = nullptr);</a>
-<a name="374"><span class="lineNum">     374 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="375"><span class="lineNum">     375 </span>            : };</a>
-<a name="376"><span class="lineNum">     376 </span>            : </a>
-<a name="377"><span class="lineNum">     377 </span>            : class TypeContainer : public StoredTypeSpec {</a>
-<a name="378"><span class="lineNum">     378 </span>            :  public:</a>
-<a name="379"><span class="lineNum">     379 </span>            :   TypeContainer(TypeStore* type_store,</a>
-<a name="380"><span class="lineNum">     380 </span>            :                 std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="381"><span class="lineNum">     381 </span>            :                 const TypeSpec* param = nullptr);</a>
-<a name="382"><span class="lineNum">     382 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="383"><span class="lineNum">     383 </span>            : };</a>
-<a name="384"><span class="lineNum">     384 </span>            : </a>
-<a name="385"><span class="lineNum">     385 </span>            : class TypeArray : public StoredTypeSpec {</a>
-<a name="386"><span class="lineNum">     386 </span>            :  public:</a>
-<a name="387"><span class="lineNum">     387 </span>            :   TypeArray(TypeStore* type_store,</a>
-<a name="388"><span class="lineNum">     388 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="389"><span class="lineNum">     389 </span>            :             const TypeSpec* param = nullptr);</a>
-<a name="390"><span class="lineNum">     390 </span>            :   const TypeSpec* IndexType() const override;</a>
-<a name="391"><span class="lineNum">     391 </span>            :   const TypeSpec* IndexedType() const override;</a>
+<a name="371"><span class="lineNum">     371 </span>            :   // TODO(catalin): add field annotations &amp; struct annotations.</a>
+<a name="372"><span class="lineNum">     372 </span>            :   struct Field {</a>
+<a name="373"><span class="lineNum">     373 </span>            :     std::string name;</a>
+<a name="374"><span class="lineNum">     374 </span>            :     const TypeSpec* type_spec;</a>
+<a name="375"><span class="lineNum">     375 </span>            :   };</a>
+<a name="376"><span class="lineNum">     376 </span>            :   // Creates a structured type with specified name and fields.</a>
+<a name="377"><span class="lineNum">     377 </span>            :   static absl::StatusOr&lt;std::unique_ptr&lt;TypeStruct&gt;&gt; CreateTypeStruct(</a>
+<a name="378"><span class="lineNum">     378 </span>            :       TypeStore* type_store, absl::string_view name, std::vector&lt;Field&gt; fields);</a>
+<a name="379"><span class="lineNum">     379 </span>            :   // Main way to create a type struct and add it to a store.</a>
+<a name="380"><span class="lineNum">     380 </span>            :   // Used CreateTypeStruct, then sets the scope and adds it to store.</a>
+<a name="381"><span class="lineNum">     381 </span>            :   static absl::StatusOr&lt;TypeStruct*&gt; AddTypeStruct(const ScopeName&amp; scope_name,</a>
+<a name="382"><span class="lineNum">     382 </span>            :                                                    TypeStore* type_store,</a>
+<a name="383"><span class="lineNum">     383 </span>            :                                                    absl::string_view name,</a>
+<a name="384"><span class="lineNum">     384 </span>            :                                                    std::vector&lt;Field&gt; fields);</a>
+<a name="385"><span class="lineNum">     385 </span>            : </a>
+<a name="386"><span class="lineNum">     386 </span>            :   explicit TypeStruct(TypeStore* type_store,</a>
+<a name="387"><span class="lineNum">     387 </span>            :                       std::shared_ptr&lt;StructMemberStore&gt; type_member_store,</a>
+<a name="388"><span class="lineNum">     388 </span>            :                       absl::string_view name = kTypeNameStruct,</a>
+<a name="389"><span class="lineNum">     389 </span>            :                       std::vector&lt;Field&gt; fields = {},</a>
+<a name="390"><span class="lineNum">     390 </span>            :                       bool is_abstract_struct = true);</a>
+<a name="391"><span class="lineNum">     391 </span>            :   bool IsBound() const override;</a>
 <a name="392"><span class="lineNum">     392 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="393"><span class="lineNum">     393 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="394"><span class="lineNum">     394 </span>            : </a>
-<a name="395"><span class="lineNum">     395 </span>            :  private:</a>
-<a name="396"><span class="lineNum">     396 </span>            :   mutable std::unique_ptr&lt;TypeSpec&gt; index_type_;</a>
-<a name="397"><span class="lineNum">     397 </span>            :   mutable std::unique_ptr&lt;TypeSpec&gt; indexed_type_;</a>
-<a name="398"><span class="lineNum">     398 </span>            : };</a>
-<a name="399"><span class="lineNum">     399 </span>            : </a>
-<a name="400"><span class="lineNum">     400 </span>            : class TypeSet : public StoredTypeSpec {</a>
-<a name="401"><span class="lineNum">     401 </span>            :  public:</a>
-<a name="402"><span class="lineNum">     402 </span>            :   TypeSet(TypeStore* type_store,</a>
-<a name="403"><span class="lineNum">     403 </span>            :           std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="404"><span class="lineNum">     404 </span>            :           const TypeSpec* param = nullptr);</a>
-<a name="405"><span class="lineNum">     405 </span>            :   const TypeSpec* IndexType() const override;</a>
-<a name="406"><span class="lineNum">     406 </span>            :   const TypeSpec* IndexedType() const override;</a>
-<a name="407"><span class="lineNum">     407 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="408"><span class="lineNum">     408 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="409"><span class="lineNum">     409 </span>            : </a>
-<a name="410"><span class="lineNum">     410 </span>            :  private:</a>
-<a name="411"><span class="lineNum">     411 </span>            :   const TypeSpec* const bool_type_;</a>
-<a name="412"><span class="lineNum">     412 </span>            : };</a>
-<a name="413"><span class="lineNum">     413 </span>            : </a>
-<a name="414"><span class="lineNum">     414 </span>            : class TypeTuple : public StoredTypeSpec {</a>
-<a name="415"><span class="lineNum">     415 </span>            :  public:</a>
-<a name="416"><span class="lineNum">     416 </span>            :   TypeTuple(TypeStore* type_store,</a>
-<a name="417"><span class="lineNum">     417 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="418"><span class="lineNum">     418 </span>            :             std::vector&lt;const TypeSpec*&gt; parameters = {});</a>
-<a name="419"><span class="lineNum">     419 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="420"><span class="lineNum">     420 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
-<a name="421"><span class="lineNum">     421 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="422"><span class="lineNum">     422 </span>            :   const TypeSpec* IndexType() const override;</a>
-<a name="423"><span class="lineNum">     423 </span>            :   bool IsBound() const override;</a>
-<a name="424"><span class="lineNum">     424 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
-<a name="425"><span class="lineNum">     425 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="426"><span class="lineNum">     426 </span>            : </a>
-<a name="427"><span class="lineNum">     427 </span>            :  private:</a>
-<a name="428"><span class="lineNum">     428 </span>            :   mutable std::unique_ptr&lt;TypeSpec&gt; index_type_;</a>
-<a name="429"><span class="lineNum">     429 </span>            : };</a>
-<a name="430"><span class="lineNum">     430 </span>            : </a>
-<a name="431"><span class="lineNum">     431 </span>            : class StructMemberStore;</a>
-<a name="432"><span class="lineNum">     432 </span>            : class TypeStruct : public StoredTypeSpec {</a>
-<a name="433"><span class="lineNum">     433 </span>            :  public:</a>
-<a name="434"><span class="lineNum">     434 </span>            :   // TODO(catalin): add field annotations &amp; struct annotations.</a>
-<a name="435"><span class="lineNum">     435 </span>            :   struct Field {</a>
-<a name="436"><span class="lineNum">     436 </span>            :     std::string name;</a>
-<a name="437"><span class="lineNum">     437 </span>            :     const TypeSpec* type_spec;</a>
-<a name="438"><span class="lineNum">     438 </span>            :   };</a>
-<a name="439"><span class="lineNum">     439 </span>            :   // Main way to create a type struct and add it to a store.</a>
-<a name="440"><span class="lineNum">     440 </span>            :   static absl::StatusOr&lt;TypeStruct*&gt; AddTypeStruct(const ScopeName&amp; scope_name,</a>
-<a name="441"><span class="lineNum">     441 </span>            :                                                    TypeStore* type_store,</a>
-<a name="442"><span class="lineNum">     442 </span>            :                                                    absl::string_view name,</a>
-<a name="443"><span class="lineNum">     443 </span>            :                                                    std::vector&lt;Field&gt; fields);</a>
-<a name="444"><span class="lineNum">     444 </span>            : </a>
-<a name="445"><span class="lineNum">     445 </span>            :   explicit TypeStruct(TypeStore* type_store,</a>
-<a name="446"><span class="lineNum">     446 </span>            :                       std::shared_ptr&lt;StructMemberStore&gt; type_member_store,</a>
-<a name="447"><span class="lineNum">     447 </span>            :                       absl::string_view name = kTypeNameStruct,</a>
-<a name="448"><span class="lineNum">     448 </span>            :                       std::vector&lt;Field&gt; fields = {});</a>
-<a name="449"><span class="lineNum">     449 </span>            :   bool IsBound() const override;</a>
-<a name="450"><span class="lineNum">     450 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="451"><span class="lineNum">     451 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
-<a name="452"><span class="lineNum">     452 </span>            :   bool IsEqual(const TypeSpec&amp; type_spec) const override;</a>
-<a name="453"><span class="lineNum">     453 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="454"><span class="lineNum">     454 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="455"><span class="lineNum">     455 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
-<a name="456"><span class="lineNum">     456 </span>            :   pb::ExpressionTypeSpec ToProto() const override;</a>
-<a name="457"><span class="lineNum">     457 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="458"><span class="lineNum">     458 </span>            : </a>
-<a name="459"><span class="lineNum">     459 </span>            :   const std::vector&lt;Field&gt;&amp; fields() const;</a>
-<a name="460"><span class="lineNum">     460 </span>            :   StructMemberStore* struct_member_store() const;</a>
-<a name="461"><span class="lineNum">     461 </span>            : </a>
-<a name="462"><span class="lineNum">     462 </span>            :  protected:</a>
-<a name="463"><span class="lineNum">     463 </span>            :   bool CheckStruct(const TypeSpec&amp; type_spec,</a>
-<a name="464"><span class="lineNum">     464 </span>            :                    const std::function&lt;bool(const TypeSpec*, const TypeSpec*)&gt;&amp;</a>
-<a name="465"><span class="lineNum">     465 </span>            :                        checker) const;</a>
-<a name="466"><span class="lineNum">     466 </span>            : </a>
-<a name="467"><span class="lineNum">     467 </span>            :   std::vector&lt;Field&gt; fields_;</a>
-<a name="468"><span class="lineNum">     468 </span>            :   std::shared_ptr&lt;StructMemberStore&gt; struct_member_store_;</a>
-<a name="469"><span class="lineNum">     469 </span>            : };</a>
-<a name="470"><span class="lineNum">     470 </span>            : </a>
-<a name="471"><span class="lineNum">     471 </span>            : class StructMemberStore : public TypeMemberStore {</a>
-<a name="472"><span class="lineNum">     472 </span>            :  public:</a>
-<a name="473"><span class="lineNum">     473 </span>            :   StructMemberStore(const TypeSpec* type_spec,</a>
-<a name="474"><span class="lineNum">     474 </span>            :                     std::shared_ptr&lt;TypeMemberStore&gt; ancestor);</a>
-<a name="475"><span class="lineNum">     475 </span>            :   ~StructMemberStore() override;</a>
+<a name="393"><span class="lineNum">     393 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
+<a name="394"><span class="lineNum">     394 </span>            :   bool IsEqual(const TypeSpec&amp; type_spec) const override;</a>
+<a name="395"><span class="lineNum">     395 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="396"><span class="lineNum">     396 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="397"><span class="lineNum">     397 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="398"><span class="lineNum">     398 </span>            :   pb::ExpressionTypeSpec ToProto() const override;</a>
+<a name="399"><span class="lineNum">     399 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="400"><span class="lineNum">     400 </span>            :   std::string TypeSignature() const override;</a>
+<a name="401"><span class="lineNum">     401 </span>            : </a>
+<a name="402"><span class="lineNum">     402 </span>            :   const std::vector&lt;Field&gt;&amp; fields() const;</a>
+<a name="403"><span class="lineNum">     403 </span>            :   StructMemberStore* struct_member_store() const;</a>
+<a name="404"><span class="lineNum">     404 </span>            :   bool is_abstract_struct() const;</a>
+<a name="405"><span class="lineNum">     405 </span>            : </a>
+<a name="406"><span class="lineNum">     406 </span>            :  protected:</a>
+<a name="407"><span class="lineNum">     407 </span>            :   bool CheckStruct(const TypeSpec&amp; type_spec,</a>
+<a name="408"><span class="lineNum">     408 </span>            :                    const std::function&lt;bool(const TypeSpec*, const TypeSpec*)&gt;&amp;</a>
+<a name="409"><span class="lineNum">     409 </span>            :                        checker) const;</a>
+<a name="410"><span class="lineNum">     410 </span>            : </a>
+<a name="411"><span class="lineNum">     411 </span>            :   std::vector&lt;Field&gt; fields_;</a>
+<a name="412"><span class="lineNum">     412 </span>            :   std::shared_ptr&lt;StructMemberStore&gt; struct_member_store_;</a>
+<a name="413"><span class="lineNum">     413 </span>            :   const bool is_abstract_struct_;</a>
+<a name="414"><span class="lineNum">     414 </span>            : };</a>
+<a name="415"><span class="lineNum">     415 </span>            : </a>
+<a name="416"><span class="lineNum">     416 </span>            : class StructMemberStore : public TypeMemberStore {</a>
+<a name="417"><span class="lineNum">     417 </span>            :  public:</a>
+<a name="418"><span class="lineNum">     418 </span>            :   StructMemberStore(const TypeSpec* type_spec,</a>
+<a name="419"><span class="lineNum">     419 </span>            :                     std::shared_ptr&lt;TypeMemberStore&gt; ancestor);</a>
+<a name="420"><span class="lineNum">     420 </span>            :   ~StructMemberStore() override;</a>
+<a name="421"><span class="lineNum">     421 </span>            : </a>
+<a name="422"><span class="lineNum">     422 </span>            :   // Adds a set of fields to this store.</a>
+<a name="423"><span class="lineNum">     423 </span>            :   absl::Status AddFields(const std::vector&lt;TypeStruct::Field&gt;&amp; fields);</a>
+<a name="424"><span class="lineNum">     424 </span>            : </a>
+<a name="425"><span class="lineNum">     425 </span>            :   // This is a bit dirty, but we need to update the type spec on</a>
+<a name="426"><span class="lineNum">     426 </span>            :   // TypeStruct construction.</a>
+<a name="427"><span class="lineNum">     427 </span>            :   void set_type_spec(const TypeSpec* type_spec);</a>
+<a name="428"><span class="lineNum">     428 </span>            : </a>
+<a name="429"><span class="lineNum">     429 </span>            :  protected:</a>
+<a name="430"><span class="lineNum">     430 </span>            :   std::vector&lt;TypeStruct::Field&gt; fields_;</a>
+<a name="431"><span class="lineNum">     431 </span>            :   std::vector&lt;std::unique_ptr&lt;NameStore&gt;&gt; field_vars_;</a>
+<a name="432"><span class="lineNum">     432 </span>            : };</a>
+<a name="433"><span class="lineNum">     433 </span>            : </a>
+<a name="434"><span class="lineNum">     434 </span>            : class TypeMap : public StoredTypeSpec {</a>
+<a name="435"><span class="lineNum">     435 </span>            :  public:</a>
+<a name="436"><span class="lineNum">     436 </span>            :   TypeMap(TypeStore* type_store,</a>
+<a name="437"><span class="lineNum">     437 </span>            :           std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="438"><span class="lineNum">     438 </span>            :           const TypeSpec* key = nullptr, const TypeSpec* val = nullptr);</a>
+<a name="439"><span class="lineNum">     439 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="440"><span class="lineNum">     440 </span>            :   const TypeSpec* ResultType() const override;</a>
+<a name="441"><span class="lineNum">     441 </span>            :   const TypeSpec* IndexedType() const override;</a>
+<a name="442"><span class="lineNum">     442 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="443"><span class="lineNum">     443 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="444"><span class="lineNum">     444 </span>            :   const TypeSpec* IndexType() const override;</a>
+<a name="445"><span class="lineNum">     445 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="446"><span class="lineNum">     446 </span>            : </a>
+<a name="447"><span class="lineNum">     447 </span>            :  protected:</a>
+<a name="448"><span class="lineNum">     448 </span>            :   std::unique_ptr&lt;TypeTuple&gt; result_type_;</a>
+<a name="449"><span class="lineNum">     449 </span>            :   mutable std::unique_ptr&lt;TypeSpec&gt; indexed_type_;</a>
+<a name="450"><span class="lineNum">     450 </span>            : };</a>
+<a name="451"><span class="lineNum">     451 </span>            : </a>
+<a name="452"><span class="lineNum">     452 </span>            : class Function;</a>
+<a name="453"><span class="lineNum">     453 </span>            : class TypeFunction : public StoredTypeSpec {</a>
+<a name="454"><span class="lineNum">     454 </span>            :  public:</a>
+<a name="455"><span class="lineNum">     455 </span>            :   struct Argument {</a>
+<a name="456"><span class="lineNum">     456 </span>            :     std::string name;</a>
+<a name="457"><span class="lineNum">     457 </span>            :     std::string type_name;</a>
+<a name="458"><span class="lineNum">     458 </span>            :     const TypeSpec* type_spec = nullptr;</a>
+<a name="459"><span class="lineNum">     459 </span>            :     std::string ToString() const;</a>
+<a name="460"><span class="lineNum">     460 </span>            :   };</a>
+<a name="461"><span class="lineNum">     461 </span>            :   TypeFunction(</a>
+<a name="462"><span class="lineNum">     462 </span>            :       TypeStore* type_store, std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="463"><span class="lineNum">     463 </span>            :       absl::string_view name = kTypeNameFunction,</a>
+<a name="464"><span class="lineNum">     464 </span>            :       std::vector&lt;Argument&gt; arguments = {}, const TypeSpec* result = nullptr,</a>
+<a name="465"><span class="lineNum">     465 </span>            :       absl::optional&lt;const TypeSpec*&gt; original_bind = {},</a>
+<a name="466"><span class="lineNum">     466 </span>            :       absl::optional&lt;size_t&gt; first_default_value_index = {},</a>
+<a name="467"><span class="lineNum">     467 </span>            :       std::shared_ptr&lt;absl::flat_hash_set&lt;Function*&gt;&gt; function_instances = {});</a>
+<a name="468"><span class="lineNum">     468 </span>            : </a>
+<a name="469"><span class="lineNum">     469 </span>            :   std::string full_name() const override;</a>
+<a name="470"><span class="lineNum">     470 </span>            :   bool IsBound() const override;</a>
+<a name="471"><span class="lineNum">     471 </span>            :   const TypeSpec* ResultType() const override;</a>
+<a name="472"><span class="lineNum">     472 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="473"><span class="lineNum">     473 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="474"><span class="lineNum">     474 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="475"><span class="lineNum">     475 </span>            :   pb::ExpressionTypeSpec ToProto() const override;</a>
 <a name="476"><span class="lineNum">     476 </span>            : </a>
-<a name="477"><span class="lineNum">     477 </span>            :   // Adds a set of fields to this store.</a>
-<a name="478"><span class="lineNum">     478 </span>            :   absl::Status AddFields(const std::vector&lt;TypeStruct::Field&gt;&amp; fields);</a>
-<a name="479"><span class="lineNum">     479 </span>            : </a>
-<a name="480"><span class="lineNum">     480 </span>            :   // This is a bit dirty, but we need to update the type spec on</a>
-<a name="481"><span class="lineNum">     481 </span>            :   // TypeStruct construction.</a>
-<a name="482"><span class="lineNum">     482 </span>            :   void set_type_spec(const TypeSpec* type_spec);</a>
-<a name="483"><span class="lineNum">     483 </span>            : </a>
-<a name="484"><span class="lineNum">     484 </span>            :  protected:</a>
-<a name="485"><span class="lineNum">     485 </span>            :   std::vector&lt;TypeStruct::Field&gt; fields_;</a>
-<a name="486"><span class="lineNum">     486 </span>            :   std::vector&lt;std::unique_ptr&lt;NameStore&gt;&gt; field_vars_;</a>
-<a name="487"><span class="lineNum">     487 </span>            : };</a>
-<a name="488"><span class="lineNum">     488 </span>            : </a>
-<a name="489"><span class="lineNum">     489 </span>            : class TypeMap : public StoredTypeSpec {</a>
-<a name="490"><span class="lineNum">     490 </span>            :  public:</a>
-<a name="491"><span class="lineNum">     491 </span>            :   TypeMap(TypeStore* type_store,</a>
-<a name="492"><span class="lineNum">     492 </span>            :           std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="493"><span class="lineNum">     493 </span>            :           const TypeSpec* key = nullptr, const TypeSpec* val = nullptr);</a>
-<a name="494"><span class="lineNum">     494 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="495"><span class="lineNum">     495 </span>            :   const TypeSpec* ResultType() const override;</a>
-<a name="496"><span class="lineNum">     496 </span>            :   const TypeSpec* IndexedType() const override;</a>
-<a name="497"><span class="lineNum">     497 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="498"><span class="lineNum">     498 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
-<a name="499"><span class="lineNum">     499 </span>            :   const TypeSpec* IndexType() const override;</a>
-<a name="500"><span class="lineNum">     500 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="477"><span class="lineNum">     477 </span>            :   const std::vector&lt;Argument&gt;&amp; arguments() const;</a>
+<a name="478"><span class="lineNum">     478 </span>            :   void set_argument_name(size_t index, std::string name);</a>
+<a name="479"><span class="lineNum">     479 </span>            :   absl::optional&lt;size_t&gt; first_default_value_index() const;</a>
+<a name="480"><span class="lineNum">     480 </span>            :   // Preconditions: if value.has_value(),</a>
+<a name="481"><span class="lineNum">     481 </span>            :   //    value &lt; arguments_-&gt;size() and</a>
+<a name="482"><span class="lineNum">     482 </span>            :   //    first_default_value_index_ not yet set.</a>
+<a name="483"><span class="lineNum">     483 </span>            :   void set_first_default_value_index(absl::optional&lt;size_t&gt; value);</a>
+<a name="484"><span class="lineNum">     484 </span>            : </a>
+<a name="485"><span class="lineNum">     485 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; BindWithFunction(</a>
+<a name="486"><span class="lineNum">     486 </span>            :       const TypeFunction&amp; fun) const;</a>
+<a name="487"><span class="lineNum">     487 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; BindWithComponents(</a>
+<a name="488"><span class="lineNum">     488 </span>            :       const std::vector&lt;Argument&gt;&amp; arguments, const TypeSpec* result_type,</a>
+<a name="489"><span class="lineNum">     489 </span>            :       absl::optional&lt;size_t&gt; first_default_index) const;</a>
+<a name="490"><span class="lineNum">     490 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="491"><span class="lineNum">     491 </span>            : </a>
+<a name="492"><span class="lineNum">     492 </span>            :   const absl::flat_hash_set&lt;Function*&gt;&amp; function_instances() const;</a>
+<a name="493"><span class="lineNum">     493 </span>            :   void add_function_instance(Function* instance);</a>
+<a name="494"><span class="lineNum">     494 </span>            : </a>
+<a name="495"><span class="lineNum">     495 </span>            :  protected:</a>
+<a name="496"><span class="lineNum">     496 </span>            :   std::vector&lt;Argument&gt; arguments_;</a>
+<a name="497"><span class="lineNum">     497 </span>            :   const TypeSpec* result_;</a>
+<a name="498"><span class="lineNum">     498 </span>            :   absl::optional&lt;size_t&gt; first_default_value_index_;</a>
+<a name="499"><span class="lineNum">     499 </span>            :   std::shared_ptr&lt;absl::flat_hash_set&lt;Function*&gt;&gt; function_instances_;</a>
+<a name="500"><span class="lineNum">     500 </span>            : };</a>
 <a name="501"><span class="lineNum">     501 </span>            : </a>
-<a name="502"><span class="lineNum">     502 </span>            :  protected:</a>
-<a name="503"><span class="lineNum">     503 </span>            :   std::unique_ptr&lt;TypeStruct&gt; result_type_;</a>
-<a name="504"><span class="lineNum">     504 </span>            :   mutable std::unique_ptr&lt;TypeSpec&gt; indexed_type_;</a>
-<a name="505"><span class="lineNum">     505 </span>            : };</a>
-<a name="506"><span class="lineNum">     506 </span>            : </a>
-<a name="507"><span class="lineNum">     507 </span>            : class TypeFunction : public StoredTypeSpec {</a>
-<a name="508"><span class="lineNum">     508 </span>            :  public:</a>
-<a name="509"><span class="lineNum">     509 </span>            :   struct Argument {</a>
-<a name="510"><span class="lineNum">     510 </span>            :     std::string name;</a>
-<a name="511"><span class="lineNum">     511 </span>            :     std::string type_name;</a>
-<a name="512"><span class="lineNum">     512 </span>            :     const TypeSpec* type_spec = nullptr;</a>
-<a name="513"><span class="lineNum">     513 </span>            :     std::string ToString() const;</a>
-<a name="514"><span class="lineNum">     514 </span>            :   };</a>
-<a name="515"><span class="lineNum">     515 </span>            :   TypeFunction(TypeStore* type_store,</a>
-<a name="516"><span class="lineNum">     516 </span>            :                std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="517"><span class="lineNum">     517 </span>            :                absl::string_view name = kTypeNameFunction,</a>
-<a name="518"><span class="lineNum">     518 </span>            :                std::vector&lt;Argument&gt; arguments = {},</a>
-<a name="519"><span class="lineNum">     519 </span>            :                const TypeSpec* result = nullptr,</a>
-<a name="520"><span class="lineNum">     520 </span>            :                absl::optional&lt;size_t&gt; first_default_value_index = {});</a>
-<a name="521"><span class="lineNum">     521 </span>            : </a>
-<a name="522"><span class="lineNum">     522 </span>            :   std::string full_name() const override;</a>
-<a name="523"><span class="lineNum">     523 </span>            :   bool IsBound() const override;</a>
-<a name="524"><span class="lineNum">     524 </span>            :   const TypeSpec* ResultType() const override;</a>
-<a name="525"><span class="lineNum">     525 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="526"><span class="lineNum">     526 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
-<a name="527"><span class="lineNum">     527 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="528"><span class="lineNum">     528 </span>            :   pb::ExpressionTypeSpec ToProto() const override;</a>
+<a name="502"><span class="lineNum">     502 </span>            : class TypeUnion : public StoredTypeSpec {</a>
+<a name="503"><span class="lineNum">     503 </span>            :  public:</a>
+<a name="504"><span class="lineNum">     504 </span>            :   TypeUnion(TypeStore* type_store,</a>
+<a name="505"><span class="lineNum">     505 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="506"><span class="lineNum">     506 </span>            :             std::vector&lt;const TypeSpec*&gt; parameters = {});</a>
+<a name="507"><span class="lineNum">     507 </span>            :   bool IsBound() const override;</a>
+<a name="508"><span class="lineNum">     508 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="509"><span class="lineNum">     509 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="510"><span class="lineNum">     510 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="511"><span class="lineNum">     511 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
+<a name="512"><span class="lineNum">     512 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="513"><span class="lineNum">     513 </span>            : };</a>
+<a name="514"><span class="lineNum">     514 </span>            : </a>
+<a name="515"><span class="lineNum">     515 </span>            : class TypeNullable : public StoredTypeSpec {</a>
+<a name="516"><span class="lineNum">     516 </span>            :  public:</a>
+<a name="517"><span class="lineNum">     517 </span>            :   TypeNullable(TypeStore* type_store,</a>
+<a name="518"><span class="lineNum">     518 </span>            :                std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="519"><span class="lineNum">     519 </span>            :                const TypeSpec* type_spec = nullptr);</a>
+<a name="520"><span class="lineNum">     520 </span>            :   std::string full_name() const override;</a>
+<a name="521"><span class="lineNum">     521 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="522"><span class="lineNum">     522 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="523"><span class="lineNum">     523 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="524"><span class="lineNum">     524 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
+<a name="525"><span class="lineNum">     525 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="526"><span class="lineNum">     526 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="527"><span class="lineNum">     527 </span>            :   std::string TypeSignature() const override;</a>
+<a name="528"><span class="lineNum">     528 </span>            : };</a>
 <a name="529"><span class="lineNum">     529 </span>            : </a>
-<a name="530"><span class="lineNum">     530 </span>            :   const std::vector&lt;Argument&gt;&amp; arguments() const;</a>
-<a name="531"><span class="lineNum">     531 </span>            :   void set_argument_name(size_t index, std::string name);</a>
-<a name="532"><span class="lineNum">     532 </span>            :   absl::optional&lt;size_t&gt; first_default_value_index() const;</a>
-<a name="533"><span class="lineNum">     533 </span>            :   // Preconditions: if value.has_value(),</a>
-<a name="534"><span class="lineNum">     534 </span>            :   //    value &lt; arguments_-&gt;size() and</a>
-<a name="535"><span class="lineNum">     535 </span>            :   //    first_default_value_index_ not yet set.</a>
-<a name="536"><span class="lineNum">     536 </span>            :   void set_first_default_value_index(absl::optional&lt;size_t&gt; value);</a>
-<a name="537"><span class="lineNum">     537 </span>            : </a>
-<a name="538"><span class="lineNum">     538 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; BindWithFunction(</a>
-<a name="539"><span class="lineNum">     539 </span>            :       const TypeFunction&amp; fun) const;</a>
-<a name="540"><span class="lineNum">     540 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; BindWithComponents(</a>
-<a name="541"><span class="lineNum">     541 </span>            :       const std::vector&lt;Argument&gt;&amp; arguments, const TypeSpec* result_type,</a>
-<a name="542"><span class="lineNum">     542 </span>            :       std::optional&lt;size_t&gt; first_default_index) const;</a>
-<a name="543"><span class="lineNum">     543 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
-<a name="544"><span class="lineNum">     544 </span>            : </a>
-<a name="545"><span class="lineNum">     545 </span>            :  protected:</a>
-<a name="546"><span class="lineNum">     546 </span>            :   std::vector&lt;Argument&gt; arguments_;</a>
-<a name="547"><span class="lineNum">     547 </span>            :   const TypeSpec* result_;</a>
-<a name="548"><span class="lineNum">     548 </span>            :   absl::optional&lt;size_t&gt; first_default_value_index_;</a>
-<a name="549"><span class="lineNum">     549 </span>            : };</a>
-<a name="550"><span class="lineNum">     550 </span>            : </a>
-<a name="551"><span class="lineNum">     551 </span>            : class TypeUnion : public StoredTypeSpec {</a>
-<a name="552"><span class="lineNum">     552 </span>            :  public:</a>
-<a name="553"><span class="lineNum">     553 </span>            :   TypeUnion(TypeStore* type_store,</a>
-<a name="554"><span class="lineNum">     554 </span>            :             std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="555"><span class="lineNum">     555 </span>            :             std::vector&lt;const TypeSpec*&gt; parameters = {});</a>
-<a name="556"><span class="lineNum">     556 </span>            :   bool IsBound() const override;</a>
-<a name="557"><span class="lineNum">     557 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="558"><span class="lineNum">     558 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="559"><span class="lineNum">     559 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
-<a name="560"><span class="lineNum">     560 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
-<a name="561"><span class="lineNum">     561 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="562"><span class="lineNum">     562 </span>            : };</a>
-<a name="563"><span class="lineNum">     563 </span>            : </a>
-<a name="564"><span class="lineNum">     564 </span>            : class TypeNullable : public StoredTypeSpec {</a>
-<a name="565"><span class="lineNum">     565 </span>            :  public:</a>
-<a name="566"><span class="lineNum">     566 </span>            :   TypeNullable(TypeStore* type_store,</a>
-<a name="567"><span class="lineNum">     567 </span>            :                std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="568"><span class="lineNum">     568 </span>            :                const TypeSpec* type_spec = nullptr);</a>
-<a name="569"><span class="lineNum">     569 </span>            :   std::string full_name() const override;</a>
-<a name="570"><span class="lineNum">     570 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="571"><span class="lineNum">     571 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="572"><span class="lineNum">     572 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
-<a name="573"><span class="lineNum">     573 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
-<a name="574"><span class="lineNum">     574 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
-<a name="575"><span class="lineNum">     575 </span>            :   absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const override;</a>
+<a name="530"><span class="lineNum">     530 </span>            : class TypeDataset : public StoredTypeSpec {</a>
+<a name="531"><span class="lineNum">     531 </span>            :  public:</a>
+<a name="532"><span class="lineNum">     532 </span>            :   TypeDataset(TypeStore* type_store,</a>
+<a name="533"><span class="lineNum">     533 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="534"><span class="lineNum">     534 </span>            :               absl::optional&lt;const TypeSpec*&gt; original_bind = {},</a>
+<a name="535"><span class="lineNum">     535 </span>            :               absl::string_view name = &quot;&quot;, const TypeSpec* type_spec = nullptr);</a>
+<a name="536"><span class="lineNum">     536 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="537"><span class="lineNum">     537 </span>            :   const TypeSpec* ResultType() const override;</a>
+<a name="538"><span class="lineNum">     538 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="539"><span class="lineNum">     539 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="540"><span class="lineNum">     540 </span>            : };</a>
+<a name="541"><span class="lineNum">     541 </span>            : </a>
+<a name="542"><span class="lineNum">     542 </span>            : class DatasetAggregate : public TypeDataset {</a>
+<a name="543"><span class="lineNum">     543 </span>            :  public:</a>
+<a name="544"><span class="lineNum">     544 </span>            :   DatasetAggregate(TypeStore* type_store,</a>
+<a name="545"><span class="lineNum">     545 </span>            :                    std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="546"><span class="lineNum">     546 </span>            :                    std::vector&lt;const TypeSpec*&gt; parameters = {});</a>
+<a name="547"><span class="lineNum">     547 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Build(</a>
+<a name="548"><span class="lineNum">     548 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="549"><span class="lineNum">     549 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="550"><span class="lineNum">     550 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="551"><span class="lineNum">     551 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
+<a name="552"><span class="lineNum">     552 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="553"><span class="lineNum">     553 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="554"><span class="lineNum">     554 </span>            : </a>
+<a name="555"><span class="lineNum">     555 </span>            :  protected:</a>
+<a name="556"><span class="lineNum">     556 </span>            :   absl::StatusOr&lt;const TypeSpec*&gt; AggregateFieldType(</a>
+<a name="557"><span class="lineNum">     557 </span>            :       absl::string_view aggregate_type, const TypeSpec* type_spec) const;</a>
+<a name="558"><span class="lineNum">     558 </span>            :   mutable std::vector&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; allocated_types_;</a>
+<a name="559"><span class="lineNum">     559 </span>            : };</a>
+<a name="560"><span class="lineNum">     560 </span>            : </a>
+<a name="561"><span class="lineNum">     561 </span>            : class DatasetJoin : public TypeDataset {</a>
+<a name="562"><span class="lineNum">     562 </span>            :  public:</a>
+<a name="563"><span class="lineNum">     563 </span>            :   DatasetJoin(TypeStore* type_store,</a>
+<a name="564"><span class="lineNum">     564 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
+<a name="565"><span class="lineNum">     565 </span>            :               std::vector&lt;const TypeSpec*&gt; parameters = {});</a>
+<a name="566"><span class="lineNum">     566 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Build(</a>
+<a name="567"><span class="lineNum">     567 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="568"><span class="lineNum">     568 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="569"><span class="lineNum">     569 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="570"><span class="lineNum">     570 </span>            :   bool IsAncestorOf(const TypeSpec&amp; type_spec) const override;</a>
+<a name="571"><span class="lineNum">     571 </span>            :   bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const override;</a>
+<a name="572"><span class="lineNum">     572 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
+<a name="573"><span class="lineNum">     573 </span>            : </a>
+<a name="574"><span class="lineNum">     574 </span>            :  private:</a>
+<a name="575"><span class="lineNum">     575 </span>            :   mutable std::vector&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; allocated_types_;</a>
 <a name="576"><span class="lineNum">     576 </span>            : };</a>
 <a name="577"><span class="lineNum">     577 </span>            : </a>
-<a name="578"><span class="lineNum">     578 </span>            : class TypeDataset : public StoredTypeSpec {</a>
-<a name="579"><span class="lineNum">     579 </span>            :  public:</a>
-<a name="580"><span class="lineNum">     580 </span>            :   TypeDataset(TypeStore* type_store,</a>
-<a name="581"><span class="lineNum">     581 </span>            :               std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
-<a name="582"><span class="lineNum">     582 </span>            :               absl::string_view name = &quot;&quot;, const TypeSpec* type_spec = nullptr);</a>
+<a name="578"><span class="lineNum">     578 </span>            : // Used for - no-type cases - use Instance() to get a static instance of this</a>
+<a name="579"><span class="lineNum">     579 </span>            : // from any type store.</a>
+<a name="580"><span class="lineNum">     580 </span>            : class TypeUnknown : public TypeSpec {</a>
+<a name="581"><span class="lineNum">     581 </span>            :  public:</a>
+<a name="582"><span class="lineNum">     582 </span>            :   explicit TypeUnknown(std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
 <a name="583"><span class="lineNum">     583 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="584"><span class="lineNum">     584 </span>            :   const TypeSpec* ResultType() const override;</a>
-<a name="585"><span class="lineNum">     585 </span>            :   absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="586"><span class="lineNum">     586 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const override;</a>
+<a name="584"><span class="lineNum">     584 </span>            :   const TypeSpec* type_spec() const override;</a>
+<a name="585"><span class="lineNum">     585 </span>            : </a>
+<a name="586"><span class="lineNum">     586 </span>            :   static const TypeUnknown* Instance();</a>
 <a name="587"><span class="lineNum">     587 </span>            : };</a>
 <a name="588"><span class="lineNum">     588 </span>            : </a>
-<a name="589"><span class="lineNum">     589 </span>            : // Used for - no-type cases - use Instance() to get a static instance of this</a>
-<a name="590"><span class="lineNum">     590 </span>            : // from any type store.</a>
-<a name="591"><span class="lineNum">     591 </span>            : class TypeUnknown : public TypeSpec {</a>
-<a name="592"><span class="lineNum">     592 </span>            :  public:</a>
-<a name="593"><span class="lineNum">     593 </span>            :   explicit TypeUnknown(std::shared_ptr&lt;TypeMemberStore&gt; type_member_store);</a>
-<a name="594"><span class="lineNum">     594 </span>            :   std::unique_ptr&lt;TypeSpec&gt; Clone() const override;</a>
-<a name="595"><span class="lineNum">     595 </span>            :   const TypeSpec* type_spec() const override;</a>
-<a name="596"><span class="lineNum">     596 </span>            :   const ScopeName&amp; scope_name() const override;</a>
-<a name="597"><span class="lineNum">     597 </span>            : </a>
-<a name="598"><span class="lineNum">     598 </span>            :   static const TypeUnknown* Instance();</a>
-<a name="599"><span class="lineNum">     599 </span>            : };</a>
-<a name="600"><span class="lineNum">     600 </span>            : </a>
-<a name="601"><span class="lineNum">     601 </span>            : }  // namespace analysis</a>
-<a name="602"><span class="lineNum">     602 </span>            : }  // namespace nudl</a>
-<a name="603"><span class="lineNum">     603 </span>            : </a>
-<a name="604"><span class="lineNum">     604 </span>            : #endif  // NUDL_ANALYSIS_TYPES_H__</a>
+<a name="589"><span class="lineNum">     589 </span>            : }  // namespace analysis</a>
+<a name="590"><span class="lineNum">     590 </span>            : }  // namespace nudl</a>
+<a name="591"><span class="lineNum">     591 </span>            : </a>
+<a name="592"><span class="lineNum">     592 </span>            : #endif  // NUDL_ANALYSIS_TYPES_H__</a>
 </pre>
       </td>
     </tr>

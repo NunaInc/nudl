@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-30 01:22:14</td>
+            <td class="headerValue">2022-11-10 21:45:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">1</td>
@@ -189,162 +189,192 @@
 <a name="127"><span class="lineNum">     127 </span>            :   TypeSpec(int type_id, absl::string_view name,</a>
 <a name="128"><span class="lineNum">     128 </span>            :            std::shared_ptr&lt;TypeMemberStore&gt; type_member_store,</a>
 <a name="129"><span class="lineNum">     129 </span>            :            bool is_bound_type = false, const TypeSpec* ancestor = nullptr,</a>
-<a name="130"><span class="lineNum">     130 </span>            :            std::vector&lt;const TypeSpec*&gt; parameters = {});</a>
-<a name="131"><span class="lineNum">     131 </span>            :   ~TypeSpec() override;</a>
-<a name="132"><span class="lineNum">     132 </span>            : </a>
-<a name="133"><span class="lineNum">     133 </span>            :   // The unique identifier of this type.</a>
-<a name="134"><span class="lineNum">     134 </span>            :   int type_id() const;</a>
-<a name="135"><span class="lineNum">     135 </span>            :   // If the type in itself is bound.</a>
-<a name="136"><span class="lineNum">     136 </span>            :   bool is_bound_type() const;</a>
-<a name="137"><span class="lineNum">     137 </span>            :   // Base type(s) for this.</a>
-<a name="138"><span class="lineNum">     138 </span>            :   const TypeSpec* ancestor() const;</a>
-<a name="139"><span class="lineNum">     139 </span>            :   // Parameters that fully define the type.</a>
-<a name="140"><span class="lineNum">     140 </span>            :   const std::vector&lt;const TypeSpec*&gt;&amp; parameters() const;</a>
-<a name="141"><span class="lineNum">     141 </span>            :   // Associated name store for members.</a>
-<a name="142"><span class="lineNum">     142 </span>            :   TypeMemberStore* type_member_store() const;</a>
-<a name="143"><span class="lineNum">     143 </span>            :   std::shared_ptr&lt;TypeMemberStore&gt; type_member_store_ptr() const;</a>
-<a name="144"><span class="lineNum">     144 </span>            :   // Local name of the type in the store.</a>
-<a name="145"><span class="lineNum">     145 </span>            :   const std::string&amp; local_name() const;</a>
-<a name="146"><span class="lineNum">     146 </span>            :   // The scope in which the type is defined:</a>
-<a name="147"><span class="lineNum">     147 </span>            :   virtual const ScopeName&amp; scope_name() const = 0;</a>
-<a name="148"><span class="lineNum">     148 </span>            :   // The scope in which the type is defined:</a>
-<a name="149"><span class="lineNum">     149 </span>            :   absl::optional&lt;NameStore*&gt; parent_store() const override;</a>
-<a name="150"><span class="lineNum">     150 </span>            : </a>
-<a name="151"><span class="lineNum">     151 </span>            :   // Converts this type to a proto representation.</a>
-<a name="152"><span class="lineNum">     152 </span>            :   virtual pb::ExpressionTypeSpec ToProto() const;</a>
-<a name="153"><span class="lineNum">     153 </span>            :   virtual pb::TypeSpec ToTypeSpecProto() const;</a>
-<a name="154"><span class="lineNum">     154 </span>            : </a>
-<a name="155"><span class="lineNum">     155 </span>            :   // NamedObject interface:</a>
-<a name="156"><span class="lineNum">     156 </span>            :   pb::ObjectKind kind() const override;</a>
-<a name="157"><span class="lineNum">     157 </span>            :   absl::optional&lt;NameStore*&gt; name_store() override;</a>
-<a name="158"><span class="lineNum">     158 </span>            : </a>
-<a name="159"><span class="lineNum">     159 </span>            :   // Sets the name of the type in the local store.</a>
-<a name="160"><span class="lineNum">     160 </span>            :   void set_local_name(absl::string_view local_name);</a>
-<a name="161"><span class="lineNum">     161 </span>            : </a>
-<a name="162"><span class="lineNum">     162 </span>            :   // If this type, and all its parameters are bound.</a>
-<a name="163"><span class="lineNum">     163 </span>            :   virtual bool IsBound() const;</a>
-<a name="164"><span class="lineNum">     164 </span>            :   // Full type specification.</a>
-<a name="165"><span class="lineNum">     165 </span>            :   std::string full_name() const override;</a>
-<a name="166"><span class="lineNum">     166 </span>            :   // If this type is an ancestor (maybe not direct) of type_spec.</a>
-<a name="167"><span class="lineNum">     167 </span>            :   virtual bool IsAncestorOf(const TypeSpec&amp; type_spec) const;</a>
-<a name="168"><span class="lineNum">     168 </span>            :   // If the type_spec and this type are the same.</a>
-<a name="169"><span class="lineNum">     169 </span>            :   virtual bool IsEqual(const TypeSpec&amp; type_spec) const;</a>
-<a name="170"><span class="lineNum">     170 </span>            :   // If this type can be converted from type_spec</a>
-<a name="171"><span class="lineNum">     171 </span>            :   virtual bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const;</a>
-<a name="172"><span class="lineNum">     172 </span>            : </a>
-<a name="173"><span class="lineNum">     173 </span>            :   // TODO(catalin): convert all these to optional&lt;...&gt;</a>
-<a name="174"><span class="lineNum">     174 </span>            : </a>
-<a name="175"><span class="lineNum">     175 </span>            :   // If this is an iterable type, this is the type of the elements</a>
-<a name="176"><span class="lineNum">     176 </span>            :   // that it produces in an iteration.</a>
-<a name="177"><span class="lineNum">     177 </span>            :   // For function types it represents the return type.</a>
-<a name="178"><span class="lineNum">     178 </span>            :   virtual const TypeSpec* ResultType() const;</a>
-<a name="179"><span class="lineNum">     179 </span>            :   // If this type supports indexed access with [] operator, this</a>
-<a name="180"><span class="lineNum">     180 </span>            :   // would return the type accepted for the index operation.</a>
-<a name="181"><span class="lineNum">     181 </span>            :   virtual const TypeSpec* IndexType() const;</a>
-<a name="182"><span class="lineNum">     182 </span>            :   // The type of the value returned by the [] operator.</a>
-<a name="183"><span class="lineNum">     183 </span>            :   virtual const TypeSpec* IndexedType() const;</a>
-<a name="184"><span class="lineNum">     184 </span>            :   // If this is an iterable type.</a>
-<a name="185"><span class="lineNum">     185 </span>            :   virtual bool IsIterable() const;</a>
-<a name="186"><span class="lineNum">     186 </span>            : </a>
-<a name="187"><span class="lineNum">     187 </span>            :   // If this is a basic type, passed by value to a function, and</a>
-<a name="188"><span class="lineNum">     188 </span>            :   // has a local in-function value.</a>
-<a name="189"><span class="lineNum">     189 </span>            :   bool IsBasicType() const;</a>
-<a name="190"><span class="lineNum">     190 </span>            : </a>
-<a name="191"><span class="lineNum">     191 </span>            :   // If provided type_id is of a basic type.</a>
-<a name="192"><span class="lineNum">     192 </span>            :   static bool IsBasicTypeId(int type_id);</a>
-<a name="193"><span class="lineNum">     193 </span>            : </a>
-<a name="194"><span class="lineNum">     194 </span>            :   // Binds the parameters of this type to other types.</a>
-<a name="195"><span class="lineNum">     195 </span>            :   virtual absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
-<a name="196"><span class="lineNum">     196 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const;</a>
-<a name="197"><span class="lineNum">     197 </span>            : </a>
-<a name="198"><span class="lineNum">     198 </span>            :   // Creates a copy of this type:</a>
-<a name="199"><span class="lineNum">     199 </span>            :   virtual std::unique_ptr&lt;TypeSpec&gt; Clone() const = 0;</a>
-<a name="200"><span class="lineNum">     200 </span>            : </a>
-<a name="201"><span class="lineNum">     201 </span>            :   // Returns a composed string from a type binding:</a>
-<a name="202"><span class="lineNum">     202 </span>            :   static std::string TypeBindingSignature(</a>
-<a name="203"><span class="lineNum">     203 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; type_arguments);</a>
-<a name="204"><span class="lineNum">     204 </span>            : </a>
-<a name="205"><span class="lineNum">     205 </span>            :   // Sets the name of a type - this can be done only onece.</a>
-<a name="206"><span class="lineNum">     206 </span>            :   absl::Status set_name(absl::string_view name);</a>
-<a name="207"><span class="lineNum">     207 </span>            : </a>
-<a name="208"><span class="lineNum">     208 </span>            :   // Utility for bindings conversion - public for testing.</a>
-<a name="209"><span class="lineNum">     209 </span>            :   absl::StatusOr&lt;std::vector&lt;const TypeSpec*&gt;&gt; TypesFromBindings(</a>
-<a name="210"><span class="lineNum">     210 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings, bool check_params = true,</a>
-<a name="211"><span class="lineNum">     211 </span>            :       absl::optional&lt;size_t&gt; minimum_parameters = {}) const;</a>
-<a name="212"><span class="lineNum">     212 </span>            : </a>
-<a name="213"><span class="lineNum">     213 </span>            :   // Builds an expression that returns the default value for this type.</a>
-<a name="214"><span class="lineNum">     214 </span>            :   virtual absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const;</a>
-<a name="215"><span class="lineNum">     215 </span>            : </a>
-<a name="216"><span class="lineNum">     216 </span>            :   // Gets / Sets the place where the object is defined.</a>
-<a name="217"><span class="lineNum">     217 </span>            :   // Can set only once !</a>
-<a name="218"><span class="lineNum">     218 </span>            :   absl::optional&lt;NameStore*&gt; definition_scope() const;</a>
-<a name="219"><span class="lineNum">     219 </span>            :   void set_definition_scope(absl::optional&lt;NameStore*&gt; obj);</a>
-<a name="220"><span class="lineNum">     220 </span>            : </a>
-<a name="221"><span class="lineNum">     221 </span>            :  protected:</a>
-<a name="222"><span class="lineNum">     222 </span>            :   // Updates the type_member_store per provided bindings.</a>
-<a name="223"><span class="lineNum">     223 </span>            :   absl::Status UpdateBindingStore(const std::vector&lt;TypeBindingArg&gt;&amp; bindings);</a>
-<a name="224"><span class="lineNum">     224 </span>            : </a>
-<a name="225"><span class="lineNum">     225 </span>            :   // Checks parameters of this and type_spec for ancestry.</a>
-<a name="226"><span class="lineNum">     226 </span>            :   bool HasAncestorParameters(const TypeSpec&amp; type_spec) const;</a>
-<a name="227"><span class="lineNum">     227 </span>            :   // Checks parameters of this and type_spec for convertible.</a>
-<a name="228"><span class="lineNum">     228 </span>            :   bool HasConvertibleParameters(const TypeSpec&amp; type_spec) const;</a>
-<a name="229"><span class="lineNum">     229 </span>            :   // If we can use the result type for comparing parameters of</a>
-<a name="230"><span class="lineNum">     230 </span>            :   // this type to the one of type_spec.</a>
-<a name="231"><span class="lineNum">     231 </span>            :   bool IsResultTypeComparable(const TypeSpec&amp; type_spec) const;</a>
-<a name="232"><span class="lineNum">     232 </span>            :   // Wraps the provided type name in the local_name_(if set):</a>
-<a name="233"><span class="lineNum">     233 </span>            :   std::string wrap_local_name(std::string s) const;</a>
-<a name="234"><span class="lineNum">     234 </span>            : </a>
-<a name="235"><span class="lineNum">     235 </span>            :   static int NextTypeId();</a>
-<a name="236"><span class="lineNum">     236 </span>            :   const int type_id_;  // pb::TypeId values reserved for builtins.</a>
-<a name="237"><span class="lineNum">     237 </span>            :   std::shared_ptr&lt;TypeMemberStore&gt; type_member_store_;</a>
-<a name="238"><span class="lineNum">     238 </span>            :   const bool is_bound_type_;</a>
-<a name="239"><span class="lineNum">     239 </span>            :   bool is_name_set_ = false;</a>
-<a name="240"><span class="lineNum">     240 </span>            :   absl::optional&lt;NameStore*&gt; definition_scope_ = {};</a>
-<a name="241"><span class="lineNum">     241 </span>            : </a>
-<a name="242"><span class="lineNum">     242 </span>            :   std::string local_name_;</a>
-<a name="243"><span class="lineNum">     243 </span>            :   const TypeSpec* ancestor_ = nullptr;</a>
-<a name="244"><span class="lineNum">     244 </span>            :   std::vector&lt;const TypeSpec*&gt; parameters_;</a>
-<a name="245"><span class="lineNum">     245 </span>            : };</a>
-<a name="246"><span class="lineNum">     246 </span>            : </a>
-<a name="247"><span class="lineNum">     247 </span>            : // Class helper for rebinding types. The concept here is that one would</a>
-<a name="248"><span class="lineNum">     248 </span>            : // call ProcessType with original type specification and actual type instances,</a>
-<a name="249"><span class="lineNum">     249 </span>            : // local names are recorded in this class.</a>
-<a name="250"><span class="lineNum">     250 </span>            : // Afterwards, RebuildType is called with the original type instances to</a>
-<a name="251"><span class="lineNum">     251 </span>            : // create new types bound with the call types negotiated during ProcessTypes.</a>
-<a name="252"><span class="lineNum">     252 </span>            : // All allocated types have to be picked up after use from allocated_types</a>
-<a name="253"><span class="lineNum">     253 </span>            : // member.</a>
-<a name="254"><span class="lineNum">     254 </span>            : //</a>
-<a name="255"><span class="lineNum">     255 </span>            : // This binding class accepts a partial set of parameters, checks and unifies</a>
-<a name="256"><span class="lineNum">     256 </span>            : // the local names during ProcessType, then calls RebuildType to bind on an</a>
-<a name="257"><span class="lineNum">     257 </span>            : // updates set of bindings.</a>
-<a name="258"><span class="lineNum">     258 </span>            : // E.g Function&lt;{T:Numeric}, T, T&gt;</a>
-<a name="259"><span class="lineNum">     259 </span>            : //  binding the first parameters to, say Int, binds the rest of T-s to Int.</a>
-<a name="260"><span class="lineNum">     260 </span>            : // Binding with Int and Decimal may result in an error.</a>
-<a name="261"><span class="lineNum">     261 </span>            : class LocalNamesRebinder {</a>
-<a name="262"><span class="lineNum">     262 </span>            :  public:</a>
-<a name="263"><span class="lineNum">     263 </span><span class="lineCov">        898 :   LocalNamesRebinder() {}</span></a>
-<a name="264"><span class="lineNum">     264 </span>            :   absl::Status ProcessType(const TypeSpec* src_param,</a>
-<a name="265"><span class="lineNum">     265 </span>            :                            const TypeSpec* type_spec);</a>
-<a name="266"><span class="lineNum">     266 </span>            :   absl::StatusOr&lt;const TypeSpec*&gt; RebuildType(const TypeSpec* src_param,</a>
-<a name="267"><span class="lineNum">     267 </span>            :                                               const TypeSpec* type_spec);</a>
-<a name="268"><span class="lineNum">     268 </span>            :   // Same as above, but specifically for functions.</a>
-<a name="269"><span class="lineNum">     269 </span>            :   absl::StatusOr&lt;const TypeSpec*&gt; RebuildFunctionWithComponents(</a>
-<a name="270"><span class="lineNum">     270 </span>            :       const TypeSpec* src_param,</a>
-<a name="271"><span class="lineNum">     271 </span>            :       const std::vector&lt;const TypeSpec*&gt;&amp; type_specs);</a>
-<a name="272"><span class="lineNum">     272 </span>            : </a>
-<a name="273"><span class="lineNum">     273 </span>            :   std::vector&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; allocated_types;</a>
-<a name="274"><span class="lineNum">     274 </span>            : </a>
-<a name="275"><span class="lineNum">     275 </span>            :  private:</a>
-<a name="276"><span class="lineNum">     276 </span>            :   absl::Status RecordLocalName(const TypeSpec* src_param,</a>
-<a name="277"><span class="lineNum">     277 </span>            :                                const TypeSpec* type_spec);</a>
-<a name="278"><span class="lineNum">     278 </span>            : </a>
-<a name="279"><span class="lineNum">     279 </span>            :   absl::flat_hash_map&lt;std::string, const TypeSpec*&gt; local_types_;</a>
-<a name="280"><span class="lineNum">     280 </span>            : };</a>
-<a name="281"><span class="lineNum">     281 </span>            : </a>
-<a name="282"><span class="lineNum">     282 </span>            : }  // namespace analysis</a>
-<a name="283"><span class="lineNum">     283 </span>            : }  // namespace nudl</a>
-<a name="284"><span class="lineNum">     284 </span>            : </a>
-<a name="285"><span class="lineNum">     285 </span>            : #endif  // NUDL_ANALYSIS_TYPE_SPEC_H__</a>
+<a name="130"><span class="lineNum">     130 </span>            :            std::vector&lt;const TypeSpec*&gt; parameters = {},</a>
+<a name="131"><span class="lineNum">     131 </span>            :            absl::optional&lt;const TypeSpec*&gt; original_bind = {});</a>
+<a name="132"><span class="lineNum">     132 </span>            :   ~TypeSpec() override;</a>
+<a name="133"><span class="lineNum">     133 </span>            : </a>
+<a name="134"><span class="lineNum">     134 </span>            :   // The unique identifier of this type.</a>
+<a name="135"><span class="lineNum">     135 </span>            :   int type_id() const;</a>
+<a name="136"><span class="lineNum">     136 </span>            :   // If the type in itself is bound.</a>
+<a name="137"><span class="lineNum">     137 </span>            :   bool is_bound_type() const;</a>
+<a name="138"><span class="lineNum">     138 </span>            :   // Base type(s) for this.</a>
+<a name="139"><span class="lineNum">     139 </span>            :   const TypeSpec* ancestor() const;</a>
+<a name="140"><span class="lineNum">     140 </span>            :   // Parameters that fully define the type.</a>
+<a name="141"><span class="lineNum">     141 </span>            :   const std::vector&lt;const TypeSpec*&gt;&amp; parameters() const;</a>
+<a name="142"><span class="lineNum">     142 </span>            :   // Associated name store for members.</a>
+<a name="143"><span class="lineNum">     143 </span>            :   TypeMemberStore* type_member_store() const;</a>
+<a name="144"><span class="lineNum">     144 </span>            :   std::shared_ptr&lt;TypeMemberStore&gt; type_member_store_ptr() const;</a>
+<a name="145"><span class="lineNum">     145 </span>            :   // Local name of the type in the store.</a>
+<a name="146"><span class="lineNum">     146 </span>            :   const std::string&amp; local_name() const;</a>
+<a name="147"><span class="lineNum">     147 </span>            :   // The Scope in which the type is defined.</a>
+<a name="148"><span class="lineNum">     148 </span>            :   // Note that this may be unset for types that are not explicitly defined</a>
+<a name="149"><span class="lineNum">     149 </span>            :   // by the used, however the scope_name is set upon type building, in the</a>
+<a name="150"><span class="lineNum">     150 </span>            :   // store in which it was invoked from.</a>
+<a name="151"><span class="lineNum">     151 </span>            :   absl::optional&lt;NameStore*&gt; parent_store() const override;</a>
+<a name="152"><span class="lineNum">     152 </span>            :   // The original type that bounded / created this type.</a>
+<a name="153"><span class="lineNum">     153 </span>            :   absl::optional&lt;const TypeSpec*&gt; original_bind() const;</a>
+<a name="154"><span class="lineNum">     154 </span>            :   // The name of the type store this type is defined.</a>
+<a name="155"><span class="lineNum">     155 </span>            :   virtual const ScopeName&amp; scope_name() const;</a>
+<a name="156"><span class="lineNum">     156 </span>            : </a>
+<a name="157"><span class="lineNum">     157 </span>            :   // Converts this type to a proto representation.</a>
+<a name="158"><span class="lineNum">     158 </span>            :   virtual pb::ExpressionTypeSpec ToProto() const;</a>
+<a name="159"><span class="lineNum">     159 </span>            :   virtual pb::TypeSpec ToTypeSpecProto() const;</a>
+<a name="160"><span class="lineNum">     160 </span>            : </a>
+<a name="161"><span class="lineNum">     161 </span>            :   // NamedObject interface:</a>
+<a name="162"><span class="lineNum">     162 </span>            :   pb::ObjectKind kind() const override;</a>
+<a name="163"><span class="lineNum">     163 </span>            :   absl::optional&lt;NameStore*&gt; name_store() override;</a>
+<a name="164"><span class="lineNum">     164 </span>            : </a>
+<a name="165"><span class="lineNum">     165 </span>            :   // Sets the name of the type in the local store.</a>
+<a name="166"><span class="lineNum">     166 </span>            :   void set_local_name(absl::string_view local_name);</a>
+<a name="167"><span class="lineNum">     167 </span>            : </a>
+<a name="168"><span class="lineNum">     168 </span>            :   // If this type, and all its parameters are bound.</a>
+<a name="169"><span class="lineNum">     169 </span>            :   virtual bool IsBound() const;</a>
+<a name="170"><span class="lineNum">     170 </span>            :   // Full type specification.</a>
+<a name="171"><span class="lineNum">     171 </span>            :   std::string full_name() const override;</a>
+<a name="172"><span class="lineNum">     172 </span>            :   // If this type is an ancestor (maybe not direct) of type_spec.</a>
+<a name="173"><span class="lineNum">     173 </span>            :   virtual bool IsAncestorOf(const TypeSpec&amp; type_spec) const;</a>
+<a name="174"><span class="lineNum">     174 </span>            :   // If the type_spec and this type are the same.</a>
+<a name="175"><span class="lineNum">     175 </span>            :   virtual bool IsEqual(const TypeSpec&amp; type_spec) const;</a>
+<a name="176"><span class="lineNum">     176 </span>            :   // If this type can be converted from type_spec</a>
+<a name="177"><span class="lineNum">     177 </span>            :   virtual bool IsConvertibleFrom(const TypeSpec&amp; type_spec) const;</a>
+<a name="178"><span class="lineNum">     178 </span>            : </a>
+<a name="179"><span class="lineNum">     179 </span>            :   // TODO(catalin): convert all these to optional&lt;...&gt;</a>
+<a name="180"><span class="lineNum">     180 </span>            : </a>
+<a name="181"><span class="lineNum">     181 </span>            :   // If this is an iterable type, this is the type of the elements</a>
+<a name="182"><span class="lineNum">     182 </span>            :   // that it produces in an iteration.</a>
+<a name="183"><span class="lineNum">     183 </span>            :   // For function types it represents the return type.</a>
+<a name="184"><span class="lineNum">     184 </span>            :   virtual const TypeSpec* ResultType() const;</a>
+<a name="185"><span class="lineNum">     185 </span>            :   // If this type supports indexed access with [] operator, this</a>
+<a name="186"><span class="lineNum">     186 </span>            :   // would return the type accepted for the index operation.</a>
+<a name="187"><span class="lineNum">     187 </span>            :   virtual const TypeSpec* IndexType() const;</a>
+<a name="188"><span class="lineNum">     188 </span>            :   // The type of the value returned by the [] operator.</a>
+<a name="189"><span class="lineNum">     189 </span>            :   virtual const TypeSpec* IndexedType() const;</a>
+<a name="190"><span class="lineNum">     190 </span>            :   // If this is an iterable type.</a>
+<a name="191"><span class="lineNum">     191 </span>            :   virtual bool IsIterable() const;</a>
+<a name="192"><span class="lineNum">     192 </span>            : </a>
+<a name="193"><span class="lineNum">     193 </span>            :   // If this is a basic type, passed by value to a function, and</a>
+<a name="194"><span class="lineNum">     194 </span>            :   // has a local in-function value.</a>
+<a name="195"><span class="lineNum">     195 </span>            :   bool IsBasicType() const;</a>
+<a name="196"><span class="lineNum">     196 </span>            : </a>
+<a name="197"><span class="lineNum">     197 </span>            :   // If provided type_id is of a basic type.</a>
+<a name="198"><span class="lineNum">     198 </span>            :   static bool IsBasicTypeId(int type_id);</a>
+<a name="199"><span class="lineNum">     199 </span>            : </a>
+<a name="200"><span class="lineNum">     200 </span>            :   // Binds the parameters of this type to other types.</a>
+<a name="201"><span class="lineNum">     201 </span>            :   virtual absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Bind(</a>
+<a name="202"><span class="lineNum">     202 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const;</a>
+<a name="203"><span class="lineNum">     203 </span>            : </a>
+<a name="204"><span class="lineNum">     204 </span>            :   // This is called when a new type is created.</a>
+<a name="205"><span class="lineNum">     205 </span>            :   // Similar to Bind, and in fact has the same signature and</a>
+<a name="206"><span class="lineNum">     206 </span>            :   // default implementation. E.g. this is called to create</a>
+<a name="207"><span class="lineNum">     207 </span>            :   // a type that would be, say Array&lt;A: Any&gt; and the Bind is</a>
+<a name="208"><span class="lineNum">     208 </span>            :   // called when A is actually set, to e.g. Int.</a>
+<a name="209"><span class="lineNum">     209 </span>            :   virtual absl::StatusOr&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; Build(</a>
+<a name="210"><span class="lineNum">     210 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings) const;</a>
+<a name="211"><span class="lineNum">     211 </span>            : </a>
+<a name="212"><span class="lineNum">     212 </span>            :   // Creates a copy of this type:</a>
+<a name="213"><span class="lineNum">     213 </span>            :   virtual std::unique_ptr&lt;TypeSpec&gt; Clone() const = 0;</a>
+<a name="214"><span class="lineNum">     214 </span>            : </a>
+<a name="215"><span class="lineNum">     215 </span>            :   // Returns a short string identifying this type</a>
+<a name="216"><span class="lineNum">     216 </span>            :   virtual std::string TypeSignature() const;</a>
+<a name="217"><span class="lineNum">     217 </span>            : </a>
+<a name="218"><span class="lineNum">     218 </span>            :   // Returns a composed string from a type binding:</a>
+<a name="219"><span class="lineNum">     219 </span>            :   static std::string TypeBindingSignature(</a>
+<a name="220"><span class="lineNum">     220 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; type_arguments);</a>
+<a name="221"><span class="lineNum">     221 </span>            :   static std::string TypeBindingSignature(</a>
+<a name="222"><span class="lineNum">     222 </span>            :       const absl::Span&lt;const TypeSpec* const&gt; type_arguments);</a>
+<a name="223"><span class="lineNum">     223 </span>            : </a>
+<a name="224"><span class="lineNum">     224 </span>            :   // Next functions are meant to be used internally:</a>
+<a name="225"><span class="lineNum">     225 </span>            : </a>
+<a name="226"><span class="lineNum">     226 </span>            :   // Sets the name of a type - this can be done only once.</a>
+<a name="227"><span class="lineNum">     227 </span>            :   absl::Status set_name(absl::string_view name);</a>
+<a name="228"><span class="lineNum">     228 </span>            : </a>
+<a name="229"><span class="lineNum">     229 </span>            :   // Sets the scope in which the type is defined - used internally by</a>
+<a name="230"><span class="lineNum">     230 </span>            :   // type store upon registration.</a>
+<a name="231"><span class="lineNum">     231 </span>            :   void set_scope_name(ScopeName scope_name);</a>
+<a name="232"><span class="lineNum">     232 </span>            : </a>
+<a name="233"><span class="lineNum">     233 </span>            :   // Utility for bindings conversion - public for testing.</a>
+<a name="234"><span class="lineNum">     234 </span>            :   absl::StatusOr&lt;std::vector&lt;const TypeSpec*&gt;&gt; TypesFromBindings(</a>
+<a name="235"><span class="lineNum">     235 </span>            :       const std::vector&lt;TypeBindingArg&gt;&amp; bindings, bool check_params = true,</a>
+<a name="236"><span class="lineNum">     236 </span>            :       absl::optional&lt;size_t&gt; minimum_parameters = {}) const;</a>
+<a name="237"><span class="lineNum">     237 </span>            : </a>
+<a name="238"><span class="lineNum">     238 </span>            :   // Builds an expression that returns the default value for this type.</a>
+<a name="239"><span class="lineNum">     239 </span>            :   virtual absl::StatusOr&lt;pb::Expression&gt; DefaultValueExpression() const;</a>
+<a name="240"><span class="lineNum">     240 </span>            : </a>
+<a name="241"><span class="lineNum">     241 </span>            :   // Gets / Sets the place where the object is defined.</a>
+<a name="242"><span class="lineNum">     242 </span>            :   // Can set only once !</a>
+<a name="243"><span class="lineNum">     243 </span>            :   absl::optional&lt;NameStore*&gt; definition_scope() const;</a>
+<a name="244"><span class="lineNum">     244 </span>            :   void set_definition_scope(absl::optional&lt;NameStore*&gt; obj);</a>
+<a name="245"><span class="lineNum">     245 </span>            : </a>
+<a name="246"><span class="lineNum">     246 </span>            :  protected:</a>
+<a name="247"><span class="lineNum">     247 </span>            :   // Updates the type_member_store per provided bindings.</a>
+<a name="248"><span class="lineNum">     248 </span>            :   absl::Status UpdateBindingStore(const std::vector&lt;TypeBindingArg&gt;&amp; bindings);</a>
+<a name="249"><span class="lineNum">     249 </span>            :   // If this type is recorded as generated by this type</a>
+<a name="250"><span class="lineNum">     250 </span>            :   // (i.e. origina_bind in the type_spec is this)</a>
+<a name="251"><span class="lineNum">     251 </span>            :   bool IsGeneratedByThis(const TypeSpec&amp; type_spec) const;</a>
+<a name="252"><span class="lineNum">     252 </span>            : </a>
+<a name="253"><span class="lineNum">     253 </span>            :   // Checks parameters of this and type_spec for ancestry.</a>
+<a name="254"><span class="lineNum">     254 </span>            :   bool HasAncestorParameters(const TypeSpec&amp; type_spec) const;</a>
+<a name="255"><span class="lineNum">     255 </span>            :   // Checks parameters of this and type_spec for convertible.</a>
+<a name="256"><span class="lineNum">     256 </span>            :   bool HasConvertibleParameters(const TypeSpec&amp; type_spec) const;</a>
+<a name="257"><span class="lineNum">     257 </span>            :   // If we can use the result type for comparing parameters of</a>
+<a name="258"><span class="lineNum">     258 </span>            :   // this type to the one of type_spec.</a>
+<a name="259"><span class="lineNum">     259 </span>            :   bool IsResultTypeComparable(const TypeSpec&amp; type_spec) const;</a>
+<a name="260"><span class="lineNum">     260 </span>            :   // Wraps the provided type name in the local_name_(if set):</a>
+<a name="261"><span class="lineNum">     261 </span>            :   std::string wrap_local_name(std::string s) const;</a>
+<a name="262"><span class="lineNum">     262 </span>            : </a>
+<a name="263"><span class="lineNum">     263 </span>            :   static int NextTypeId();</a>
+<a name="264"><span class="lineNum">     264 </span>            :   const int type_id_;  // pb::TypeId values reserved for builtins.</a>
+<a name="265"><span class="lineNum">     265 </span>            :   std::shared_ptr&lt;TypeMemberStore&gt; type_member_store_;</a>
+<a name="266"><span class="lineNum">     266 </span>            :   const bool is_bound_type_;</a>
+<a name="267"><span class="lineNum">     267 </span>            :   bool is_name_set_ = false;</a>
+<a name="268"><span class="lineNum">     268 </span>            :   absl::optional&lt;NameStore*&gt; definition_scope_ = {};</a>
+<a name="269"><span class="lineNum">     269 </span>            : </a>
+<a name="270"><span class="lineNum">     270 </span>            :   std::string local_name_;</a>
+<a name="271"><span class="lineNum">     271 </span>            :   const TypeSpec* ancestor_ = nullptr;</a>
+<a name="272"><span class="lineNum">     272 </span>            :   std::vector&lt;const TypeSpec*&gt; parameters_;</a>
+<a name="273"><span class="lineNum">     273 </span>            :   absl::optional&lt;const TypeSpec*&gt; original_bind_;</a>
+<a name="274"><span class="lineNum">     274 </span>            :   absl::optional&lt;ScopeName&gt; scope_name_;</a>
+<a name="275"><span class="lineNum">     275 </span>            : };</a>
+<a name="276"><span class="lineNum">     276 </span>            : </a>
+<a name="277"><span class="lineNum">     277 </span>            : // Class helper for rebinding types. The concept here is that one would</a>
+<a name="278"><span class="lineNum">     278 </span>            : // call ProcessType with original type specification and actual type instances,</a>
+<a name="279"><span class="lineNum">     279 </span>            : // local names are recorded in this class.</a>
+<a name="280"><span class="lineNum">     280 </span>            : // Afterwards, RebuildType is called with the original type instances to</a>
+<a name="281"><span class="lineNum">     281 </span>            : // create new types bound with the call types negotiated during ProcessTypes.</a>
+<a name="282"><span class="lineNum">     282 </span>            : // All allocated types have to be picked up after use from allocated_types</a>
+<a name="283"><span class="lineNum">     283 </span>            : // member.</a>
+<a name="284"><span class="lineNum">     284 </span>            : //</a>
+<a name="285"><span class="lineNum">     285 </span>            : // This binding class accepts a partial set of parameters, checks and unifies</a>
+<a name="286"><span class="lineNum">     286 </span>            : // the local names during ProcessType, then calls RebuildType to bind on an</a>
+<a name="287"><span class="lineNum">     287 </span>            : // updates set of bindings.</a>
+<a name="288"><span class="lineNum">     288 </span>            : // E.g Function&lt;{T:Numeric}, T, T&gt;</a>
+<a name="289"><span class="lineNum">     289 </span>            : //  binding the first parameters to, say Int, binds the rest of T-s to Int.</a>
+<a name="290"><span class="lineNum">     290 </span>            : // Binding with Int and Decimal may result in an error.</a>
+<a name="291"><span class="lineNum">     291 </span>            : class LocalNamesRebinder {</a>
+<a name="292"><span class="lineNum">     292 </span>            :  public:</a>
+<a name="293"><span class="lineNum">     293 </span><span class="lineCov">       1053 :   LocalNamesRebinder() {}</span></a>
+<a name="294"><span class="lineNum">     294 </span>            :   absl::Status ProcessType(const TypeSpec* src_param,</a>
+<a name="295"><span class="lineNum">     295 </span>            :                            const TypeSpec* type_spec);</a>
+<a name="296"><span class="lineNum">     296 </span>            :   absl::StatusOr&lt;const TypeSpec*&gt; RebuildType(const TypeSpec* src_param,</a>
+<a name="297"><span class="lineNum">     297 </span>            :                                               const TypeSpec* type_spec);</a>
+<a name="298"><span class="lineNum">     298 </span>            :   // Same as above, but specifically for functions.</a>
+<a name="299"><span class="lineNum">     299 </span>            :   absl::StatusOr&lt;const TypeSpec*&gt; RebuildFunctionWithComponents(</a>
+<a name="300"><span class="lineNum">     300 </span>            :       const TypeSpec* src_param,</a>
+<a name="301"><span class="lineNum">     301 </span>            :       const std::vector&lt;const TypeSpec*&gt;&amp; type_specs);</a>
+<a name="302"><span class="lineNum">     302 </span>            : </a>
+<a name="303"><span class="lineNum">     303 </span>            :   std::vector&lt;std::unique_ptr&lt;TypeSpec&gt;&gt; allocated_types;</a>
+<a name="304"><span class="lineNum">     304 </span>            : </a>
+<a name="305"><span class="lineNum">     305 </span>            :  private:</a>
+<a name="306"><span class="lineNum">     306 </span>            :   absl::Status RecordLocalName(const TypeSpec* src_param,</a>
+<a name="307"><span class="lineNum">     307 </span>            :                                const TypeSpec* type_spec);</a>
+<a name="308"><span class="lineNum">     308 </span>            : </a>
+<a name="309"><span class="lineNum">     309 </span>            :   absl::flat_hash_map&lt;std::string, const TypeSpec*&gt; local_types_;</a>
+<a name="310"><span class="lineNum">     310 </span>            : };</a>
+<a name="311"><span class="lineNum">     311 </span>            : </a>
+<a name="312"><span class="lineNum">     312 </span>            : }  // namespace analysis</a>
+<a name="313"><span class="lineNum">     313 </span>            : }  // namespace nudl</a>
+<a name="314"><span class="lineNum">     314 </span>            : </a>
+<a name="315"><span class="lineNum">     315 </span>            : #endif  // NUDL_ANALYSIS_TYPE_SPEC_H__</a>
 </pre>
       </td>
     </tr>

@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-30 01:22:14</td>
+            <td class="headerValue">2022-11-10 21:45:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">45</td>
@@ -96,9 +96,9 @@
 <a name="34"><span class="lineNum">      34 </span>            : namespace analysis {</a>
 <a name="35"><span class="lineNum">      35 </span>            : </a>
 <a name="36"><span class="lineNum">      36 </span>            : namespace {</a>
-<a name="37"><span class="lineNum">      37 </span><span class="lineCov">         60 : absl::StatusOr&lt;std_filesystem::path&gt; PathFromString(absl::string_view path) {</span></a>
+<a name="37"><span class="lineNum">      37 </span><span class="lineCov">         62 : absl::StatusOr&lt;std_filesystem::path&gt; PathFromString(absl::string_view path) {</span></a>
 <a name="38"><span class="lineNum">      38 </span>            :   try {</a>
-<a name="39"><span class="lineNum">      39 </span><span class="lineCov">        120 :     return std_filesystem::path(path);</span></a>
+<a name="39"><span class="lineNum">      39 </span><span class="lineCov">        124 :     return std_filesystem::path(path);</span></a>
 <a name="40"><span class="lineNum">      40 </span><span class="lineNoCov">          0 :   } catch (const std_filesystem::filesystem_error&amp; ex) {</span></a>
 <a name="41"><span class="lineNum">      41 </span><span class="lineNoCov">          0 :     return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="42"><span class="lineNum">      42 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot;Invalid path provided: `&quot; &lt;&lt; path &lt;&lt; &quot;` :&quot; &lt;&lt; ex.what();</span></a>
@@ -106,56 +106,56 @@
 <a name="44"><span class="lineNum">      44 </span>            : }</a>
 <a name="45"><span class="lineNum">      45 </span>            : }  // namespace</a>
 <a name="46"><span class="lineNum">      46 </span>            : </a>
-<a name="47"><span class="lineNum">      47 </span><span class="lineCov">         30 : ModuleFileReader::ModuleFileReader() {}</span></a>
+<a name="47"><span class="lineNum">      47 </span><span class="lineCov">         31 : ModuleFileReader::ModuleFileReader() {}</span></a>
 <a name="48"><span class="lineNum">      48 </span>            : </a>
-<a name="49"><span class="lineNum">      49 </span><span class="lineCov">        120 : ModuleFileReader::~ModuleFileReader() {}</span></a>
+<a name="49"><span class="lineNum">      49 </span><span class="lineCov">        124 : ModuleFileReader::~ModuleFileReader() {}</span></a>
 <a name="50"><span class="lineNum">      50 </span>            : </a>
 <a name="51"><span class="lineNum">      51 </span><span class="lineCov">         18 : std::string ModuleFileReader::ModuleNameToPath(absl::string_view module_name) {</span></a>
 <a name="52"><span class="lineNum">      52 </span><span class="lineCov">         36 :   return absl::StrJoin(absl::StrSplit(module_name, '.'), &quot;/&quot;);</span></a>
 <a name="53"><span class="lineNum">      53 </span>            :   // std_filesystem::path::preferred_separator ?</a>
 <a name="54"><span class="lineNum">      54 </span>            : }</a>
 <a name="55"><span class="lineNum">      55 </span>            : </a>
-<a name="56"><span class="lineNum">      56 </span><span class="lineCov">         30 : absl::StatusOr&lt;PathBasedFileReader&gt; PathBasedFileReader::Build(</span></a>
+<a name="56"><span class="lineNum">      56 </span><span class="lineCov">         31 : absl::StatusOr&lt;PathBasedFileReader&gt; PathBasedFileReader::Build(</span></a>
 <a name="57"><span class="lineNum">      57 </span>            :     std::vector&lt;std::string&gt; search_paths, absl::string_view extension,</a>
 <a name="58"><span class="lineNum">      58 </span>            :     absl::string_view default_file) {</a>
-<a name="59"><span class="lineNum">      59 </span><span class="lineCov">         60 :   std::vector&lt;std_filesystem::path&gt; paths;</span></a>
-<a name="60"><span class="lineNum">      60 </span><span class="lineCov">         60 :   for (const auto&amp; path : search_paths) {</span></a>
-<a name="61"><span class="lineNum">      61 </span><span class="lineCov">         60 :     ASSIGN_OR_RETURN(auto crt_path, PathFromString(path));</span></a>
-<a name="62"><span class="lineNum">      62 </span><span class="lineCov">         30 :     paths.emplace_back(std::move(crt_path));</span></a>
+<a name="59"><span class="lineNum">      59 </span><span class="lineCov">         62 :   std::vector&lt;std_filesystem::path&gt; paths;</span></a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineCov">         62 :   for (const auto&amp; path : search_paths) {</span></a>
+<a name="61"><span class="lineNum">      61 </span><span class="lineCov">         62 :     ASSIGN_OR_RETURN(auto crt_path, PathFromString(path));</span></a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">         31 :     paths.emplace_back(std::move(crt_path));</span></a>
 <a name="63"><span class="lineNum">      63 </span>            :   }</a>
-<a name="64"><span class="lineNum">      64 </span><span class="lineCov">         60 :   return {PathBasedFileReader(std::move(paths), extension, default_file)};</span></a>
+<a name="64"><span class="lineNum">      64 </span><span class="lineCov">         62 :   return {PathBasedFileReader(std::move(paths), extension, default_file)};</span></a>
 <a name="65"><span class="lineNum">      65 </span>            : }</a>
 <a name="66"><span class="lineNum">      66 </span>            : </a>
-<a name="67"><span class="lineNum">      67 </span><span class="lineCov">         30 : PathBasedFileReader::PathBasedFileReader(</span></a>
+<a name="67"><span class="lineNum">      67 </span><span class="lineCov">         31 : PathBasedFileReader::PathBasedFileReader(</span></a>
 <a name="68"><span class="lineNum">      68 </span>            :     std::vector&lt;std_filesystem::path&gt; search_paths, absl::string_view extension,</a>
-<a name="69"><span class="lineNum">      69 </span><span class="lineCov">         30 :     absl::string_view default_file)</span></a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineCov">         31 :     absl::string_view default_file)</span></a>
 <a name="70"><span class="lineNum">      70 </span>            :     : ModuleFileReader(),</a>
-<a name="71"><span class="lineNum">      71 </span><span class="lineCov">         30 :       search_paths_(std::move(search_paths)),</span></a>
+<a name="71"><span class="lineNum">      71 </span><span class="lineCov">         31 :       search_paths_(std::move(search_paths)),</span></a>
 <a name="72"><span class="lineNum">      72 </span>            :       extension_(extension),</a>
-<a name="73"><span class="lineNum">      73 </span><span class="lineCov">         30 :       default_file_(default_file) {}</span></a>
+<a name="73"><span class="lineNum">      73 </span><span class="lineCov">         31 :       default_file_(default_file) {}</span></a>
 <a name="74"><span class="lineNum">      74 </span>            : </a>
 <a name="75"><span class="lineNum">      75 </span>            : absl::StatusOr&lt;ModuleFileReader::ModuleReadResult&gt;</a>
-<a name="76"><span class="lineNum">      76 </span><span class="lineCov">         42 : PathBasedFileReader::ReadFile(const std_filesystem::path&amp; crt_path,</span></a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">         43 : PathBasedFileReader::ReadFile(const std_filesystem::path&amp; crt_path,</span></a>
 <a name="77"><span class="lineNum">      77 </span>            :                               ModuleFileReader::ModuleReadResult result) const {</a>
-<a name="78"><span class="lineNum">      78 </span><span class="lineCov">         42 :   auto size = std_filesystem::file_size(crt_path);</span></a>
-<a name="79"><span class="lineNum">      79 </span><span class="lineCov">         42 :   if (size &gt; kMaxImportFileSize) {</span></a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineCov">         43 :   auto size = std_filesystem::file_size(crt_path);</span></a>
+<a name="79"><span class="lineNum">      79 </span><span class="lineCov">         43 :   if (size &gt; kMaxImportFileSize) {</span></a>
 <a name="80"><span class="lineNum">      80 </span><span class="lineNoCov">          0 :     return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="81"><span class="lineNum">      81 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot;File to read too big: &quot; &lt;&lt; size &lt;&lt; &quot; for: &quot; &lt;&lt; crt_path.native();</span></a>
 <a name="82"><span class="lineNum">      82 </span>            :   }</a>
-<a name="83"><span class="lineNum">      83 </span><span class="lineCov">         84 :   std::ifstream infile(crt_path, std::ios::in | std::ios::binary);</span></a>
-<a name="84"><span class="lineNum">      84 </span><span class="lineCov">         42 :   if (!infile.is_open()) {</span></a>
+<a name="83"><span class="lineNum">      83 </span><span class="lineCov">         86 :   std::ifstream infile(crt_path, std::ios::in | std::ios::binary);</span></a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineCov">         43 :   if (!infile.is_open()) {</span></a>
 <a name="85"><span class="lineNum">      85 </span><span class="lineNoCov">          0 :     return status::InternalErrorBuilder()</span></a>
 <a name="86"><span class="lineNum">      86 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot;Error opening existing file: &quot; &lt;&lt; crt_path.native();</span></a>
 <a name="87"><span class="lineNum">      87 </span>            :   }</a>
-<a name="88"><span class="lineNum">      88 </span><span class="lineCov">         42 :   result.content.resize(size, '\0');</span></a>
-<a name="89"><span class="lineNum">      89 </span><span class="lineCov">         42 :   infile.read(&amp;result.content[0], size);</span></a>
-<a name="90"><span class="lineNum">      90 </span><span class="lineCov">         42 :   const bool has_errors = infile.fail();</span></a>
-<a name="91"><span class="lineNum">      91 </span><span class="lineCov">         42 :   infile.close();</span></a>
-<a name="92"><span class="lineNum">      92 </span><span class="lineCov">         42 :   if (has_errors) {</span></a>
+<a name="88"><span class="lineNum">      88 </span><span class="lineCov">         43 :   result.content.resize(size, '\0');</span></a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineCov">         43 :   infile.read(&amp;result.content[0], size);</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">         43 :   const bool has_errors = infile.fail();</span></a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineCov">         43 :   infile.close();</span></a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">         43 :   if (has_errors) {</span></a>
 <a name="93"><span class="lineNum">      93 </span><span class="lineNoCov">          0 :     return status::InternalErrorBuilder()</span></a>
 <a name="94"><span class="lineNum">      94 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot;Error reading module file: &quot; &lt;&lt; crt_path.native();</span></a>
 <a name="95"><span class="lineNum">      95 </span>            :   }</a>
-<a name="96"><span class="lineNum">      96 </span><span class="lineCov">         42 :   return {std::move(result)};</span></a>
+<a name="96"><span class="lineNum">      96 </span><span class="lineCov">         43 :   return {std::move(result)};</span></a>
 <a name="97"><span class="lineNum">      97 </span>            : }</a>
 <a name="98"><span class="lineNum">      98 </span>            : </a>
 <a name="99"><span class="lineNum">      99 </span>            : absl::StatusOr&lt;ModuleFileReader::ModuleReadResult&gt;</a>
@@ -196,11 +196,11 @@
 <a name="134"><span class="lineNum">     134 </span><span class="lineNoCov">          0 :   return absl::OkStatus();</span></a>
 <a name="135"><span class="lineNum">     135 </span>            : }</a>
 <a name="136"><span class="lineNum">     136 </span>            : </a>
-<a name="137"><span class="lineNum">     137 </span><span class="lineCov">         30 : ModuleStore::ModuleStore(std::unique_ptr&lt;ModuleFileReader&gt; reader,</span></a>
-<a name="138"><span class="lineNum">     138 </span><span class="lineCov">         30 :                          Scope* built_in_scope)</span></a>
-<a name="139"><span class="lineNum">     139 </span><span class="lineCov">         30 :     : reader_(std::move(CHECK_NOTNULL(reader))),</span></a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineCov">         31 : ModuleStore::ModuleStore(std::unique_ptr&lt;ModuleFileReader&gt; reader,</span></a>
+<a name="138"><span class="lineNum">     138 </span><span class="lineCov">         31 :                          Scope* built_in_scope)</span></a>
+<a name="139"><span class="lineNum">     139 </span><span class="lineCov">         31 :     : reader_(std::move(CHECK_NOTNULL(reader))),</span></a>
 <a name="140"><span class="lineNum">     140 </span>            :       built_in_scope_(built_in_scope),</a>
-<a name="141"><span class="lineNum">     141 </span><span class="lineCov">         60 :       top_module_(Module::BuildTopModule(this)) {}</span></a>
+<a name="141"><span class="lineNum">     141 </span><span class="lineCov">         62 :       top_module_(Module::BuildTopModule(this)) {}</span></a>
 <a name="142"><span class="lineNum">     142 </span>            : </a>
 <a name="143"><span class="lineNum">     143 </span><span class="lineCov">          1 : const absl::flat_hash_map&lt;std::string, Module*&gt;&amp; ModuleStore::modules() const {</span></a>
 <a name="144"><span class="lineNum">     144 </span><span class="lineCov">          1 :   return modules_;</span></a>
@@ -210,27 +210,27 @@
 <a name="148"><span class="lineNum">     148 </span><span class="lineCov">          3 :   return modules_.contains(module_name);</span></a>
 <a name="149"><span class="lineNum">     149 </span>            : }</a>
 <a name="150"><span class="lineNum">     150 </span>            : </a>
-<a name="151"><span class="lineNum">     151 </span><span class="lineCov">        209 : absl::optional&lt;Module*&gt; ModuleStore::GetModule(</span></a>
+<a name="151"><span class="lineNum">     151 </span><span class="lineCov">        222 : absl::optional&lt;Module*&gt; ModuleStore::GetModule(</span></a>
 <a name="152"><span class="lineNum">     152 </span>            :     absl::string_view module_name) const {</a>
-<a name="153"><span class="lineNum">     153 </span><span class="lineCov">        209 :   auto it = modules_.find(module_name);</span></a>
-<a name="154"><span class="lineNum">     154 </span><span class="lineCov">        209 :   if (it != modules_.end()) {</span></a>
-<a name="155"><span class="lineNum">     155 </span><span class="lineCov">         10 :     return it-&gt;second;</span></a>
+<a name="153"><span class="lineNum">     153 </span><span class="lineCov">        222 :   auto it = modules_.find(module_name);</span></a>
+<a name="154"><span class="lineNum">     154 </span><span class="lineCov">        222 :   if (it != modules_.end()) {</span></a>
+<a name="155"><span class="lineNum">     155 </span><span class="lineCov">         11 :     return it-&gt;second;</span></a>
 <a name="156"><span class="lineNum">     156 </span>            :   }</a>
-<a name="157"><span class="lineNum">     157 </span><span class="lineCov">        199 :   return {};</span></a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">        211 :   return {};</span></a>
 <a name="158"><span class="lineNum">     158 </span>            : }</a>
 <a name="159"><span class="lineNum">     159 </span>            : </a>
-<a name="160"><span class="lineNum">     160 </span><span class="lineCov">        185 : void ModuleStore::set_module_code(absl::string_view module_name,</span></a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">        198 : void ModuleStore::set_module_code(absl::string_view module_name,</span></a>
 <a name="161"><span class="lineNum">     161 </span>            :                                   absl::string_view module_code) {</a>
-<a name="162"><span class="lineNum">     162 </span><span class="lineCov">        185 :   module_code_.emplace(module_name, module_code);</span></a>
-<a name="163"><span class="lineNum">     163 </span><span class="lineCov">        185 : }</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">        198 :   module_code_.emplace(module_name, module_code);</span></a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">        198 : }</span></a>
 <a name="164"><span class="lineNum">     164 </span>            : </a>
-<a name="165"><span class="lineNum">     165 </span><span class="lineCov">        207 : absl::StatusOr&lt;Module*&gt; ModuleStore::ImportModule(</span></a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">        220 : absl::StatusOr&lt;Module*&gt; ModuleStore::ImportModule(</span></a>
 <a name="166"><span class="lineNum">     166 </span>            :     absl::string_view module_name, std::vector&lt;std::string&gt;* import_chain) {</a>
-<a name="167"><span class="lineNum">     167 </span><span class="lineCov">        414 :   std::vector&lt;std::string&gt; local_chain;</span></a>
-<a name="168"><span class="lineNum">     168 </span><span class="lineCov">        207 :   if (!import_chain) {</span></a>
-<a name="169"><span class="lineNum">     169 </span><span class="lineCov">        185 :     import_chain = &amp;local_chain;</span></a>
+<a name="167"><span class="lineNum">     167 </span><span class="lineCov">        440 :   std::vector&lt;std::string&gt; local_chain;</span></a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineCov">        220 :   if (!import_chain) {</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">        198 :     import_chain = &amp;local_chain;</span></a>
 <a name="170"><span class="lineNum">     170 </span>            :   }</a>
-<a name="171"><span class="lineNum">     171 </span><span class="lineCov">        230 :   for (const auto&amp; name : *import_chain) {</span></a>
+<a name="171"><span class="lineNum">     171 </span><span class="lineCov">        243 :   for (const auto&amp; name : *import_chain) {</span></a>
 <a name="172"><span class="lineNum">     172 </span><span class="lineCov">         24 :     if (module_name == name) {</span></a>
 <a name="173"><span class="lineNum">     173 </span><span class="lineCov">          2 :       return status::FailedPreconditionErrorBuilder()</span></a>
 <a name="174"><span class="lineNum">     174 </span><span class="lineCov">          1 :              &lt;&lt; &quot;Chain detected in import order, while importing module: &quot;</span></a>
@@ -238,53 +238,53 @@
 <a name="176"><span class="lineNum">     176 </span><span class="lineCov">          2 :              &lt;&lt; &quot;. Import stack: &quot; &lt;&lt; absl::StrJoin(*import_chain, &quot; =&gt; &quot;);</span></a>
 <a name="177"><span class="lineNum">     177 </span>            :     }</a>
 <a name="178"><span class="lineNum">     178 </span>            :   }</a>
-<a name="179"><span class="lineNum">     179 </span><span class="lineCov">        206 :   auto existing_module = GetModule(module_name);</span></a>
-<a name="180"><span class="lineNum">     180 </span><span class="lineCov">        206 :   if (existing_module.has_value()) {</span></a>
-<a name="181"><span class="lineNum">     181 </span><span class="lineCov">          7 :     return existing_module.value();</span></a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">        219 :   auto existing_module = GetModule(module_name);</span></a>
+<a name="180"><span class="lineNum">     180 </span><span class="lineCov">        219 :   if (existing_module.has_value()) {</span></a>
+<a name="181"><span class="lineNum">     181 </span><span class="lineCov">          8 :     return existing_module.value();</span></a>
 <a name="182"><span class="lineNum">     182 </span>            :   }</a>
-<a name="183"><span class="lineNum">     183 </span><span class="lineCov">        398 :   ModuleFileReader::ModuleReadResult read_result;</span></a>
-<a name="184"><span class="lineNum">     184 </span><span class="lineCov">        199 :   auto it_code = module_code_.find(module_name);</span></a>
-<a name="185"><span class="lineNum">     185 </span><span class="lineCov">        199 :   if (it_code != module_code_.end()) {</span></a>
-<a name="186"><span class="lineNum">     186 </span><span class="lineCov">        370 :     read_result = ModuleFileReader::ModuleReadResult{</span></a>
+<a name="183"><span class="lineNum">     183 </span><span class="lineCov">        422 :   ModuleFileReader::ModuleReadResult read_result;</span></a>
+<a name="184"><span class="lineNum">     184 </span><span class="lineCov">        211 :   auto it_code = module_code_.find(module_name);</span></a>
+<a name="185"><span class="lineNum">     185 </span><span class="lineCov">        211 :   if (it_code != module_code_.end()) {</span></a>
+<a name="186"><span class="lineNum">     186 </span><span class="lineCov">        394 :     read_result = ModuleFileReader::ModuleReadResult{</span></a>
 <a name="187"><span class="lineNum">     187 </span>            :         std::string(module_name), std_filesystem::path(&quot;preset&quot;),</a>
-<a name="188"><span class="lineNum">     188 </span><span class="lineCov">        185 :         std_filesystem::path(module_name), false, std::string(it_code-&gt;second)};</span></a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineCov">        197 :         std_filesystem::path(module_name), false, std::string(it_code-&gt;second)};</span></a>
 <a name="189"><span class="lineNum">     189 </span>            :   } else {</a>
 <a name="190"><span class="lineNum">     190 </span><span class="lineCov">         18 :     ASSIGN_OR_RETURN(read_result, reader_-&gt;ReadModule(module_name));</span></a>
 <a name="191"><span class="lineNum">     191 </span>            :   }</a>
-<a name="192"><span class="lineNum">     192 </span><span class="lineCov">        394 :   const std::string filename = read_result.file_name.native();</span></a>
-<a name="193"><span class="lineNum">     193 </span><span class="lineCov">        394 :   const std::string code = read_result.content;</span></a>
-<a name="194"><span class="lineNum">     194 </span><span class="lineCov">        197 :   import_chain-&gt;emplace_back(std::string(module_name));</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">        418 :   const std::string filename = read_result.file_name.native();</span></a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">        418 :   const std::string code = read_result.content;</span></a>
+<a name="194"><span class="lineNum">     194 </span><span class="lineCov">        209 :   import_chain-&gt;emplace_back(std::string(module_name));</span></a>
 <a name="195"><span class="lineNum">     195 </span>            :   auto module_result =</a>
-<a name="196"><span class="lineNum">     196 </span><span class="lineCov">        394 :       Module::ParseAndImport(std::move(read_result), this, import_chain);</span></a>
-<a name="197"><span class="lineNum">     197 </span><span class="lineCov">        197 :   import_chain-&gt;pop_back();</span></a>
-<a name="198"><span class="lineNum">     198 </span><span class="lineCov">        197 :   if (!module_result.ok()) {</span></a>
-<a name="199"><span class="lineNum">     199 </span><span class="lineCov">        172 :     return status::StatusWriter(module_result.status())</span></a>
-<a name="200"><span class="lineNum">     200 </span><span class="lineCov">        172 :            &lt;&lt; &quot;Importing module: &quot; &lt;&lt; module_name &lt;&lt; ParseFileInfo{filename}</span></a>
-<a name="201"><span class="lineNum">     201 </span><span class="lineCov">        172 :            &lt;&lt; ParseFileContent{code};</span></a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineCov">        418 :       Module::ParseAndImport(std::move(read_result), this, import_chain);</span></a>
+<a name="197"><span class="lineNum">     197 </span><span class="lineCov">        209 :   import_chain-&gt;pop_back();</span></a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineCov">        209 :   if (!module_result.ok()) {</span></a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineCov">        182 :     return status::StatusWriter(module_result.status())</span></a>
+<a name="200"><span class="lineNum">     200 </span><span class="lineCov">        182 :            &lt;&lt; &quot;Importing module: &quot; &lt;&lt; module_name &lt;&lt; ParseFileInfo{filename}</span></a>
+<a name="201"><span class="lineNum">     201 </span><span class="lineCov">        182 :            &lt;&lt; ParseFileContent{code};</span></a>
 <a name="202"><span class="lineNum">     202 </span>            :   }</a>
-<a name="203"><span class="lineNum">     203 </span><span class="lineCov">        111 :   auto module = std::move(module_result).value();</span></a>
+<a name="203"><span class="lineNum">     203 </span><span class="lineCov">        118 :   auto module = std::move(module_result).value();</span></a>
 <a name="204"><span class="lineNum">     204 </span>            : </a>
-<a name="205"><span class="lineNum">     205 </span><span class="lineCov">        111 :   modules_.emplace(std::string(module_name), module);</span></a>
-<a name="206"><span class="lineNum">     206 </span><span class="lineCov">        111 :   return module;</span></a>
+<a name="205"><span class="lineNum">     205 </span><span class="lineCov">        118 :   modules_.emplace(std::string(module_name), module);</span></a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">        118 :   return module;</span></a>
 <a name="207"><span class="lineNum">     207 </span>            : }</a>
 <a name="208"><span class="lineNum">     208 </span>            : </a>
 <a name="209"><span class="lineNum">     209 </span><span class="lineNoCov">          0 : ModuleFileReader* ModuleStore::reader() const { return reader_.get(); }</span></a>
 <a name="210"><span class="lineNum">     210 </span>            : </a>
-<a name="211"><span class="lineNum">     211 </span><span class="lineCov">         31 : Scope* ModuleStore::built_in_scope() const { return built_in_scope_; }</span></a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineCov">         32 : Scope* ModuleStore::built_in_scope() const { return built_in_scope_; }</span></a>
 <a name="212"><span class="lineNum">     212 </span>            : </a>
-<a name="213"><span class="lineNum">     213 </span><span class="lineCov">        392 : Module* ModuleStore::top_module() const { return top_module_.get(); }</span></a>
+<a name="213"><span class="lineNum">     213 </span><span class="lineCov">        416 : Module* ModuleStore::top_module() const { return top_module_.get(); }</span></a>
 <a name="214"><span class="lineNum">     214 </span>            : </a>
-<a name="215"><span class="lineNum">     215 </span><span class="lineCov">        227 : absl::Duration Module::parse_duration() const { return parse_duration_; }</span></a>
+<a name="215"><span class="lineNum">     215 </span><span class="lineCov">        343 : absl::Duration Module::parse_duration() const { return parse_duration_; }</span></a>
 <a name="216"><span class="lineNum">     216 </span>            : </a>
-<a name="217"><span class="lineNum">     217 </span><span class="lineCov">        227 : absl::Duration Module::analysis_duration() const { return analysis_duration_; }</span></a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">        343 : absl::Duration Module::analysis_duration() const { return analysis_duration_; }</span></a>
 <a name="218"><span class="lineNum">     218 </span>            : </a>
 <a name="219"><span class="lineNum">     219 </span>            : namespace {</a>
 <a name="220"><span class="lineNum">     220 </span>            : // TODO(catalin): hava an error reporter object here, that we use.</a>
-<a name="221"><span class="lineNum">     221 </span><span class="lineCov">        227 : absl::StatusOr&lt;std::unique_ptr&lt;pb::Module&gt;&gt; ParseToProto(</span></a>
+<a name="221"><span class="lineNum">     221 </span><span class="lineCov">        240 : absl::StatusOr&lt;std::unique_ptr&lt;pb::Module&gt;&gt; ParseToProto(</span></a>
 <a name="222"><span class="lineNum">     222 </span>            :     const ModuleFileReader::ModuleReadResult&amp; read_result) {</a>
-<a name="223"><span class="lineNum">     223 </span><span class="lineCov">        454 :   std::vector&lt;grammar::ErrorInfo&gt; errors;</span></a>
-<a name="224"><span class="lineNum">     224 </span><span class="lineCov">        454 :   auto parse_result = grammar::ParseModule(read_result.content, {}, &amp;errors);</span></a>
-<a name="225"><span class="lineNum">     225 </span><span class="lineCov">        227 :   if (!parse_result.ok()) {</span></a>
+<a name="223"><span class="lineNum">     223 </span><span class="lineCov">        480 :   std::vector&lt;grammar::ErrorInfo&gt; errors;</span></a>
+<a name="224"><span class="lineNum">     224 </span><span class="lineCov">        480 :   auto parse_result = grammar::ParseModule(read_result.content, {}, &amp;errors);</span></a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">        240 :   if (!parse_result.ok()) {</span></a>
 <a name="226"><span class="lineNum">     226 </span><span class="lineCov">          2 :     auto parse_status = parse_result.status();</span></a>
 <a name="227"><span class="lineNum">     227 </span><span class="lineCov">          2 :     status::StatusWriter writer(parse_result.status());</span></a>
 <a name="228"><span class="lineNum">     228 </span><span class="lineCov">          5 :     for (const auto&amp; error : errors) {</span></a>
@@ -294,108 +294,108 @@
 <a name="232"><span class="lineNum">     232 </span><span class="lineCov">          1 :            &lt;&lt; ParseFileContent{read_result.content};</span></a>
 <a name="233"><span class="lineNum">     233 </span><span class="lineCov">          1 :     return writer;</span></a>
 <a name="234"><span class="lineNum">     234 </span>            :   }</a>
-<a name="235"><span class="lineNum">     235 </span><span class="lineCov">        226 :   return parse_result;</span></a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineCov">        239 :   return parse_result;</span></a>
 <a name="236"><span class="lineNum">     236 </span>            : }</a>
 <a name="237"><span class="lineNum">     237 </span>            : }  // namespace</a>
 <a name="238"><span class="lineNum">     238 </span>            : </a>
-<a name="239"><span class="lineNum">     239 </span><span class="lineCov">        197 : absl::StatusOr&lt;Module*&gt; Module::ParseAndImport(</span></a>
+<a name="239"><span class="lineNum">     239 </span><span class="lineCov">        209 : absl::StatusOr&lt;Module*&gt; Module::ParseAndImport(</span></a>
 <a name="240"><span class="lineNum">     240 </span>            :     const ModuleFileReader::ModuleReadResult&amp; read_result, ModuleStore* store,</a>
 <a name="241"><span class="lineNum">     241 </span>            :     std::vector&lt;std::string&gt;* import_chain) {</a>
-<a name="242"><span class="lineNum">     242 </span><span class="lineCov">        197 :   absl::Time start_time = absl::Now();</span></a>
-<a name="243"><span class="lineNum">     243 </span><span class="lineCov">        396 :   ASSIGN_OR_RETURN(auto parse_pb, ParseToProto(read_result));</span></a>
-<a name="244"><span class="lineNum">     244 </span><span class="lineCov">        196 :   absl::Time parse_time = absl::Now();</span></a>
-<a name="245"><span class="lineNum">     245 </span><span class="lineCov">        392 :   ASSIGN_OR_RETURN(auto scope_name, ScopeName::Parse(read_result.module_name));</span></a>
-<a name="246"><span class="lineNum">     246 </span><span class="lineCov">        392 :   auto pscope = std::make_shared&lt;ScopeName&gt;(std::move(scope_name));</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">        209 :   absl::Time start_time = absl::Now();</span></a>
+<a name="243"><span class="lineNum">     243 </span><span class="lineCov">        420 :   ASSIGN_OR_RETURN(auto parse_pb, ParseToProto(read_result));</span></a>
+<a name="244"><span class="lineNum">     244 </span><span class="lineCov">        208 :   absl::Time parse_time = absl::Now();</span></a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineCov">        416 :   ASSIGN_OR_RETURN(auto scope_name, ScopeName::Parse(read_result.module_name));</span></a>
+<a name="246"><span class="lineNum">     246 </span><span class="lineCov">        416 :   auto pscope = std::make_shared&lt;ScopeName&gt;(std::move(scope_name));</span></a>
 <a name="247"><span class="lineNum">     247 </span>            :   auto module = absl::WrapUnique(new Module(pscope, read_result.module_name,</a>
-<a name="248"><span class="lineNum">     248 </span><span class="lineCov">        588 :                                             read_result.file_name, store));</span></a>
-<a name="249"><span class="lineNum">     249 </span><span class="lineCov">        196 :   auto pmodule = module.get();</span></a>
-<a name="250"><span class="lineNum">     250 </span><span class="lineCov">        196 :   pmodule-&gt;is_init_module_ = read_result.is_init_module;</span></a>
-<a name="251"><span class="lineNum">     251 </span><span class="lineCov">        588 :   RETURN_IF_ERROR(store-&gt;top_module()-&gt;AddSubScope(std::move(module)))</span></a>
+<a name="248"><span class="lineNum">     248 </span><span class="lineCov">        624 :                                             read_result.file_name, store));</span></a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">        208 :   auto pmodule = module.get();</span></a>
+<a name="250"><span class="lineNum">     250 </span><span class="lineCov">        208 :   pmodule-&gt;is_init_module_ = read_result.is_init_module;</span></a>
+<a name="251"><span class="lineNum">     251 </span><span class="lineCov">        624 :   RETURN_IF_ERROR(store-&gt;top_module()-&gt;AddSubScope(std::move(module)))</span></a>
 <a name="252"><span class="lineNum">     252 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot;Registering module: &quot; &lt;&lt; read_result.module_name;</span></a>
-<a name="253"><span class="lineNum">     253 </span><span class="lineCov">        392 :   RETURN_IF_ERROR(pmodule-&gt;Import(*parse_pb, import_chain));</span></a>
-<a name="254"><span class="lineNum">     254 </span><span class="lineCov">        111 :   absl::Time analysis_time = absl::Now();</span></a>
-<a name="255"><span class="lineNum">     255 </span><span class="lineCov">        111 :   pmodule-&gt;parse_duration_ = parse_time - start_time;</span></a>
-<a name="256"><span class="lineNum">     256 </span><span class="lineCov">        111 :   pmodule-&gt;analysis_duration_ = analysis_time - parse_time;</span></a>
-<a name="257"><span class="lineNum">     257 </span><span class="lineCov">        111 :   return pmodule;</span></a>
+<a name="253"><span class="lineNum">     253 </span><span class="lineCov">        416 :   RETURN_IF_ERROR(pmodule-&gt;Import(*parse_pb, import_chain));</span></a>
+<a name="254"><span class="lineNum">     254 </span><span class="lineCov">        118 :   absl::Time analysis_time = absl::Now();</span></a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">        118 :   pmodule-&gt;parse_duration_ = parse_time - start_time;</span></a>
+<a name="256"><span class="lineNum">     256 </span><span class="lineCov">        118 :   pmodule-&gt;analysis_duration_ = analysis_time - parse_time;</span></a>
+<a name="257"><span class="lineNum">     257 </span><span class="lineCov">        118 :   return pmodule;</span></a>
 <a name="258"><span class="lineNum">     258 </span>            : }</a>
 <a name="259"><span class="lineNum">     259 </span>            : </a>
-<a name="260"><span class="lineNum">     260 </span><span class="lineCov">         30 : absl::StatusOr&lt;std::unique_ptr&lt;Module&gt;&gt; Module::ParseBuiltin(</span></a>
+<a name="260"><span class="lineNum">     260 </span><span class="lineCov">         31 : absl::StatusOr&lt;std::unique_ptr&lt;Module&gt;&gt; Module::ParseBuiltin(</span></a>
 <a name="261"><span class="lineNum">     261 </span>            :     std_filesystem::path file_path, const pb::Module&amp; pb_module) {</a>
-<a name="262"><span class="lineNum">     262 </span><span class="lineCov">         60 :   auto module = absl::WrapUnique(new Module(file_path));</span></a>
-<a name="263"><span class="lineNum">     263 </span><span class="lineCov">         60 :   RETURN_IF_ERROR(module-&gt;Import(pb_module, nullptr));</span></a>
-<a name="264"><span class="lineNum">     264 </span><span class="lineCov">         30 :   return {std::move(module)};</span></a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineCov">         62 :   auto module = absl::WrapUnique(new Module(file_path));</span></a>
+<a name="263"><span class="lineNum">     263 </span><span class="lineCov">         62 :   RETURN_IF_ERROR(module-&gt;Import(pb_module, nullptr));</span></a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">         31 :   return {std::move(module)};</span></a>
 <a name="265"><span class="lineNum">     265 </span>            : }</a>
 <a name="266"><span class="lineNum">     266 </span>            : </a>
-<a name="267"><span class="lineNum">     267 </span><span class="lineCov">         31 : std::unique_ptr&lt;Module&gt; Module::BuildTopModule(ModuleStore* module_store) {</span></a>
-<a name="268"><span class="lineNum">     268 </span><span class="lineCov">         31 :   return absl::WrapUnique(new Module(module_store));</span></a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineCov">         32 : std::unique_ptr&lt;Module&gt; Module::BuildTopModule(ModuleStore* module_store) {</span></a>
+<a name="268"><span class="lineNum">     268 </span><span class="lineCov">         32 :   return absl::WrapUnique(new Module(module_store));</span></a>
 <a name="269"><span class="lineNum">     269 </span>            : }</a>
 <a name="270"><span class="lineNum">     270 </span>            : </a>
-<a name="271"><span class="lineNum">     271 </span><span class="lineCov">         30 : Module::Module(std_filesystem::path file_path)</span></a>
+<a name="271"><span class="lineNum">     271 </span><span class="lineCov">         31 : Module::Module(std_filesystem::path file_path)</span></a>
 <a name="272"><span class="lineNum">     272 </span>            :     : Scope(),</a>
-<a name="273"><span class="lineNum">     273 </span><span class="lineCov">         30 :       file_path_(std::move(file_path)),</span></a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineCov">         31 :       file_path_(std::move(file_path)),</span></a>
 <a name="274"><span class="lineNum">     274 </span>            :       module_name_(kBuildtinModuleName),</a>
 <a name="275"><span class="lineNum">     275 </span>            :       module_type_(</a>
-<a name="276"><span class="lineNum">     276 </span><span class="lineCov">         30 :           std::make_unique&lt;TypeModule&gt;(type_store_, kBuildtinModuleName, this)),</span></a>
-<a name="277"><span class="lineNum">     277 </span><span class="lineCov">         60 :       pragma_handler_(this) {</span></a>
-<a name="278"><span class="lineNum">     278 </span><span class="lineCov">         30 :   module_type_-&gt;set_definition_scope(this);</span></a>
-<a name="279"><span class="lineNum">     279 </span><span class="lineCov">         30 : }</span></a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineCov">         31 :           std::make_unique&lt;TypeModule&gt;(type_store_, kBuildtinModuleName, this)),</span></a>
+<a name="277"><span class="lineNum">     277 </span><span class="lineCov">         62 :       pragma_handler_(this) {</span></a>
+<a name="278"><span class="lineNum">     278 </span><span class="lineCov">         31 :   module_type_-&gt;set_definition_scope(this);</span></a>
+<a name="279"><span class="lineNum">     279 </span><span class="lineCov">         31 : }</span></a>
 <a name="280"><span class="lineNum">     280 </span>            : </a>
-<a name="281"><span class="lineNum">     281 </span><span class="lineCov">         31 : Module::Module(ModuleStore* module_store)</span></a>
+<a name="281"><span class="lineNum">     281 </span><span class="lineCov">         32 : Module::Module(ModuleStore* module_store)</span></a>
 <a name="282"><span class="lineNum">     282 </span>            :     : Scope(module_store-&gt;built_in_scope()),</a>
 <a name="283"><span class="lineNum">     283 </span>            :       module_store_(module_store),</a>
-<a name="284"><span class="lineNum">     284 </span><span class="lineCov">         31 :       module_type_(std::make_unique&lt;TypeModule&gt;(type_store_, &quot;__top__&quot;, this)),</span></a>
-<a name="285"><span class="lineNum">     285 </span><span class="lineCov">         62 :       pragma_handler_(this) {</span></a>
-<a name="286"><span class="lineNum">     286 </span><span class="lineCov">         31 :   module_type_-&gt;set_definition_scope(this);</span></a>
-<a name="287"><span class="lineNum">     287 </span><span class="lineCov">         31 : }</span></a>
+<a name="284"><span class="lineNum">     284 </span><span class="lineCov">         32 :       module_type_(std::make_unique&lt;TypeModule&gt;(type_store_, &quot;__top__&quot;, this)),</span></a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineCov">         64 :       pragma_handler_(this) {</span></a>
+<a name="286"><span class="lineNum">     286 </span><span class="lineCov">         32 :   module_type_-&gt;set_definition_scope(this);</span></a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">         32 : }</span></a>
 <a name="288"><span class="lineNum">     288 </span>            : </a>
-<a name="289"><span class="lineNum">     289 </span><span class="lineCov">        196 : Module::Module(std::shared_ptr&lt;ScopeName&gt; scope_name, absl::string_view name,</span></a>
-<a name="290"><span class="lineNum">     290 </span><span class="lineCov">        196 :                std_filesystem::path file_path, ModuleStore* module_store)</span></a>
-<a name="291"><span class="lineNum">     291 </span><span class="lineCov">        196 :     : Scope(std::move(scope_name), module_store-&gt;top_module(), true),</span></a>
-<a name="292"><span class="lineNum">     292 </span><span class="lineCov">        196 :       file_path_(std::move(file_path)),</span></a>
+<a name="289"><span class="lineNum">     289 </span><span class="lineCov">        208 : Module::Module(std::shared_ptr&lt;ScopeName&gt; scope_name, absl::string_view name,</span></a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineCov">        208 :                std_filesystem::path file_path, ModuleStore* module_store)</span></a>
+<a name="291"><span class="lineNum">     291 </span><span class="lineCov">        208 :     : Scope(std::move(scope_name), module_store-&gt;top_module(), true),</span></a>
+<a name="292"><span class="lineNum">     292 </span><span class="lineCov">        208 :       file_path_(std::move(file_path)),</span></a>
 <a name="293"><span class="lineNum">     293 </span>            :       module_name_(name),</a>
 <a name="294"><span class="lineNum">     294 </span>            :       module_store_(module_store),</a>
-<a name="295"><span class="lineNum">     295 </span><span class="lineCov">        196 :       module_type_(std::make_unique&lt;TypeModule&gt;(type_store_, name, this)),</span></a>
-<a name="296"><span class="lineNum">     296 </span><span class="lineCov">        588 :       pragma_handler_(this) {</span></a>
-<a name="297"><span class="lineNum">     297 </span><span class="lineCov">        196 :   module_type_-&gt;set_definition_scope(this);</span></a>
-<a name="298"><span class="lineNum">     298 </span><span class="lineCov">        196 : }</span></a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineCov">        208 :       module_type_(std::make_unique&lt;TypeModule&gt;(type_store_, name, this)),</span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">        624 :       pragma_handler_(this) {</span></a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">        208 :   module_type_-&gt;set_definition_scope(this);</span></a>
+<a name="298"><span class="lineNum">     298 </span><span class="lineCov">        208 : }</span></a>
 <a name="299"><span class="lineNum">     299 </span>            : </a>
-<a name="300"><span class="lineNum">     300 </span><span class="lineCov">        100 : const std_filesystem::path&amp; Module::file_path() const { return file_path_; }</span></a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineCov">        207 : const std_filesystem::path&amp; Module::file_path() const { return file_path_; }</span></a>
 <a name="301"><span class="lineNum">     301 </span>            : </a>
-<a name="302"><span class="lineNum">     302 </span><span class="lineCov">       5886 : pb::ObjectKind Module::kind() const { return pb::ObjectKind::OBJ_MODULE; }</span></a>
+<a name="302"><span class="lineNum">     302 </span><span class="lineCov">       6824 : pb::ObjectKind Module::kind() const { return pb::ObjectKind::OBJ_MODULE; }</span></a>
 <a name="303"><span class="lineNum">     303 </span>            : </a>
 <a name="304"><span class="lineNum">     304 </span><span class="lineCov">          5 : const TypeSpec* Module::type_spec() const { return module_type_.get(); }</span></a>
 <a name="305"><span class="lineNum">     305 </span>            : </a>
-<a name="306"><span class="lineNum">     306 </span><span class="lineCov">        111 : const std::string&amp; Module::module_name() const { return module_name_; }</span></a>
+<a name="306"><span class="lineNum">     306 </span><span class="lineCov">        218 : const std::string&amp; Module::module_name() const { return module_name_; }</span></a>
 <a name="307"><span class="lineNum">     307 </span>            : </a>
-<a name="308"><span class="lineNum">     308 </span><span class="lineCov">       2812 : PragmaHandler* Module::pragma_handler() { return &amp;pragma_handler_; }</span></a>
+<a name="308"><span class="lineNum">     308 </span><span class="lineCov">       2327 : PragmaHandler* Module::pragma_handler() { return &amp;pragma_handler_; }</span></a>
 <a name="309"><span class="lineNum">     309 </span>            : </a>
-<a name="310"><span class="lineNum">     310 </span><span class="lineCov">        226 : absl::Status Module::Import(const pb::Module&amp; module,</span></a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineCov">        239 : absl::Status Module::Import(const pb::Module&amp; module,</span></a>
 <a name="311"><span class="lineNum">     311 </span>            :                             std::vector&lt;std::string&gt;* import_chain) {</a>
-<a name="312"><span class="lineNum">     312 </span><span class="lineCov">        452 :   absl::Status status;</span></a>
-<a name="313"><span class="lineNum">     313 </span><span class="lineCov">       3560 :   for (const auto&amp; element : module.element()) {</span></a>
-<a name="314"><span class="lineNum">     314 </span><span class="lineCov">       3334 :     CodeContext context = CodeContext::FromProto(element);</span></a>
-<a name="315"><span class="lineNum">     315 </span><span class="lineCov">       3334 :     if (element.has_import_stmt()) {</span></a>
+<a name="312"><span class="lineNum">     312 </span><span class="lineCov">        478 :   absl::Status status;</span></a>
+<a name="313"><span class="lineNum">     313 </span><span class="lineCov">       3751 :   for (const auto&amp; element : module.element()) {</span></a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">       3512 :     CodeContext context = CodeContext::FromProto(element);</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineCov">       3512 :     if (element.has_import_stmt()) {</span></a>
 <a name="316"><span class="lineNum">     316 </span><span class="lineCov">         22 :       if (!import_chain) {</span></a>
 <a name="317"><span class="lineNum">     317 </span>            :         return absl::InvalidArgumentError(</a>
 <a name="318"><span class="lineNum">     318 </span><span class="lineNoCov">          0 :             &quot;Cannot process import in builtin module&quot;);</span></a>
 <a name="319"><span class="lineNum">     319 </span>            :       }</a>
 <a name="320"><span class="lineNum">     320 </span>            :       MergeErrorStatus(</a>
 <a name="321"><span class="lineNum">     321 </span><span class="lineCov">         22 :           ProcessImport(element.import_stmt(), context, import_chain), status);</span></a>
-<a name="322"><span class="lineNum">     322 </span><span class="lineCov">       3312 :     } else if (element.has_schema()) {</span></a>
+<a name="322"><span class="lineNum">     322 </span><span class="lineCov">       3490 :     } else if (element.has_schema()) {</span></a>
 <a name="323"><span class="lineNum">     323 </span><span class="lineCov">         29 :       MergeErrorStatus(ProcessSchema(element.schema(), context), status);</span></a>
-<a name="324"><span class="lineNum">     324 </span><span class="lineCov">       3283 :     } else if (element.has_function_def()) {</span></a>
-<a name="325"><span class="lineNum">     325 </span><span class="lineCov">       6124 :       MergeErrorStatus(ProcessFunctionDef(element.function_def(), context),</span></a>
-<a name="326"><span class="lineNum">     326 </span><span class="lineCov">       3062 :                        status);</span></a>
-<a name="327"><span class="lineNum">     327 </span><span class="lineCov">        221 :     } else if (element.has_assignment()) {</span></a>
-<a name="328"><span class="lineNum">     328 </span><span class="lineCov">        220 :       MergeErrorStatus(ProcessAssignment(element.assignment(), context),</span></a>
-<a name="329"><span class="lineNum">     329 </span><span class="lineCov">        110 :                        status);</span></a>
-<a name="330"><span class="lineNum">     330 </span><span class="lineCov">        111 :     } else if (element.has_pragma_expr()) {</span></a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineCov">       3461 :     } else if (element.has_function_def()) {</span></a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineCov">       6418 :       MergeErrorStatus(ProcessFunctionDef(element.function_def(), context),</span></a>
+<a name="326"><span class="lineNum">     326 </span><span class="lineCov">       3209 :                        status);</span></a>
+<a name="327"><span class="lineNum">     327 </span><span class="lineCov">        252 :     } else if (element.has_assignment()) {</span></a>
+<a name="328"><span class="lineNum">     328 </span><span class="lineCov">        276 :       MergeErrorStatus(ProcessAssignment(element.assignment(), context),</span></a>
+<a name="329"><span class="lineNum">     329 </span><span class="lineCov">        138 :                        status);</span></a>
+<a name="330"><span class="lineNum">     330 </span><span class="lineCov">        114 :     } else if (element.has_pragma_expr()) {</span></a>
 <a name="331"><span class="lineNum">     331 </span><span class="lineCov">          7 :       MergeErrorStatus(ProcessPragma(element.pragma_expr(), context), status);</span></a>
-<a name="332"><span class="lineNum">     332 </span><span class="lineCov">        104 :     } else if (element.has_type_def()) {</span></a>
-<a name="333"><span class="lineNum">     333 </span><span class="lineCov">        104 :       MergeErrorStatus(ProcessTypeDef(element.type_def(), context), status);</span></a>
+<a name="332"><span class="lineNum">     332 </span><span class="lineCov">        107 :     } else if (element.has_type_def()) {</span></a>
+<a name="333"><span class="lineNum">     333 </span><span class="lineCov">        107 :       MergeErrorStatus(ProcessTypeDef(element.type_def(), context), status);</span></a>
 <a name="334"><span class="lineNum">     334 </span>            :     }</a>
 <a name="335"><span class="lineNum">     335 </span>            :   }</a>
-<a name="336"><span class="lineNum">     336 </span><span class="lineCov">        226 :   return status;</span></a>
+<a name="336"><span class="lineNum">     336 </span><span class="lineCov">        239 :   return status;</span></a>
 <a name="337"><span class="lineNum">     337 </span>            : }</a>
 <a name="338"><span class="lineNum">     338 </span>            : </a>
 <a name="339"><span class="lineNum">     339 </span><span class="lineCov">         22 : absl::Status Module::ProcessImport(const pb::ImportStatement&amp; element,</span></a>
@@ -502,20 +502,20 @@
 <a name="440"><span class="lineNum">     440 </span><span class="lineCov">         29 :   return absl::OkStatus();</span></a>
 <a name="441"><span class="lineNum">     441 </span>            : }</a>
 <a name="442"><span class="lineNum">     442 </span>            : </a>
-<a name="443"><span class="lineNum">     443 </span><span class="lineCov">       3120 : absl::Status Module::ProcessFunctionDef(const pb::FunctionDefinition&amp; element,</span></a>
+<a name="443"><span class="lineNum">     443 </span><span class="lineCov">       3267 : absl::Status Module::ProcessFunctionDef(const pb::FunctionDefinition&amp; element,</span></a>
 <a name="444"><span class="lineNum">     444 </span>            :                                         const CodeContext&amp; context) {</a>
-<a name="445"><span class="lineNum">     445 </span><span class="lineCov">       6340 :   ASSIGN_OR_RETURN(auto def_function,</span></a>
+<a name="445"><span class="lineNum">     445 </span><span class="lineCov">       6634 :   ASSIGN_OR_RETURN(auto def_function,</span></a>
 <a name="446"><span class="lineNum">     446 </span>            :                    Function::BuildInScope(this, element, &quot;&quot;, context));</a>
 <a name="447"><span class="lineNum">     447 </span>            :   expressions_.emplace_back(</a>
-<a name="448"><span class="lineNum">     448 </span><span class="lineCov">       3070 :       std::make_unique&lt;FunctionDefinitionExpression&gt;(this, def_function));</span></a>
-<a name="449"><span class="lineNum">     449 </span><span class="lineCov">       3070 :   return absl::OkStatus();</span></a>
+<a name="448"><span class="lineNum">     448 </span><span class="lineCov">       3217 :       std::make_unique&lt;FunctionDefinitionExpression&gt;(this, def_function));</span></a>
+<a name="449"><span class="lineNum">     449 </span><span class="lineCov">       3217 :   return absl::OkStatus();</span></a>
 <a name="450"><span class="lineNum">     450 </span>            : }</a>
 <a name="451"><span class="lineNum">     451 </span>            : </a>
-<a name="452"><span class="lineNum">     452 </span><span class="lineCov">        110 : absl::Status Module::ProcessAssignment(const pb::Assignment&amp; element,</span></a>
+<a name="452"><span class="lineNum">     452 </span><span class="lineCov">        138 : absl::Status Module::ProcessAssignment(const pb::Assignment&amp; element,</span></a>
 <a name="453"><span class="lineNum">     453 </span>            :                                        const CodeContext&amp; context) {</a>
-<a name="454"><span class="lineNum">     454 </span><span class="lineCov">        280 :   ASSIGN_OR_RETURN(auto expression, BuildAssignment(element, context));</span></a>
-<a name="455"><span class="lineNum">     455 </span><span class="lineCov">         80 :   expressions_.emplace_back(std::move(expression));</span></a>
-<a name="456"><span class="lineNum">     456 </span><span class="lineCov">         80 :   return absl::OkStatus();</span></a>
+<a name="454"><span class="lineNum">     454 </span><span class="lineCov">        346 :   ASSIGN_OR_RETURN(auto expression, BuildAssignment(element, context));</span></a>
+<a name="455"><span class="lineNum">     455 </span><span class="lineCov">        103 :   expressions_.emplace_back(std::move(expression));</span></a>
+<a name="456"><span class="lineNum">     456 </span><span class="lineCov">        103 :   return absl::OkStatus();</span></a>
 <a name="457"><span class="lineNum">     457 </span>            : }</a>
 <a name="458"><span class="lineNum">     458 </span>            : </a>
 <a name="459"><span class="lineNum">     459 </span><span class="lineCov">          7 : absl::Status Module::ProcessPragma(const pb::PragmaExpression&amp; element,</span></a>
@@ -526,36 +526,36 @@
 <a name="464"><span class="lineNum">     464 </span><span class="lineCov">          4 :   return absl::OkStatus();</span></a>
 <a name="465"><span class="lineNum">     465 </span>            : }</a>
 <a name="466"><span class="lineNum">     466 </span>            : </a>
-<a name="467"><span class="lineNum">     467 </span><span class="lineCov">        104 : absl::Status Module::ProcessTypeDef(const pb::TypeDefinition&amp; element,</span></a>
+<a name="467"><span class="lineNum">     467 </span><span class="lineCov">        107 : absl::Status Module::ProcessTypeDef(const pb::TypeDefinition&amp; element,</span></a>
 <a name="468"><span class="lineNum">     468 </span>            :                                     const CodeContext&amp; context) {</a>
-<a name="469"><span class="lineNum">     469 </span><span class="lineCov">        208 :   ASSIGN_OR_RETURN(</span></a>
+<a name="469"><span class="lineNum">     469 </span><span class="lineCov">        214 :   ASSIGN_OR_RETURN(</span></a>
 <a name="470"><span class="lineNum">     470 </span>            :       auto type_name, NameUtil::ValidatedName(element.name()),</a>
 <a name="471"><span class="lineNum">     471 </span>            :       _ &lt;&lt; &quot;Invalid type name&quot; &lt;&lt; context.ToErrorInfo(&quot;In type definition&quot;));</a>
-<a name="472"><span class="lineNum">     472 </span><span class="lineCov">        212 :   ASSIGN_OR_RETURN(auto type_spec,</span></a>
+<a name="472"><span class="lineNum">     472 </span><span class="lineCov">        218 :   ASSIGN_OR_RETURN(auto type_spec,</span></a>
 <a name="473"><span class="lineNum">     473 </span>            :                    type_store_-&gt;FindType(scope_name(), element.type_spec()),</a>
 <a name="474"><span class="lineNum">     474 </span>            :                    _ &lt;&lt; &quot;Processing type expression&quot;</a>
 <a name="475"><span class="lineNum">     475 </span>            :                      &lt;&lt; context.ToErrorInfo(&quot;In type definition&quot;));</a>
-<a name="476"><span class="lineNum">     476 </span><span class="lineCov">        204 :   auto new_type = type_spec-&gt;Clone();</span></a>
-<a name="477"><span class="lineNum">     477 </span><span class="lineCov">        102 :   new_type-&gt;set_definition_scope(this);</span></a>
-<a name="478"><span class="lineNum">     478 </span><span class="lineCov">        204 :   ASSIGN_OR_RETURN(</span></a>
+<a name="476"><span class="lineNum">     476 </span><span class="lineCov">        210 :   auto new_type = type_spec-&gt;Clone();</span></a>
+<a name="477"><span class="lineNum">     477 </span><span class="lineCov">        105 :   new_type-&gt;set_definition_scope(this);</span></a>
+<a name="478"><span class="lineNum">     478 </span><span class="lineCov">        210 :   ASSIGN_OR_RETURN(</span></a>
 <a name="479"><span class="lineNum">     479 </span>            :       auto declared_type,</a>
 <a name="480"><span class="lineNum">     480 </span>            :       type_store_-&gt;DeclareType(scope_name(), type_name, std::move(new_type)),</a>
 <a name="481"><span class="lineNum">     481 </span>            :       _ &lt;&lt; &quot;Declaring type: &quot; &lt;&lt; type_spec-&gt;full_name() &lt;&lt; &quot; as &quot; &lt;&lt; type_name</a>
 <a name="482"><span class="lineNum">     482 </span>            :         &lt;&lt; &quot; in &quot; &lt;&lt; full_name() &lt;&lt; context.ToErrorInfo(&quot;In type definition&quot;));</a>
 <a name="483"><span class="lineNum">     483 </span>            :   auto expression = std::make_unique&lt;TypeDefinitionExpression&gt;(this, type_name,</a>
-<a name="484"><span class="lineNum">     484 </span><span class="lineCov">        204 :                                                                declared_type);</span></a>
-<a name="485"><span class="lineNum">     485 </span><span class="lineCov">        204 :   ASSIGN_OR_RETURN(auto negotiated_type, expression-&gt;type_spec(),</span></a>
+<a name="484"><span class="lineNum">     484 </span><span class="lineCov">        210 :                                                                declared_type);</span></a>
+<a name="485"><span class="lineNum">     485 </span><span class="lineCov">        210 :   ASSIGN_OR_RETURN(auto negotiated_type, expression-&gt;type_spec(),</span></a>
 <a name="486"><span class="lineNum">     486 </span>            :                    _ &lt;&lt; &quot;Negotiating type definition spec&quot; &lt;&lt; kBugNotice);</a>
-<a name="487"><span class="lineNum">     487 </span><span class="lineCov">        102 :   RET_CHECK(negotiated_type == declared_type);</span></a>
-<a name="488"><span class="lineNum">     488 </span><span class="lineCov">        102 :   expressions_.emplace_back(std::move(expression));</span></a>
-<a name="489"><span class="lineNum">     489 </span><span class="lineCov">        102 :   return absl::OkStatus();</span></a>
+<a name="487"><span class="lineNum">     487 </span><span class="lineCov">        105 :   RET_CHECK(negotiated_type == declared_type);</span></a>
+<a name="488"><span class="lineNum">     488 </span><span class="lineCov">        105 :   expressions_.emplace_back(std::move(expression));</span></a>
+<a name="489"><span class="lineNum">     489 </span><span class="lineCov">        105 :   return absl::OkStatus();</span></a>
 <a name="490"><span class="lineNum">     490 </span>            : }</a>
 <a name="491"><span class="lineNum">     491 </span>            : </a>
-<a name="492"><span class="lineNum">     492 </span><span class="lineCov">          5 : absl::StatusOr&lt;VarBase*&gt; Module::ValidateAssignment(const ScopedName&amp; name,</span></a>
+<a name="492"><span class="lineNum">     492 </span><span class="lineCov">          8 : absl::StatusOr&lt;VarBase*&gt; Module::ValidateAssignment(const ScopedName&amp; name,</span></a>
 <a name="493"><span class="lineNum">     493 </span>            :                                                     NamedObject* object) const {</a>
-<a name="494"><span class="lineNum">     494 </span><span class="lineCov">         12 :   ASSIGN_OR_RETURN(auto var_base, Scope::ValidateAssignment(name, object));</span></a>
+<a name="494"><span class="lineNum">     494 </span><span class="lineCov">         18 :   ASSIGN_OR_RETURN(auto var_base, Scope::ValidateAssignment(name, object));</span></a>
 <a name="495"><span class="lineNum">     495 </span>            :   // we just checked above that this is a VarBase:</a>
-<a name="496"><span class="lineNum">     496 </span><span class="lineCov">          4 :   if (!name.scope_name().empty()) {</span></a>
+<a name="496"><span class="lineNum">     496 </span><span class="lineCov">          7 :   if (!name.scope_name().empty()) {</span></a>
 <a name="497"><span class="lineNum">     497 </span><span class="lineCov">          1 :     if (object-&gt;kind() != pb::ObjectKind::OBJ_PARAMETER) {</span></a>
 <a name="498"><span class="lineNum">     498 </span><span class="lineCov">          2 :       return status::UnimplementedErrorBuilder()</span></a>
 <a name="499"><span class="lineNum">     499 </span>            :              &lt;&lt; &quot;Only parameters can be set for external scopes. &quot;</a>
@@ -563,68 +563,68 @@
 <a name="501"><span class="lineNum">     501 </span><span class="lineCov">          2 :              &lt;&lt; object-&gt;full_name();</span></a>
 <a name="502"><span class="lineNum">     502 </span>            :     }</a>
 <a name="503"><span class="lineNum">     503 </span>            :   }</a>
-<a name="504"><span class="lineNum">     504 </span><span class="lineCov">          3 :   return var_base;</span></a>
+<a name="504"><span class="lineNum">     504 </span><span class="lineCov">          6 :   return var_base;</span></a>
 <a name="505"><span class="lineNum">     505 </span>            : }</a>
 <a name="506"><span class="lineNum">     506 </span>            : </a>
-<a name="507"><span class="lineNum">     507 </span><span class="lineCov">         30 : void Module::set_module_store(ModuleStore* module_store) {</span></a>
-<a name="508"><span class="lineNum">     508 </span><span class="lineCov">         30 :   CHECK(module_store_ == nullptr)</span></a>
+<a name="507"><span class="lineNum">     507 </span><span class="lineCov">         31 : void Module::set_module_store(ModuleStore* module_store) {</span></a>
+<a name="508"><span class="lineNum">     508 </span><span class="lineCov">         31 :   CHECK(module_store_ == nullptr)</span></a>
 <a name="509"><span class="lineNum">     509 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot;Use set_module_store just once on a built-in module.&quot;;</span></a>
-<a name="510"><span class="lineNum">     510 </span><span class="lineCov">         30 :   module_store_ = CHECK_NOTNULL(module_store);</span></a>
-<a name="511"><span class="lineNum">     511 </span><span class="lineCov">         30 : }</span></a>
+<a name="510"><span class="lineNum">     510 </span><span class="lineCov">         31 :   module_store_ = CHECK_NOTNULL(module_store);</span></a>
+<a name="511"><span class="lineNum">     511 </span><span class="lineCov">         31 : }</span></a>
 <a name="512"><span class="lineNum">     512 </span>            : </a>
 <a name="513"><span class="lineNum">     513 </span><span class="lineNoCov">          0 : bool Module::is_init_module() const { return is_init_module_; }</span></a>
 <a name="514"><span class="lineNum">     514 </span>            : </a>
-<a name="515"><span class="lineNum">     515 </span><span class="lineCov">         98 : std::string Module::DebugString() const {</span></a>
-<a name="516"><span class="lineNum">     516 </span><span class="lineCov">         98 :   std::vector&lt;std::string&gt; body;</span></a>
-<a name="517"><span class="lineNum">     517 </span><span class="lineCov">         98 :   body.reserve(expressions_.size());</span></a>
-<a name="518"><span class="lineNum">     518 </span><span class="lineCov">        302 :   for (const auto&amp; expr : expressions_) {</span></a>
-<a name="519"><span class="lineNum">     519 </span><span class="lineCov">        204 :     body.emplace_back(expr-&gt;DebugString());</span></a>
+<a name="515"><span class="lineNum">     515 </span><span class="lineCov">        106 : std::string Module::DebugString() const {</span></a>
+<a name="516"><span class="lineNum">     516 </span><span class="lineCov">        106 :   std::vector&lt;std::string&gt; body;</span></a>
+<a name="517"><span class="lineNum">     517 </span><span class="lineCov">        106 :   body.reserve(expressions_.size());</span></a>
+<a name="518"><span class="lineNum">     518 </span><span class="lineCov">        341 :   for (const auto&amp; expr : expressions_) {</span></a>
+<a name="519"><span class="lineNum">     519 </span><span class="lineCov">        235 :     body.emplace_back(expr-&gt;DebugString());</span></a>
 <a name="520"><span class="lineNum">     520 </span>            :   }</a>
-<a name="521"><span class="lineNum">     521 </span><span class="lineCov">        196 :   return absl::StrCat(&quot;// Module: &quot;, name(), &quot;\n&quot;, absl::StrJoin(body, &quot;\n&quot;),</span></a>
-<a name="522"><span class="lineNum">     522 </span><span class="lineCov">        392 :                       &quot;\n&quot;, Scope::DebugString());</span></a>
+<a name="521"><span class="lineNum">     521 </span><span class="lineCov">        212 :   return absl::StrCat(&quot;// Module: &quot;, name(), &quot;\n&quot;, absl::StrJoin(body, &quot;\n&quot;),</span></a>
+<a name="522"><span class="lineNum">     522 </span><span class="lineCov">        424 :                       &quot;\n&quot;, Scope::DebugString());</span></a>
 <a name="523"><span class="lineNum">     523 </span>            : }</a>
 <a name="524"><span class="lineNum">     524 </span>            : </a>
-<a name="525"><span class="lineNum">     525 </span><span class="lineCov">         99 : pb::ModuleSpec Module::ToProto() const {</span></a>
-<a name="526"><span class="lineNum">     526 </span><span class="lineCov">         99 :   pb::ModuleSpec proto;</span></a>
-<a name="527"><span class="lineNum">     527 </span><span class="lineCov">         99 :   proto.set_name(module_name_);</span></a>
-<a name="528"><span class="lineNum">     528 </span><span class="lineCov">        304 :   for (const auto&amp; expression : expressions_) {</span></a>
-<a name="529"><span class="lineNum">     529 </span><span class="lineCov">        205 :     *proto.add_expression() = expression-&gt;ToProto();</span></a>
+<a name="525"><span class="lineNum">     525 </span><span class="lineCov">        107 : pb::ModuleSpec Module::ToProto() const {</span></a>
+<a name="526"><span class="lineNum">     526 </span><span class="lineCov">        107 :   pb::ModuleSpec proto;</span></a>
+<a name="527"><span class="lineNum">     527 </span><span class="lineCov">        107 :   proto.set_name(module_name_);</span></a>
+<a name="528"><span class="lineNum">     528 </span><span class="lineCov">        343 :   for (const auto&amp; expression : expressions_) {</span></a>
+<a name="529"><span class="lineNum">     529 </span><span class="lineCov">        236 :     *proto.add_expression() = expression-&gt;ToProto();</span></a>
 <a name="530"><span class="lineNum">     530 </span>            :   }</a>
-<a name="531"><span class="lineNum">     531 </span><span class="lineCov">         99 :   return proto;</span></a>
+<a name="531"><span class="lineNum">     531 </span><span class="lineCov">        107 :   return proto;</span></a>
 <a name="532"><span class="lineNum">     532 </span>            : }</a>
 <a name="533"><span class="lineNum">     533 </span>            : </a>
-<a name="534"><span class="lineNum">     534 </span><span class="lineCov">         30 : absl::StatusOr&lt;std::unique_ptr&lt;Environment&gt;&gt; Environment::Build(</span></a>
+<a name="534"><span class="lineNum">     534 </span><span class="lineCov">         31 : absl::StatusOr&lt;std::unique_ptr&lt;Environment&gt;&gt; Environment::Build(</span></a>
 <a name="535"><span class="lineNum">     535 </span>            :     absl::string_view main_builtin_path,</a>
 <a name="536"><span class="lineNum">     536 </span>            :     std::vector&lt;std::string&gt; search_paths) {</a>
-<a name="537"><span class="lineNum">     537 </span><span class="lineCov">         60 :   ASSIGN_OR_RETURN(auto file_path, PathFromString(main_builtin_path));</span></a>
-<a name="538"><span class="lineNum">     538 </span><span class="lineCov">         60 :   ASSIGN_OR_RETURN(auto reader,</span></a>
+<a name="537"><span class="lineNum">     537 </span><span class="lineCov">         62 :   ASSIGN_OR_RETURN(auto file_path, PathFromString(main_builtin_path));</span></a>
+<a name="538"><span class="lineNum">     538 </span><span class="lineCov">         62 :   ASSIGN_OR_RETURN(auto reader,</span></a>
 <a name="539"><span class="lineNum">     539 </span>            :                    PathBasedFileReader::Build(std::move(search_paths)));</a>
-<a name="540"><span class="lineNum">     540 </span><span class="lineCov">         60 :   ASSIGN_OR_RETURN(</span></a>
+<a name="540"><span class="lineNum">     540 </span><span class="lineCov">         62 :   ASSIGN_OR_RETURN(</span></a>
 <a name="541"><span class="lineNum">     541 </span>            :       auto read_result,</a>
 <a name="542"><span class="lineNum">     542 </span>            :       reader.ReadFile(file_path, ModuleFileReader::ModuleReadResult{</a>
 <a name="543"><span class="lineNum">     543 </span>            :                                      &quot;&quot;, file_path, file_path, false, &quot;&quot;}));</a>
-<a name="544"><span class="lineNum">     544 </span><span class="lineCov">         30 :   absl::Time start_time = absl::Now();</span></a>
-<a name="545"><span class="lineNum">     545 </span><span class="lineCov">         60 :   ASSIGN_OR_RETURN(auto module_pb, ParseToProto(read_result));</span></a>
-<a name="546"><span class="lineNum">     546 </span><span class="lineCov">         30 :   absl::Time parse_time = absl::Now();</span></a>
-<a name="547"><span class="lineNum">     547 </span><span class="lineCov">         60 :   ASSIGN_OR_RETURN(auto builtin_module,</span></a>
+<a name="544"><span class="lineNum">     544 </span><span class="lineCov">         31 :   absl::Time start_time = absl::Now();</span></a>
+<a name="545"><span class="lineNum">     545 </span><span class="lineCov">         62 :   ASSIGN_OR_RETURN(auto module_pb, ParseToProto(read_result));</span></a>
+<a name="546"><span class="lineNum">     546 </span><span class="lineCov">         31 :   absl::Time parse_time = absl::Now();</span></a>
+<a name="547"><span class="lineNum">     547 </span><span class="lineCov">         62 :   ASSIGN_OR_RETURN(auto builtin_module,</span></a>
 <a name="548"><span class="lineNum">     548 </span>            :                    Module::ParseBuiltin(file_path, *module_pb));</a>
-<a name="549"><span class="lineNum">     549 </span><span class="lineCov">         30 :   builtin_module-&gt;analysis_duration_ = absl::Now() - parse_time;</span></a>
-<a name="550"><span class="lineNum">     550 </span><span class="lineCov">         30 :   builtin_module-&gt;parse_duration_ = parse_time - start_time;</span></a>
+<a name="549"><span class="lineNum">     549 </span><span class="lineCov">         31 :   builtin_module-&gt;analysis_duration_ = absl::Now() - parse_time;</span></a>
+<a name="550"><span class="lineNum">     550 </span><span class="lineCov">         31 :   builtin_module-&gt;parse_duration_ = parse_time - start_time;</span></a>
 <a name="551"><span class="lineNum">     551 </span>            :   auto module_store = std::make_unique&lt;ModuleStore&gt;(</a>
-<a name="552"><span class="lineNum">     552 </span><span class="lineCov">         30 :       std::make_unique&lt;PathBasedFileReader&gt;(reader), builtin_module.get());</span></a>
-<a name="553"><span class="lineNum">     553 </span><span class="lineCov">         30 :   builtin_module-&gt;set_module_store(module_store.get());</span></a>
-<a name="554"><span class="lineNum">     554 </span><span class="lineCov">         60 :   return std::make_unique&lt;Environment&gt;(std::move(builtin_module),</span></a>
-<a name="555"><span class="lineNum">     555 </span><span class="lineCov">         60 :                                        std::move(module_store));</span></a>
+<a name="552"><span class="lineNum">     552 </span><span class="lineCov">         31 :       std::make_unique&lt;PathBasedFileReader&gt;(reader), builtin_module.get());</span></a>
+<a name="553"><span class="lineNum">     553 </span><span class="lineCov">         31 :   builtin_module-&gt;set_module_store(module_store.get());</span></a>
+<a name="554"><span class="lineNum">     554 </span><span class="lineCov">         62 :   return std::make_unique&lt;Environment&gt;(std::move(builtin_module),</span></a>
+<a name="555"><span class="lineNum">     555 </span><span class="lineCov">         62 :                                        std::move(module_store));</span></a>
 <a name="556"><span class="lineNum">     556 </span>            : }</a>
 <a name="557"><span class="lineNum">     557 </span>            : </a>
-<a name="558"><span class="lineNum">     558 </span><span class="lineCov">         30 : Environment::Environment(std::unique_ptr&lt;Module&gt; builtin_module,</span></a>
-<a name="559"><span class="lineNum">     559 </span><span class="lineCov">         30 :                          std::unique_ptr&lt;ModuleStore&gt; module_store)</span></a>
-<a name="560"><span class="lineNum">     560 </span><span class="lineCov">         30 :     : builtin_module_(std::move(builtin_module)),</span></a>
-<a name="561"><span class="lineNum">     561 </span><span class="lineCov">         30 :       module_store_(std::move(module_store)) {}</span></a>
+<a name="558"><span class="lineNum">     558 </span><span class="lineCov">         31 : Environment::Environment(std::unique_ptr&lt;Module&gt; builtin_module,</span></a>
+<a name="559"><span class="lineNum">     559 </span><span class="lineCov">         31 :                          std::unique_ptr&lt;ModuleStore&gt; module_store)</span></a>
+<a name="560"><span class="lineNum">     560 </span><span class="lineCov">         31 :     : builtin_module_(std::move(builtin_module)),</span></a>
+<a name="561"><span class="lineNum">     561 </span><span class="lineCov">         31 :       module_store_(std::move(module_store)) {}</span></a>
 <a name="562"><span class="lineNum">     562 </span>            : </a>
-<a name="563"><span class="lineNum">     563 </span><span class="lineCov">         94 : Module* Environment::builtin_module() const { return builtin_module_.get(); }</span></a>
+<a name="563"><span class="lineNum">     563 </span><span class="lineCov">         97 : Module* Environment::builtin_module() const { return builtin_module_.get(); }</span></a>
 <a name="564"><span class="lineNum">     564 </span>            : </a>
-<a name="565"><span class="lineNum">     565 </span><span class="lineCov">        378 : ModuleStore* Environment::module_store() const { return module_store_.get(); }</span></a>
+<a name="565"><span class="lineNum">     565 </span><span class="lineCov">        404 : ModuleStore* Environment::module_store() const { return module_store_.get(); }</span></a>
 <a name="566"><span class="lineNum">     566 </span>            : </a>
 <a name="567"><span class="lineNum">     567 </span>            : }  // namespace analysis</a>
 <a name="568"><span class="lineNum">     568 </span>            : }  // namespace nudl</a>

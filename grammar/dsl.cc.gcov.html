@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-10-30 01:22:14</td>
+            <td class="headerValue">2022-11-10 21:45:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">11</td>
@@ -90,11 +90,11 @@
 <a name="28"><span class="lineNum">      28 </span>            : namespace {</a>
 <a name="29"><span class="lineNum">      29 </span>            : class VectorSaveErrorListener : public antlr4::BaseErrorListener {</a>
 <a name="30"><span class="lineNum">      30 </span>            :  public:</a>
-<a name="31"><span class="lineNum">      31 </span><span class="lineCov">      25262 :   VectorSaveErrorListener(std::vector&lt;ErrorInfo&gt;* errors,</span></a>
+<a name="31"><span class="lineNum">      31 </span><span class="lineCov">      25994 :   VectorSaveErrorListener(std::vector&lt;ErrorInfo&gt;* errors,</span></a>
 <a name="32"><span class="lineNum">      32 </span>            :                           absl::string_view code)</a>
-<a name="33"><span class="lineNum">      33 </span><span class="lineCov">      25262 :       : antlr4::BaseErrorListener(), errors_(errors), code_(code) {</span></a>
-<a name="34"><span class="lineNum">      34 </span><span class="lineCov">      25262 :     CHECK_NOTNULL(errors);</span></a>
-<a name="35"><span class="lineNum">      35 </span><span class="lineCov">      25262 :   }</span></a>
+<a name="33"><span class="lineNum">      33 </span><span class="lineCov">      25994 :       : antlr4::BaseErrorListener(), errors_(errors), code_(code) {</span></a>
+<a name="34"><span class="lineNum">      34 </span><span class="lineCov">      25994 :     CHECK_NOTNULL(errors);</span></a>
+<a name="35"><span class="lineNum">      35 </span><span class="lineCov">      25994 :   }</span></a>
 <a name="36"><span class="lineNum">      36 </span><span class="lineCov">         17 :   void syntaxError(antlr4::Recognizer* recognizer,</span></a>
 <a name="37"><span class="lineNum">      37 </span>            :                    antlr4::Token* offendingSymbol, size_t line,</a>
 <a name="38"><span class="lineNum">      38 </span>            :                    size_t charPositionInLine, const std::string&amp; msg,</a>
@@ -113,48 +113,48 @@
 <a name="51"><span class="lineNum">      51 </span>            : };</a>
 <a name="52"><span class="lineNum">      52 </span>            : }  // namespace</a>
 <a name="53"><span class="lineNum">      53 </span>            : </a>
-<a name="54"><span class="lineNum">      54 </span><span class="lineCov">      12631 : absl::Status ParseDataBase::ParseInternal(absl::string_view code_arg,</span></a>
+<a name="54"><span class="lineNum">      54 </span><span class="lineCov">      12997 : absl::Status ParseDataBase::ParseInternal(absl::string_view code_arg,</span></a>
 <a name="55"><span class="lineNum">      55 </span>            :                                           ParseOptions options) {</a>
-<a name="56"><span class="lineNum">      56 </span><span class="lineCov">      12631 :   code = std::string(code_arg);</span></a>
+<a name="56"><span class="lineNum">      56 </span><span class="lineCov">      12997 :   code = std::string(code_arg);</span></a>
 <a name="57"><span class="lineNum">      57 </span>            :   try {</a>
 <a name="58"><span class="lineNum">      58 </span>            :     input =</a>
-<a name="59"><span class="lineNum">      59 </span><span class="lineCov">      12631 :         std::make_unique&lt;antlr4::ANTLRInputStream&gt;(code.data(), code.size());</span></a>
-<a name="60"><span class="lineNum">      60 </span><span class="lineCov">      12631 :     lexer = std::make_unique&lt;NudlDslLexer&gt;(input.get());</span></a>
-<a name="61"><span class="lineNum">      61 </span><span class="lineCov">      25262 :     VectorSaveErrorListener lex_listener(&amp;errors, code);</span></a>
-<a name="62"><span class="lineNum">      62 </span><span class="lineCov">      12631 :     lexer-&gt;addErrorListener(&amp;lex_listener);</span></a>
-<a name="63"><span class="lineNum">      63 </span><span class="lineCov">      12631 :     tokens = std::make_unique&lt;antlr4::CommonTokenStream&gt;(lexer.get());</span></a>
-<a name="64"><span class="lineNum">      64 </span><span class="lineCov">      12631 :     tokens-&gt;fill();</span></a>
-<a name="65"><span class="lineNum">      65 </span><span class="lineCov">      12631 :     if (options.debug_tokens) {</span></a>
+<a name="59"><span class="lineNum">      59 </span><span class="lineCov">      12997 :         std::make_unique&lt;antlr4::ANTLRInputStream&gt;(code.data(), code.size());</span></a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineCov">      12997 :     lexer = std::make_unique&lt;NudlDslLexer&gt;(input.get());</span></a>
+<a name="61"><span class="lineNum">      61 </span><span class="lineCov">      25994 :     VectorSaveErrorListener lex_listener(&amp;errors, code);</span></a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">      12997 :     lexer-&gt;addErrorListener(&amp;lex_listener);</span></a>
+<a name="63"><span class="lineNum">      63 </span><span class="lineCov">      12997 :     tokens = std::make_unique&lt;antlr4::CommonTokenStream&gt;(lexer.get());</span></a>
+<a name="64"><span class="lineNum">      64 </span><span class="lineCov">      12997 :     tokens-&gt;fill();</span></a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">      12997 :     if (options.debug_tokens) {</span></a>
 <a name="66"><span class="lineNum">      66 </span><span class="lineCov">          9 :       for (auto token : tokens-&gt;getTokens()) {</span></a>
 <a name="67"><span class="lineNum">      67 </span><span class="lineCov">          7 :         std::cout &lt;&lt; &quot;   `&quot; &lt;&lt; token-&gt;toString() &lt;&lt; &quot;`&quot; &lt;&lt; std::endl;</span></a>
 <a name="68"><span class="lineNum">      68 </span>            :       }</a>
 <a name="69"><span class="lineNum">      69 </span>            :     }</a>
-<a name="70"><span class="lineNum">      70 </span><span class="lineCov">      12631 :     parser = std::make_unique&lt;NudlDslParser&gt;(tokens.get());</span></a>
-<a name="71"><span class="lineNum">      71 </span><span class="lineCov">      12631 :     if (options.debug_trace) {</span></a>
+<a name="70"><span class="lineNum">      70 </span><span class="lineCov">      12997 :     parser = std::make_unique&lt;NudlDslParser&gt;(tokens.get());</span></a>
+<a name="71"><span class="lineNum">      71 </span><span class="lineCov">      12997 :     if (options.debug_trace) {</span></a>
 <a name="72"><span class="lineNum">      72 </span><span class="lineCov">          2 :       parser-&gt;setTrace(true);</span></a>
 <a name="73"><span class="lineNum">      73 </span>            :     }</a>
-<a name="74"><span class="lineNum">      74 </span><span class="lineCov">      12631 :     parser-&gt;removeErrorListeners();</span></a>
-<a name="75"><span class="lineNum">      75 </span><span class="lineCov">      25262 :     VectorSaveErrorListener listener(&amp;errors, code);</span></a>
-<a name="76"><span class="lineNum">      76 </span><span class="lineCov">      12631 :     parser-&gt;addErrorListener(&amp;listener);</span></a>
+<a name="74"><span class="lineNum">      74 </span><span class="lineCov">      12997 :     parser-&gt;removeErrorListeners();</span></a>
+<a name="75"><span class="lineNum">      75 </span><span class="lineCov">      25994 :     VectorSaveErrorListener listener(&amp;errors, code);</span></a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">      12997 :     parser-&gt;addErrorListener(&amp;listener);</span></a>
 <a name="77"><span class="lineNum">      77 </span>            :     try {</a>
-<a name="78"><span class="lineNum">      78 </span><span class="lineCov">      12631 :       tree = CreateTree();</span></a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineCov">      12997 :       tree = CreateTree();</span></a>
 <a name="79"><span class="lineNum">      79 </span><span class="lineNoCov">          0 :     } catch (const antlr4::RecognitionException&amp; e) {</span></a>
 <a name="80"><span class="lineNum">      80 </span><span class="lineNoCov">          0 :       errors.emplace_back(ErrorInfo::FromException(e, code));</span></a>
 <a name="81"><span class="lineNum">      81 </span>            :     }</a>
-<a name="82"><span class="lineNum">      82 </span><span class="lineCov">      12631 :     lexer-&gt;removeErrorListeners();</span></a>
-<a name="83"><span class="lineNum">      83 </span><span class="lineCov">      12631 :     parser-&gt;removeErrorListeners();</span></a>
-<a name="84"><span class="lineNum">      84 </span><span class="lineCov">      25262 :     auto extra_errors = TreeUtil::FindErrors(tree);</span></a>
+<a name="82"><span class="lineNum">      82 </span><span class="lineCov">      12997 :     lexer-&gt;removeErrorListeners();</span></a>
+<a name="83"><span class="lineNum">      83 </span><span class="lineCov">      12997 :     parser-&gt;removeErrorListeners();</span></a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineCov">      25994 :     auto extra_errors = TreeUtil::FindErrors(tree);</span></a>
 <a name="85"><span class="lineNum">      85 </span>            :     std::move(extra_errors.begin(), extra_errors.end(),</a>
-<a name="86"><span class="lineNum">      86 </span><span class="lineCov">      12631 :               std::back_inserter(errors));</span></a>
-<a name="87"><span class="lineNum">      87 </span><span class="lineCov">      12631 :     if (errors.empty()) {</span></a>
-<a name="88"><span class="lineNum">      88 </span><span class="lineCov">      12623 :       absl::string_view visitor_code;</span></a>
-<a name="89"><span class="lineNum">      89 </span><span class="lineCov">      12623 :       if (!options.no_intervals) {</span></a>
-<a name="90"><span class="lineNum">      90 </span><span class="lineCov">      12529 :         visitor_code = code;</span></a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineCov">      12997 :               std::back_inserter(errors));</span></a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineCov">      12997 :     if (errors.empty()) {</span></a>
+<a name="88"><span class="lineNum">      88 </span><span class="lineCov">      12989 :       absl::string_view visitor_code;</span></a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineCov">      12989 :       if (!options.no_intervals) {</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">      12894 :         visitor_code = code;</span></a>
 <a name="91"><span class="lineNum">      91 </span>            :       }</a>
 <a name="92"><span class="lineNum">      92 </span>            :       auto visitor = BuildVisitor(</a>
-<a name="93"><span class="lineNum">      93 </span><span class="lineCov">      12623 :           parser.get(), code,</span></a>
-<a name="94"><span class="lineNum">      94 </span><span class="lineCov">      37869 :           VisitorOptions{options.no_intervals, options.no_interval_positions});</span></a>
-<a name="95"><span class="lineNum">      95 </span><span class="lineCov">      12623 :       Visit(visitor.get());</span></a>
+<a name="93"><span class="lineNum">      93 </span><span class="lineCov">      12989 :           parser.get(), code,</span></a>
+<a name="94"><span class="lineNum">      94 </span><span class="lineCov">      38967 :           VisitorOptions{options.no_intervals, options.no_interval_positions});</span></a>
+<a name="95"><span class="lineNum">      95 </span><span class="lineCov">      12989 :       Visit(visitor.get());</span></a>
 <a name="96"><span class="lineNum">      96 </span>            :     }</a>
 <a name="97"><span class="lineNum">      97 </span><span class="lineNoCov">          0 :   } catch (const antlr4::ParseCancellationException&amp; e) {</span></a>
 <a name="98"><span class="lineNum">      98 </span><span class="lineNoCov">          0 :     return absl::InternalError(absl::StrCat(&quot;ANTLR4 ParseCancel: &quot;, e.what()));</span></a>
@@ -173,17 +173,17 @@
 <a name="111"><span class="lineNum">     111 </span><span class="lineNoCov">          0 :   } catch (const std::exception&amp; e) {</span></a>
 <a name="112"><span class="lineNum">     112 </span><span class="lineNoCov">          0 :     return absl::InternalError(absl::StrCat(&quot;ANTLR4 Error: &quot;, e.what()));</span></a>
 <a name="113"><span class="lineNum">     113 </span>            :   }</a>
-<a name="114"><span class="lineNum">     114 </span><span class="lineCov">      12631 :   return absl::OkStatus();</span></a>
+<a name="114"><span class="lineNum">     114 </span><span class="lineCov">      12997 :   return absl::OkStatus();</span></a>
 <a name="115"><span class="lineNum">     115 </span>            : }</a>
 <a name="116"><span class="lineNum">     116 </span>            : </a>
 <a name="117"><span class="lineNum">     117 </span>            : namespace {</a>
 <a name="118"><span class="lineNum">     118 </span>            : template &lt;class PData, class Proto&gt;</a>
-<a name="119"><span class="lineNum">     119 </span><span class="lineCov">      12537 : absl::StatusOr&lt;std::unique_ptr&lt;Proto&gt;&gt; ParseProto(</span></a>
+<a name="119"><span class="lineNum">     119 </span><span class="lineCov">      12902 : absl::StatusOr&lt;std::unique_ptr&lt;Proto&gt;&gt; ParseProto(</span></a>
 <a name="120"><span class="lineNum">     120 </span>            :     absl::string_view code, ParseOptions options,</a>
 <a name="121"><span class="lineNum">     121 </span>            :     std::vector&lt;ErrorInfo&gt;* errors) {</a>
-<a name="122"><span class="lineNum">     122 </span><span class="lineCov">      25074 :   ASSIGN_OR_RETURN(auto data, PData::Parse(code, options));</span></a>
-<a name="123"><span class="lineNum">     123 </span><span class="lineCov">      12537 :   if (data-&gt;errors.empty()) {</span></a>
-<a name="124"><span class="lineNum">     124 </span><span class="lineCov">      12529 :     return {std::move(data-&gt;proto)};</span></a>
+<a name="122"><span class="lineNum">     122 </span><span class="lineCov">      25804 :   ASSIGN_OR_RETURN(auto data, PData::Parse(code, options));</span></a>
+<a name="123"><span class="lineNum">     123 </span><span class="lineCov">      12902 :   if (data-&gt;errors.empty()) {</span></a>
+<a name="124"><span class="lineNum">     124 </span><span class="lineCov">      12894 :     return {std::move(data-&gt;proto)};</span></a>
 <a name="125"><span class="lineNum">     125 </span>            :   }</a>
 <a name="126"><span class="lineNum">     126 </span><span class="lineCov">         16 :   absl::Status result = absl::InvalidArgumentError(&quot;Parse errors in code.&quot;);</span></a>
 <a name="127"><span class="lineNum">     127 </span><span class="lineCov">          8 :   if (errors) {</span></a>
@@ -197,47 +197,47 @@
 <a name="135"><span class="lineNum">     135 </span>            : }</a>
 <a name="136"><span class="lineNum">     136 </span>            : }  // namespace</a>
 <a name="137"><span class="lineNum">     137 </span>            : </a>
-<a name="138"><span class="lineNum">     138 </span><span class="lineCov">        238 : absl::StatusOr&lt;std::unique_ptr&lt;pb::Module&gt;&gt; ParseModule(</span></a>
+<a name="138"><span class="lineNum">     138 </span><span class="lineCov">        251 : absl::StatusOr&lt;std::unique_ptr&lt;pb::Module&gt;&gt; ParseModule(</span></a>
 <a name="139"><span class="lineNum">     139 </span>            :     absl::string_view code, ParseOptions options,</a>
 <a name="140"><span class="lineNum">     140 </span>            :     std::vector&lt;ErrorInfo&gt;* errors) {</a>
-<a name="141"><span class="lineNum">     141 </span><span class="lineCov">        238 :   return ParseProto&lt;ModuleParseData, pb::Module&gt;(code, options, errors);</span></a>
+<a name="141"><span class="lineNum">     141 </span><span class="lineCov">        251 :   return ParseProto&lt;ModuleParseData, pb::Module&gt;(code, options, errors);</span></a>
 <a name="142"><span class="lineNum">     142 </span>            : }</a>
 <a name="143"><span class="lineNum">     143 </span>            : </a>
-<a name="144"><span class="lineNum">     144 </span><span class="lineCov">      12299 : absl::StatusOr&lt;std::unique_ptr&lt;pb::TypeSpec&gt;&gt; ParseTypeSpec(</span></a>
+<a name="144"><span class="lineNum">     144 </span><span class="lineCov">      12651 : absl::StatusOr&lt;std::unique_ptr&lt;pb::TypeSpec&gt;&gt; ParseTypeSpec(</span></a>
 <a name="145"><span class="lineNum">     145 </span>            :     absl::string_view code, ParseOptions options,</a>
 <a name="146"><span class="lineNum">     146 </span>            :     std::vector&lt;ErrorInfo&gt;* errors) {</a>
-<a name="147"><span class="lineNum">     147 </span><span class="lineCov">      12299 :   return ParseProto&lt;TypeSpecParseData, pb::TypeSpec&gt;(code, options, errors);</span></a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">      12651 :   return ParseProto&lt;TypeSpecParseData, pb::TypeSpec&gt;(code, options, errors);</span></a>
 <a name="148"><span class="lineNum">     148 </span>            : }</a>
 <a name="149"><span class="lineNum">     149 </span>            : </a>
 <a name="150"><span class="lineNum">     150 </span>            : }  // namespace grammar</a>
 <a name="151"><span class="lineNum">     151 </span>            : </a>
-<a name="152"><span class="lineNum">     152 </span><span class="lineCov">       8320 : absl::Status&amp; MergeErrorStatus(const absl::Status&amp; src,</span></a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">       8428 : absl::Status&amp; MergeErrorStatus(const absl::Status&amp; src,</span></a>
 <a name="153"><span class="lineNum">     153 </span>            :                                absl::Status&amp; dest) {  // NOLINT</a>
-<a name="154"><span class="lineNum">     154 </span><span class="lineCov">       8320 :   if (dest.ok()) {</span></a>
-<a name="155"><span class="lineNum">     155 </span><span class="lineCov">       8309 :     dest.Update(src);</span></a>
-<a name="156"><span class="lineNum">     156 </span><span class="lineCov">         11 :   } else if (!src.ok()) {</span></a>
-<a name="157"><span class="lineNum">     157 </span><span class="lineCov">          5 :     size_t index = status::GetNumPayloads(src);</span></a>
-<a name="158"><span class="lineNum">     158 </span><span class="lineCov">          5 :     src.ForEachPayload(</span></a>
-<a name="159"><span class="lineNum">     159 </span><span class="lineCov">         15 :         [&amp;dest, &amp;index](absl::string_view name, const absl::Cord&amp; payload) {</span></a>
-<a name="160"><span class="lineNum">     160 </span><span class="lineCov">          5 :           if (absl::StartsWith(name, grammar::kParseErrorUrl)) {</span></a>
-<a name="161"><span class="lineNum">     161 </span><span class="lineCov">          5 :             dest.SetPayload(absl::StrCat(name, &quot;/&quot;, ++index), payload);</span></a>
+<a name="154"><span class="lineNum">     154 </span><span class="lineCov">       8428 :   if (dest.ok()) {</span></a>
+<a name="155"><span class="lineNum">     155 </span><span class="lineCov">       8415 :     dest.Update(src);</span></a>
+<a name="156"><span class="lineNum">     156 </span><span class="lineCov">         13 :   } else if (!src.ok()) {</span></a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">          7 :     size_t index = status::GetNumPayloads(src);</span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">          7 :     src.ForEachPayload(</span></a>
+<a name="159"><span class="lineNum">     159 </span><span class="lineCov">         21 :         [&amp;dest, &amp;index](absl::string_view name, const absl::Cord&amp; payload) {</span></a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">          7 :           if (absl::StartsWith(name, grammar::kParseErrorUrl)) {</span></a>
+<a name="161"><span class="lineNum">     161 </span><span class="lineCov">          7 :             dest.SetPayload(absl::StrCat(name, &quot;/&quot;, ++index), payload);</span></a>
 <a name="162"><span class="lineNum">     162 </span>            :           } else {</a>
 <a name="163"><span class="lineNum">     163 </span><span class="lineNoCov">          0 :             dest.SetPayload(name, payload);</span></a>
 <a name="164"><span class="lineNum">     164 </span>            :           }</a>
-<a name="165"><span class="lineNum">     165 </span><span class="lineCov">          5 :         });</span></a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">          7 :         });</span></a>
 <a name="166"><span class="lineNum">     166 </span>            :   }</a>
-<a name="167"><span class="lineNum">     167 </span><span class="lineCov">       8320 :   return dest;</span></a>
+<a name="167"><span class="lineNum">     167 </span><span class="lineCov">       8428 :   return dest;</span></a>
 <a name="168"><span class="lineNum">     168 </span>            : }</a>
 <a name="169"><span class="lineNum">     169 </span>            : </a>
-<a name="170"><span class="lineNum">     170 </span><span class="lineCov">        173 : bool HasParseErrorInfo(const absl::Status&amp; src) {</span></a>
-<a name="171"><span class="lineNum">     171 </span><span class="lineCov">        173 :   bool has_parse_url = false;</span></a>
-<a name="172"><span class="lineNum">     172 </span><span class="lineCov">        173 :   src.ForEachPayload(</span></a>
-<a name="173"><span class="lineNum">     173 </span><span class="lineCov">        140 :       [&amp;has_parse_url](absl::string_view name, const absl::Cord&amp; payload) {</span></a>
-<a name="174"><span class="lineNum">     174 </span><span class="lineCov">         70 :         if (absl::StartsWith(name, grammar::kParseErrorUrl)) {</span></a>
-<a name="175"><span class="lineNum">     175 </span><span class="lineCov">         70 :           has_parse_url = true;</span></a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineCov">        186 : bool HasParseErrorInfo(const absl::Status&amp; src) {</span></a>
+<a name="171"><span class="lineNum">     171 </span><span class="lineCov">        186 :   bool has_parse_url = false;</span></a>
+<a name="172"><span class="lineNum">     172 </span><span class="lineCov">        186 :   src.ForEachPayload(</span></a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">        156 :       [&amp;has_parse_url](absl::string_view name, const absl::Cord&amp; payload) {</span></a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">         78 :         if (absl::StartsWith(name, grammar::kParseErrorUrl)) {</span></a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineCov">         78 :           has_parse_url = true;</span></a>
 <a name="176"><span class="lineNum">     176 </span>            :         }</a>
-<a name="177"><span class="lineNum">     177 </span><span class="lineCov">         70 :       });</span></a>
-<a name="178"><span class="lineNum">     178 </span><span class="lineCov">        173 :   return has_parse_url;</span></a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">         78 :       });</span></a>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">        186 :   return has_parse_url;</span></a>
 <a name="179"><span class="lineNum">     179 </span>            : }</a>
 <a name="180"><span class="lineNum">     180 </span>            : </a>
 <a name="181"><span class="lineNum">     181 </span>            : }  // namespace nudl</a>
