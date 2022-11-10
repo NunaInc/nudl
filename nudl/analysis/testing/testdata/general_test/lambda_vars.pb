@@ -18,7 +18,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "lambda_vars::foo::foo"
+      name: "lambda_vars::foo::foo__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -38,11 +38,11 @@ expression {
     }
     function_name: "foo"
     qualified_name {
-      full_name: "lambda_vars.foo"
+      full_name: "lambda_vars.foo__i0"
     }
     binding {
       scope_name {
-        name: "lambda_vars::foo::foo__bind_1"
+        name: "lambda_vars::foo::foo__i0__bind_1"
       }
       kind: OBJ_FUNCTION
       parameter {
@@ -62,7 +62,7 @@ expression {
       }
       function_name: "foo"
       qualified_name {
-        full_name: "lambda_vars.foo__bind_1"
+        full_name: "lambda_vars.foo__i0__bind_1"
       }
       body {
         kind: EXPR_BLOCK
@@ -73,7 +73,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "__add__"
+              full_name: "__add____i0"
             }
             argument {
               name: "x"

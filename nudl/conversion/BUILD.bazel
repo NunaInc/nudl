@@ -23,6 +23,7 @@ cc_library(
         "converter.cc",
         "pseudo_converter.cc",
         "python_converter.cc",
+        "python_names.cc",
     ],
     hdrs = [
         "converter.h",
@@ -33,6 +34,7 @@ cc_library(
     deps = [
         "//nudl/analysis",
         "//nudl/status",
+        "//nudl/testing:stacktrace",
         "@com_github_google_glog//:glog",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/container:flat_hash_set",
@@ -53,6 +55,7 @@ cc_binary(
         "//nudl/analysis",
         "@com_github_google_glog//:glog",
         "@com_google_absl//absl/debugging:failure_signal_handler",
+        "@com_google_absl//absl/debugging:symbolize",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/status",

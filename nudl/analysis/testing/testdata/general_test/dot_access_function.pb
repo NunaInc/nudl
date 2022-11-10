@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "dot_access_function::f::f"
+      name: "dot_access_function::f::f__i0"
     }
     kind: OBJ_FUNCTION
     result_type {
@@ -11,7 +11,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "dot_access_function.f"
+      full_name: "dot_access_function.f__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -43,7 +43,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "dot_access_function::g::g"
+      name: "dot_access_function::g::g__i0"
     }
     kind: OBJ_FUNCTION
     result_type {
@@ -51,7 +51,7 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "dot_access_function.g"
+      full_name: "dot_access_function.g__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -62,7 +62,7 @@ expression {
         }
         call_spec {
           call_name {
-            full_name: "len"
+            full_name: "len__i0"
           }
           is_method: true
           argument {
@@ -97,7 +97,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "dot_access_function::h::h"
+      name: "dot_access_function::h::h__i0"
     }
     kind: OBJ_FUNCTION
     result_type {
@@ -105,7 +105,7 @@ expression {
     }
     function_name: "h"
     qualified_name {
-      full_name: "dot_access_function.h"
+      full_name: "dot_access_function.h__i0"
     }
     body {
       kind: EXPR_BLOCK

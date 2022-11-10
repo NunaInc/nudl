@@ -26,6 +26,7 @@
 #include "glog/logging.h"
 #include "nudl/analysis/type_spec.h"
 #include "nudl/analysis/type_store.h"
+#include "nudl/analysis/type_utils.h"
 #include "nudl/proto/analysis.pb.h"
 
 namespace nudl {
@@ -36,7 +37,8 @@ class StoredTypeSpec : public TypeSpec {
   StoredTypeSpec(TypeStore* type_store, int type_id, absl::string_view name,
                  std::shared_ptr<TypeMemberStore> type_member_store,
                  bool is_bound_type = false, const TypeSpec* ancestor = nullptr,
-                 std::vector<const TypeSpec*> parameters = {});
+                 std::vector<const TypeSpec*> parameters = {},
+                 absl::optional<const TypeSpec*> original_bind = {});
 
   template <class C>
   std::unique_ptr<TypeSpec> CloneType() const {
@@ -45,106 +47,11 @@ class StoredTypeSpec : public TypeSpec {
   std::unique_ptr<TypeSpec> Clone() const override;
   const TypeSpec* type_spec() const override;
   const ScopeName& scope_name() const override;
-  void set_scope_name(ScopeName scope_name);
+  TypeStore* type_store() const;
 
  protected:
   TypeStore* const type_store_;
   const TypeSpec* const object_type_spec_;
-  std::optional<ScopeName> scope_name_;
-};
-
-class BaseTypesStore : public ScopeTypeStore {
- public:
-  explicit BaseTypesStore(TypeStore* global_store)
-      : ScopeTypeStore(absl::make_unique<ScopeName>(), global_store) {
-    CreateBaseTypes();
-  }
-
- private:
-  void CreateBaseTypes();
-};
-
-// Names for all standard types.
-inline constexpr absl::string_view kTypeNameUnknown = "Unknown";
-inline constexpr absl::string_view kTypeNameAny = "Any";
-inline constexpr absl::string_view kTypeNameNull = "Null";
-inline constexpr absl::string_view kTypeNameNumeric = "Numeric";
-inline constexpr absl::string_view kTypeNameInt = "Int";
-inline constexpr absl::string_view kTypeNameInt8 = "Int8";
-inline constexpr absl::string_view kTypeNameInt16 = "Int16";
-inline constexpr absl::string_view kTypeNameInt32 = "Int32";
-inline constexpr absl::string_view kTypeNameUInt = "UInt";
-inline constexpr absl::string_view kTypeNameUInt8 = "UInt8";
-inline constexpr absl::string_view kTypeNameUInt16 = "UInt16";
-inline constexpr absl::string_view kTypeNameUInt32 = "UInt32";
-inline constexpr absl::string_view kTypeNameString = "String";
-inline constexpr absl::string_view kTypeNameBytes = "Bytes";
-inline constexpr absl::string_view kTypeNameBool = "Bool";
-inline constexpr absl::string_view kTypeNameFloat32 = "Float32";
-inline constexpr absl::string_view kTypeNameFloat64 = "Float64";
-inline constexpr absl::string_view kTypeNameDate = "Date";
-inline constexpr absl::string_view kTypeNameDateTime = "DateTime";
-inline constexpr absl::string_view kTypeNameTimeInterval = "TimeInterval";
-inline constexpr absl::string_view kTypeNameTimestamp = "Timestamp";
-inline constexpr absl::string_view kTypeNameDecimal = "Decimal";
-inline constexpr absl::string_view kTypeNameIterable = "Iterable";
-inline constexpr absl::string_view kTypeNameArray = "Array";
-inline constexpr absl::string_view kTypeNameTuple = "Tuple";
-inline constexpr absl::string_view kTypeNameSet = "Set";
-inline constexpr absl::string_view kTypeNameMap = "Map";
-inline constexpr absl::string_view kTypeNameStruct = "Struct";
-inline constexpr absl::string_view kTypeNameFunction = "Function";
-inline constexpr absl::string_view kTypeNameUnion = "Union";
-inline constexpr absl::string_view kTypeNameNullable = "Nullable";
-inline constexpr absl::string_view kTypeNameDataset = "Dataset";
-inline constexpr absl::string_view kTypeNameType = "Type";
-inline constexpr absl::string_view kTypeNameModule = "Module";
-inline constexpr absl::string_view kTypeNameIntegral = "Integral";
-inline constexpr absl::string_view kTypeNameContainer = "Container";
-inline constexpr absl::string_view kTypeNameGenerator = "Generator";
-
-class TypeUtils {
- public:
-  // Utility that converts a type id to one of the names above.
-  static absl::string_view BaseTypeName(pb::TypeId type_id);
-
-  // Remove duplicate types in provided span:
-  static std::vector<const TypeSpec*> DedupTypes(
-      absl::Span<const TypeSpec*> parameters);
-
-  // This is used for standard type construction.
-  // If spec is not null we return it, else we check that the provided type
-  // name can be found in the store and return it.
-  static const TypeSpec* EnsureType(TypeStore* type_store,
-                                    absl::string_view name,
-                                    const TypeSpec* spec = nullptr);
-
-  // Finds specific types in type_spec or parameters that are unbound.
-  static void FindUnboundTypes(const TypeSpec* type_spec,
-                               absl::flat_hash_set<std::string>* type_names);
-
-  // Classifying parameters:
-  static bool IsIntType(const TypeSpec& type_spec);
-  static bool IsUIntType(const TypeSpec& type_spec);
-  static bool IsFloatType(const TypeSpec& type_spec);
-  static bool IsNullType(const TypeSpec& type_spec);
-  static bool IsNullableType(const TypeSpec& type_spec);
-  static bool IsAnyType(const TypeSpec& type_spec);
-
-  // If this type when passed as an arg to a function, cannot yield
-  // us much information, and would mostly fail the function if
-  // we try to parse its expressions.
-  static bool IsUndefinedArgType(const TypeSpec* arg_type);
-
-  // Builds and returns a union of int and uint.
-  // This expects the provided store to be fully built and initialized
-  // with the standard types, else check fails.
-  static std::unique_ptr<TypeSpec> IntIndexType(TypeStore* type_store);
-  // Builds and returns a nullable of provided type.
-  // This expects the provided store to be fully built and initialized
-  // with the standard types, else check fails.
-  static std::unique_ptr<TypeSpec> NullableType(TypeStore* type_store,
-                                                const TypeSpec* type_spec);
 };
 
 // Type that represents the type of a type named object.
@@ -415,17 +322,47 @@ class TypeTuple : public StoredTypeSpec {
  public:
   TypeTuple(TypeStore* type_store,
             std::shared_ptr<TypeMemberStore> type_member_store,
-            std::vector<const TypeSpec*> parameters = {});
+            std::vector<const TypeSpec*> parameters = {},
+            std::vector<std::string> names = {},
+            absl::optional<const TypeSpec*> original_bind = {});
   absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
       const std::vector<TypeBindingArg>& bindings) const override;
   std::unique_ptr<TypeSpec> Clone() const override;
   const TypeSpec* IndexType() const override;
+  std::string full_name() const override;
   bool IsBound() const override;
   bool IsAncestorOf(const TypeSpec& type_spec) const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
 
+  const std::vector<std::string>& names() const;
+  bool is_named() const;
+
+  void UpdateNames(const TypeSpec* type_spec);
+
  private:
+  bool ComputeIsNamed() const;
+
   mutable std::unique_ptr<TypeSpec> index_type_;
+  std::vector<std::string> names_;
+  bool is_named_ = false;
+};
+
+// This behaves exactly as a TypeTuple, except it overrides
+// Bind and Clone, and is registered under a different name.
+// In effect we would have only an abstract instance of,
+// TypeTupleJoin as its Bind creates tuples.
+class TypeTupleJoin : public TypeTuple {
+ public:
+  TypeTupleJoin(TypeStore* type_store,
+                std::shared_ptr<TypeMemberStore> type_member_store,
+                std::vector<const TypeSpec*> parameters = {});
+  absl::StatusOr<std::unique_ptr<TypeSpec>> Build(
+      const std::vector<TypeBindingArg>& bindings) const override;
+  absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
+      const std::vector<TypeBindingArg>& bindings) const override;
+  bool IsAncestorOf(const TypeSpec& type_spec) const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
+  std::unique_ptr<TypeSpec> Clone() const override;
 };
 
 class StructMemberStore;
@@ -436,7 +373,11 @@ class TypeStruct : public StoredTypeSpec {
     std::string name;
     const TypeSpec* type_spec;
   };
+  // Creates a structured type with specified name and fields.
+  static absl::StatusOr<std::unique_ptr<TypeStruct>> CreateTypeStruct(
+      TypeStore* type_store, absl::string_view name, std::vector<Field> fields);
   // Main way to create a type struct and add it to a store.
+  // Used CreateTypeStruct, then sets the scope and adds it to store.
   static absl::StatusOr<TypeStruct*> AddTypeStruct(const ScopeName& scope_name,
                                                    TypeStore* type_store,
                                                    absl::string_view name,
@@ -445,7 +386,8 @@ class TypeStruct : public StoredTypeSpec {
   explicit TypeStruct(TypeStore* type_store,
                       std::shared_ptr<StructMemberStore> type_member_store,
                       absl::string_view name = kTypeNameStruct,
-                      std::vector<Field> fields = {});
+                      std::vector<Field> fields = {},
+                      bool is_abstract_struct = true);
   bool IsBound() const override;
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsAncestorOf(const TypeSpec& type_spec) const override;
@@ -455,9 +397,11 @@ class TypeStruct : public StoredTypeSpec {
       const std::vector<TypeBindingArg>& bindings) const override;
   pb::ExpressionTypeSpec ToProto() const override;
   absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  std::string TypeSignature() const override;
 
   const std::vector<Field>& fields() const;
   StructMemberStore* struct_member_store() const;
+  bool is_abstract_struct() const;
 
  protected:
   bool CheckStruct(const TypeSpec& type_spec,
@@ -466,6 +410,7 @@ class TypeStruct : public StoredTypeSpec {
 
   std::vector<Field> fields_;
   std::shared_ptr<StructMemberStore> struct_member_store_;
+  const bool is_abstract_struct_;
 };
 
 class StructMemberStore : public TypeMemberStore {
@@ -500,10 +445,11 @@ class TypeMap : public StoredTypeSpec {
   absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
 
  protected:
-  std::unique_ptr<TypeStruct> result_type_;
+  std::unique_ptr<TypeTuple> result_type_;
   mutable std::unique_ptr<TypeSpec> indexed_type_;
 };
 
+class Function;
 class TypeFunction : public StoredTypeSpec {
  public:
   struct Argument {
@@ -512,12 +458,13 @@ class TypeFunction : public StoredTypeSpec {
     const TypeSpec* type_spec = nullptr;
     std::string ToString() const;
   };
-  TypeFunction(TypeStore* type_store,
-               std::shared_ptr<TypeMemberStore> type_member_store,
-               absl::string_view name = kTypeNameFunction,
-               std::vector<Argument> arguments = {},
-               const TypeSpec* result = nullptr,
-               absl::optional<size_t> first_default_value_index = {});
+  TypeFunction(
+      TypeStore* type_store, std::shared_ptr<TypeMemberStore> type_member_store,
+      absl::string_view name = kTypeNameFunction,
+      std::vector<Argument> arguments = {}, const TypeSpec* result = nullptr,
+      absl::optional<const TypeSpec*> original_bind = {},
+      absl::optional<size_t> first_default_value_index = {},
+      std::shared_ptr<absl::flat_hash_set<Function*>> function_instances = {});
 
   std::string full_name() const override;
   bool IsBound() const override;
@@ -539,13 +486,17 @@ class TypeFunction : public StoredTypeSpec {
       const TypeFunction& fun) const;
   absl::StatusOr<std::unique_ptr<TypeSpec>> BindWithComponents(
       const std::vector<Argument>& arguments, const TypeSpec* result_type,
-      std::optional<size_t> first_default_index) const;
+      absl::optional<size_t> first_default_index) const;
   absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+
+  const absl::flat_hash_set<Function*>& function_instances() const;
+  void add_function_instance(Function* instance);
 
  protected:
   std::vector<Argument> arguments_;
   const TypeSpec* result_;
   absl::optional<size_t> first_default_value_index_;
+  std::shared_ptr<absl::flat_hash_set<Function*>> function_instances_;
 };
 
 class TypeUnion : public StoredTypeSpec {
@@ -573,17 +524,55 @@ class TypeNullable : public StoredTypeSpec {
   bool IsAncestorOf(const TypeSpec& type_spec) const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
   absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  std::string TypeSignature() const override;
 };
 
 class TypeDataset : public StoredTypeSpec {
  public:
   TypeDataset(TypeStore* type_store,
               std::shared_ptr<TypeMemberStore> type_member_store,
+              absl::optional<const TypeSpec*> original_bind = {},
               absl::string_view name = "", const TypeSpec* type_spec = nullptr);
   std::unique_ptr<TypeSpec> Clone() const override;
   const TypeSpec* ResultType() const override;
   absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
       const std::vector<TypeBindingArg>& bindings) const override;
+};
+
+class DatasetAggregate : public TypeDataset {
+ public:
+  DatasetAggregate(TypeStore* type_store,
+                   std::shared_ptr<TypeMemberStore> type_member_store,
+                   std::vector<const TypeSpec*> parameters = {});
+  absl::StatusOr<std::unique_ptr<TypeSpec>> Build(
+      const std::vector<TypeBindingArg>& bindings) const override;
+  absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
+      const std::vector<TypeBindingArg>& bindings) const override;
+  bool IsAncestorOf(const TypeSpec& type_spec) const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
+  std::unique_ptr<TypeSpec> Clone() const override;
+
+ protected:
+  absl::StatusOr<const TypeSpec*> AggregateFieldType(
+      absl::string_view aggregate_type, const TypeSpec* type_spec) const;
+  mutable std::vector<std::unique_ptr<TypeSpec>> allocated_types_;
+};
+
+class DatasetJoin : public TypeDataset {
+ public:
+  DatasetJoin(TypeStore* type_store,
+              std::shared_ptr<TypeMemberStore> type_member_store,
+              std::vector<const TypeSpec*> parameters = {});
+  absl::StatusOr<std::unique_ptr<TypeSpec>> Build(
+      const std::vector<TypeBindingArg>& bindings) const override;
+  absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
+      const std::vector<TypeBindingArg>& bindings) const override;
+  bool IsAncestorOf(const TypeSpec& type_spec) const override;
+  bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
+  std::unique_ptr<TypeSpec> Clone() const override;
+
+ private:
+  mutable std::vector<std::unique_ptr<TypeSpec>> allocated_types_;
 };
 
 // Used for - no-type cases - use Instance() to get a static instance of this
@@ -593,7 +582,6 @@ class TypeUnknown : public TypeSpec {
   explicit TypeUnknown(std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   const TypeSpec* type_spec() const override;
-  const ScopeName& scope_name() const override;
 
   static const TypeUnknown* Instance();
 };

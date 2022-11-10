@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "max_termination::MaxTermination::MaxTermination"
+      name: "max_termination::MaxTermination::MaxTermination__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -17,7 +17,7 @@ expression {
     }
     function_name: "MaxTermination"
     qualified_name {
-      full_name: "max_termination.MaxTermination"
+      full_name: "max_termination.MaxTermination__i0"
     }
     body {
       kind: EXPR_BLOCK

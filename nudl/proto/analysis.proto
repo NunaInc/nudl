@@ -110,6 +110,8 @@ enum ExpressionKind {
   EXPR_ARRAY_DEF = 6;
   // A map definitions: `[<..>: <..>, <..>: <..>]`
   EXPR_MAP_DEF = 7;
+  // A named tuple definition `{<..> [: <..>] = <...>, ...}`
+  EXPR_TUPLE_DEF = 20;
   // An if expression with all branches: `if (<..>) <..> else <..>`
   EXPR_IF = 8;
   // Indexed access in an expression: `<..>[<..>]`
@@ -134,7 +136,7 @@ enum ExpressionKind {
   EXPR_NOP = 18;
   // A type definition expressions - this appears only in modules.
   EXPR_TYPE_DEFINITION = 19;
-};
+}
 
 // Name of a scope: composed of module name & function name:
 // E.g. a.b.c::foo::bar =>
@@ -244,7 +246,7 @@ message FunctionDefinitionSpec {
   // If a function has specific type-bindings per call, these are
   // specific bindings of those functions.
   repeated FunctionDefinitionSpec binding = 9;
-};
+}
 
 // Information about a function call.
 message FunctionCallSpec {
@@ -255,7 +257,7 @@ message FunctionCallSpec {
     // If the function is produced from an expression, this is the
     // expression. E.g. `foo(..)(x, y)`, this would be `foo(..)`
     ExpressionSpec left_expression = 2;
-  };
+  }
   // If the called function is a method.
   optional bool is_method = 3;
   // The arguments passed to the function call.
@@ -280,6 +282,15 @@ message ImportSpec {
   optional string local_name = 1;
   // If the name is an alias.
   optional bool is_alias = 2;
+}
+
+// Specifications for a tuple definition.
+message TupleDefSpec {
+  message TupleElement {
+    optional string name = 1;
+    optional ExpressionTypeSpec type_spec = 2;
+  }
+  repeated TupleElement element = 1;
 }
 
 // An expression in the language - processed and analyzed.
@@ -308,6 +319,8 @@ message ExpressionSpec {
     ImportSpec import_spec = 14;
     // Name of the type in type definition
     string type_def_name = 15;
+    // For tuple definitions, includes the names and optional types.
+    TupleDefSpec tuple_def = 16;
   }
 }
 

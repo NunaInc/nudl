@@ -234,6 +234,24 @@ class DslVisitor : public NudlDslParserBaseVisitor {
     return std::make_any<pb::Expression>(std::move(expression));
   }
 
+  std::any visitNamedTupleDefinition(
+      NudlDslParser::NamedTupleDefinitionContext* context) override {
+    pb::Expression expression(emptyExpression(*context));
+    CHECK_NOTNULL(context->namedTupleElements());
+    auto tuple_def = expression.mutable_tuple_def();
+    for (auto element : context->namedTupleElements()->namedTupleElement()) {
+      auto elem = tuple_def->add_element();
+      elem->set_name(TreeUtil::Recompose(CHECK_NOTNULL(element->IDENTIFIER())));
+      *elem->mutable_value() =
+          computeExpression(CHECK_NOTNULL(element->computeExpression()));
+      if (element->typeAssignment()) {
+        *elem->mutable_type_spec() = typeSpec(
+            CHECK_NOTNULL(element->typeAssignment()->typeExpression()));
+      }
+    }
+    return std::make_any<pb::Expression>(std::move(expression));
+  }
+
   std::any visitComposedIdentifier(
       NudlDslParser::ComposedIdentifierContext* context) override {
     pb::Identifier identifier;

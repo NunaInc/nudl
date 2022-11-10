@@ -25,6 +25,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "glog/logging.h"
+#include "nudl/testing/stacktrace.h"
 
 namespace nudl {
 namespace status {
@@ -113,7 +114,8 @@ ABSL_MUST_USE_RESULT T DieIfNull(const char* file, int line,
   return ::nudl::status::FailedPreconditionErrorBuilder(                \
              "Invalid state in the program. Precondition: `" #condition \
              "` does not hold")                                         \
-        << "In file: " << __FILE__ << " at line: " << __LINE__ << "; "
+         << "In file: " << __FILE__ << " at line: " << __LINE__ << "; " \
+         << "\nCall stack: " << stacktrace::ToString() << "\n"
 
 #define CHECK_OK_IMPL(status_name, expr)     \
   absl::Status status_name = (expr);         \

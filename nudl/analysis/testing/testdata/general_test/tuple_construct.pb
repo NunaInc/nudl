@@ -8,7 +8,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "tuple__bind_1"
+        full_name: "tuple__i0"
       }
       is_method: true
       argument {

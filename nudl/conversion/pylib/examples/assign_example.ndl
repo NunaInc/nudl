@@ -14,21 +14,22 @@
 // limitations under the License.
 //
 
+import examples.claim
 import examples.dataproc
+import dataset
+import aggregate
 
-// A sketch of a claim, with just basic fields:
-schema Claim = {
-  claim_id: String;
-  person_id_syn: String;
-  npi_id: String;
-  visit_id: String;
-}
+
+GENERATORS_RE : Tuple = [
+  Tuple([".*npi_id", Tuple(["str", Tuple([3, "ABC"])])]),
+  Tuple([".*_id", Tuple(["str", Tuple([6, "0123456789ABCDEF"])])]),
+  Tuple([".*_id_syn", Tuple(["str", Tuple([4, "01234"])])]),
+]
 
 def assignMember(
   member_id: String,
-  claims: Array<Claim>,
+  claims: Array<examples.claim.Claim>,
   minimum_visit_count: UInt = 1u)=> {
-
   claims
     .filter((c, member_id = member_id) => c.person_id_syn == member_id )
     // Aggregate to a tuple keyd by npi_id, sets of unique visits:
@@ -45,15 +46,20 @@ def assignMember(
 
 // Just generates some random test data in a csv file under gendir
 // Returns the generated file name.
-def generate(gendir: String, count: Int = 20000) => {
-  examples.dataproc.generate_csv(gendir, Claim(), count)
+def generate_csv(gendir: String, count: Int = 20000) => {
+  examples.dataproc.generate_csv(examples.claim.Claim(), gendir, count,
+    GENERATORS_RE)
+}
+def generate_parquet(gendir: String, count: Int = 20000) => {
+  examples.dataproc.generate_parquet(examples.claim.Claim(), gendir, count,
+    GENERATORS_RE)
 }
 
 // Run analyzer on all Claims in provided CSV filename:
 def analyze(filename: String) => {
   print("Analyzing: " + filename)
   // Read the CSV with provided schema:
-  examples.dataproc.read_csv(filename, Claim())
+  examples.dataproc.read_csv(examples.claim.Claim(), filename)
     // groups the claims by member id:
     .aggregate_to_array(c => c.person_id_syn, c => c)
     // performs assignMember for each member claims, and prints the result:
@@ -67,5 +73,24 @@ def analyze(filename: String) => {
     })
 }
 
+def analyze_dataset(filename: String) => {
+  print("Analyzing w/ datasets: " + filename)
+  dataset.read_parquet(examples.claim.Claim(), filename)
+    .aggregate(c => dataset.agg(c)
+      .group_by({person_id_syn = c.person_id_syn})
+      .to_array({claims = c}))
+    // TODO(catalin): two issues to investigate:
+    // - For some reasone the classes that I want to pickle need to be
+    // defined in a different module. Why ??
+    // - generators don't work here.
+    .map(c => examples.claim.Assignment(
+            person_id = c.person_id_syn,
+            assigned = assignMember(c.person_id_syn, c.claims, 2u)));
+}
+
 // This module level variable computation acts as a main:
-main = analyze(generate("/tmp/demodata")).to_array().len()
+// main = analyze(generate_csv("/tmp/demodata")).to_array().len()
+
+init = examples.dataproc.spark_init_session("Demo")
+main = analyze_dataset(generate_parquet("/tmp/demodata")).collect()
+     .map(t => print(t)).to_array().len()

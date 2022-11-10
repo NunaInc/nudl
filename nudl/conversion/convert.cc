@@ -28,11 +28,13 @@ namespace std_filesystem = std::experimental::filesystem;
 #include <vector>
 
 #include "absl/debugging/failure_signal_handler.h"
+#include "absl/debugging/symbolize.h"
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_split.h"
+#include "absl/time/time.h"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "nudl/analysis/errors.h"
@@ -52,10 +54,13 @@ ABSL_FLAG(std::string, py_path, "", "Directory with nudle core library.");
 ABSL_FLAG(std::string, output_dir, "",
           "If not empty, output to this directory.");
 ABSL_FLAG(std::string, run_yapf, "",
-          "If non empty, we run the yapf code formatter on result code. "
-          "This is the path to the yapf binary.");
+          "If non empty, we run the yapf code formatter on resulting "
+          "python code. This is the path to the yapf binary.");
 ABSL_FLAG(bool, write_only_input, false,
           "If true we write to output only the module we got as input");
+ABSL_FLAG(bool, bindings_on_use, false,
+          "Convert specific function bindings only in the places where "
+          "they are used");
 ABSL_FLAG(std::string, lang, "python", "Language to convert to");
 ABSL_DECLARE_FLAG(std::string, status_annotate_joiner);
 DECLARE_bool(alsologtostderr);
@@ -63,12 +68,13 @@ DECLARE_bool(alsologtostderr);
 namespace nudl {
 
 enum class ConvertLang { PSEUDO_CODE, PYTHON };
-std::unique_ptr<conversion::Converter> BuildConverter(ConvertLang lang) {
+std::unique_ptr<conversion::Converter> BuildConverter(ConvertLang lang,
+                                                      bool bindings_on_use) {
   switch (lang) {
     case ConvertLang::PSEUDO_CODE:
       return std::make_unique<conversion::PseudoConverter>();
     case ConvertLang::PYTHON:
-      return std::make_unique<conversion::PythonConverter>();
+      return std::make_unique<conversion::PythonConverter>(bindings_on_use);
   }
   return nullptr;
 }
@@ -100,10 +106,11 @@ class ConvertTool {
  public:
   ConvertTool(absl::string_view builtin_path,
               std::vector<std::string> search_paths, ConvertLang lang,
-              absl::string_view run_yapf, bool write_only_input)
+              absl::string_view run_yapf, bool write_only_input,
+              bool bindings_on_use)
       : builtin_path_(builtin_path),
         search_paths_(std::move(search_paths)),
-        converter_(CHECK_NOTNULL(BuildConverter(lang))),
+        converter_(CHECK_NOTNULL(BuildConverter(lang, bindings_on_use))),
         run_yapf_(run_yapf),
         write_only_input_(write_only_input) {}
 
@@ -239,10 +246,14 @@ class ConvertTool {
     RET_CHECK(!run_yapf_.empty());
     const std::string command = absl::StrCat(run_yapf_, " -i --style=Google '",
                                              file_path.native(), "'");
+    const absl::Time yapf_start = absl::Now();
+    std::cout << "Running: yapf with command: " << command << std::endl;
     if (system(command.c_str())) {
       return status::InternalErrorBuilder("Error running yapf")
              << "Command: " << command;
     }
+    std::cout << "Completed: yapf in: " << (absl::Now() - yapf_start)
+              << std::endl;
     return absl::OkStatus();
   }
 
@@ -274,7 +285,8 @@ absl::Status RunTool() {
       absl::StrSplit(absl::GetFlag(FLAGS_search_paths), ",", absl::SkipEmpty());
   ConvertTool tool(absl::GetFlag(FLAGS_builtin_path), std::move(search_paths),
                    lang, absl::GetFlag(FLAGS_run_yapf),
-                   absl::GetFlag(FLAGS_write_only_input));
+                   absl::GetFlag(FLAGS_write_only_input),
+                   absl::GetFlag(FLAGS_bindings_on_use));
   RETURN_IF_ERROR(tool.Prepare()) << "Preparing environment";
   if (!absl::GetFlag(FLAGS_input).empty()) {
     RETURN_IF_ERROR(tool.LoadModule(absl::GetFlag(FLAGS_input)))
@@ -295,6 +307,7 @@ absl::Status RunTool() {
 int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
   // google::InstallFailureSignalHandler();
+  absl::InitializeSymbolizer(argv[0]);
   absl::InstallFailureSignalHandler(absl::FailureSignalHandlerOptions());
   absl::ParseCommandLine(argc, argv);
   absl::SetFlag(&FLAGS_status_annotate_joiner, ";\n    ");

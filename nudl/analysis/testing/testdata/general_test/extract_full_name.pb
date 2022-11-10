@@ -9,7 +9,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "extract_full_name::ExtractFullName::ExtractFullName"
+      name: "extract_full_name::ExtractFullName::ExtractFullName__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -23,7 +23,7 @@ expression {
     }
     function_name: "ExtractFullName"
     qualified_name {
-      full_name: "extract_full_name.ExtractFullName"
+      full_name: "extract_full_name.ExtractFullName__i0"
     }
     body {
       kind: EXPR_BLOCK

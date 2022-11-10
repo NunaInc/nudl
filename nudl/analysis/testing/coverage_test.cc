@@ -87,7 +87,7 @@ param a: Int = 20;
   EXPECT_EQ(g->kind(), pb::ObjectKind::OBJ_FUNCTION_GROUP);
   auto gg = static_cast<FunctionGroup*>(g);
   EXPECT_FALSE(gg->DebugString().empty());
-  ASSERT_OK_AND_ASSIGN(auto gf, gg->GetName("g", true));
+  ASSERT_OK_AND_ASSIGN(auto gf, gg->GetName("g__i0", true));
   EXPECT_EQ(gf->kind(), pb::ObjectKind::OBJ_FUNCTION);
   auto gfun = static_cast<Function*>(gf);
   ASSERT_OK_AND_ASSIGN(auto xarg, gfun->GetName("x", true));
@@ -162,7 +162,7 @@ def f(name: cdm.HumanName) => {
              "in child name store");
   CheckError("bad_scope3", R"(
 def f(name: String) => name
-def g() => bad_scope3.f.f.name
+def g() => bad_scope3.f.f__i0.name
 )",
              "cannot be accessed from scope");
   CheckError("bad_scope6", R"(

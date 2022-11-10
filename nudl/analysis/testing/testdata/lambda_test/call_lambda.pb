@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "call_lambda::add::add"
+      name: "call_lambda::add::add__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -17,7 +17,7 @@ expression {
     }
     function_name: "add"
     qualified_name {
-      full_name: "call_lambda.add"
+      full_name: "call_lambda.add__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -27,7 +27,7 @@ expression {
           kind: EXPR_LAMBDA
           function_spec {
             scope_name {
-              name: "call_lambda::add::add::__local_lambda_1::__local_lambda_1"
+              name: "call_lambda::add::add__i0::_local_lambda_1::_local_lambda_1__i0"
             }
             kind: OBJ_LAMBDA
             parameter {
@@ -39,9 +39,9 @@ expression {
             result_type {
               name: "Int"
             }
-            function_name: "__local_lambda_1"
+            function_name: "_local_lambda_1"
             qualified_name {
-              full_name: "call_lambda.__local_lambda_1"
+              full_name: "call_lambda._local_lambda_1__i0"
             }
             body {
               kind: EXPR_BLOCK
@@ -52,7 +52,7 @@ expression {
                 }
                 call_spec {
                   call_name {
-                    full_name: "__add__"
+                    full_name: "__add____i0"
                   }
                   argument {
                     name: "x"

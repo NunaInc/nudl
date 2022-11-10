@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "lambda_default_value::FilterName::FilterName"
+      name: "lambda_default_value::FilterName::FilterName__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -23,7 +23,7 @@ expression {
     }
     function_name: "FilterName"
     qualified_name {
-      full_name: "lambda_default_value.FilterName"
+      full_name: "lambda_default_value.FilterName__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -36,7 +36,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "filter"
+              full_name: "filter__i0"
             }
             is_method: true
             argument {
@@ -54,7 +54,7 @@ expression {
                 kind: EXPR_LAMBDA
                 function_spec {
                   scope_name {
-                    name: "lambda_default_value::FilterName::FilterName::__local_lambda_1::__local_lambda_1"
+                    name: "lambda_default_value::FilterName::FilterName__i0::_local_lambda_1::_local_lambda_1__i0"
                   }
                   kind: OBJ_LAMBDA
                   parameter {
@@ -78,13 +78,13 @@ expression {
                   result_type {
                     name: "Any"
                   }
-                  function_name: "__local_lambda_1"
+                  function_name: "_local_lambda_1"
                   qualified_name {
-                    full_name: "lambda_default_value.__local_lambda_1"
+                    full_name: "lambda_default_value._local_lambda_1__i0"
                   }
                   binding {
                     scope_name {
-                      name: "lambda_default_value::FilterName::FilterName::__local_lambda_1::__local_lambda_1__bind_1"
+                      name: "lambda_default_value::FilterName::FilterName__i0::_local_lambda_1::_local_lambda_1__i0__bind_1"
                     }
                     kind: OBJ_LAMBDA
                     parameter {
@@ -108,9 +108,9 @@ expression {
                     result_type {
                       name: "Bool"
                     }
-                    function_name: "__local_lambda_1"
+                    function_name: "_local_lambda_1"
                     qualified_name {
-                      full_name: "lambda_default_value.__local_lambda_1__bind_1"
+                      full_name: "lambda_default_value._local_lambda_1__i0__bind_1"
                     }
                     body {
                       kind: EXPR_BLOCK
@@ -121,7 +121,7 @@ expression {
                         }
                         call_spec {
                           call_name {
-                            full_name: "__gt__"
+                            full_name: "__gt____i0"
                           }
                           argument {
                             name: "x"
@@ -206,7 +206,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "__not__"
+              full_name: "__not____i0"
             }
             argument {
               name: "x"
@@ -217,7 +217,7 @@ expression {
                 }
                 call_spec {
                   call_name {
-                    full_name: "empty__1__"
+                    full_name: "empty__i1"
                   }
                   is_method: true
                   argument {

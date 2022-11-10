@@ -8,7 +8,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "timestamp"
+        full_name: "timestamp__i0"
       }
       is_method: true
       binding_type {
@@ -40,7 +40,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "date__1__"
+              full_name: "date__i1"
             }
             is_method: true
             argument {
@@ -91,7 +91,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "date__2__"
+        full_name: "date__i2"
       }
       is_method: true
       argument {
@@ -133,7 +133,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "structure_constructs::year::year"
+      name: "structure_constructs::year::year__i0"
     }
     kind: OBJ_METHOD
     parameter {
@@ -147,7 +147,7 @@ expression {
     }
     function_name: "year"
     qualified_name {
-      full_name: "structure_constructs.year"
+      full_name: "structure_constructs.year__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -169,7 +169,7 @@ expression {
     }
     call_spec {
       call_name {
-        full_name: "__sub__"
+        full_name: "__sub____i0"
       }
       argument {
         name: "x"
@@ -180,7 +180,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "structure_constructs.year"
+              full_name: "structure_constructs.year__i0"
             }
             is_method: true
             argument {
@@ -207,7 +207,7 @@ expression {
           }
           call_spec {
             call_name {
-              full_name: "structure_constructs.year"
+              full_name: "structure_constructs.year__i0"
             }
             is_method: true
             argument {

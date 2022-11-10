@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "lambda_simple::ProcessNames::ProcessNames"
+      name: "lambda_simple::ProcessNames::ProcessNames__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -17,7 +17,7 @@ expression {
     }
     function_name: "ProcessNames"
     qualified_name {
-      full_name: "lambda_simple.ProcessNames"
+      full_name: "lambda_simple.ProcessNames__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -62,7 +62,7 @@ expression {
                     kind: EXPR_LAMBDA
                     function_spec {
                       scope_name {
-                        name: "lambda_simple::ProcessNames::ProcessNames::__local_lambda_1::__local_lambda_1"
+                        name: "lambda_simple::ProcessNames::ProcessNames__i0::_local_lambda_1::_local_lambda_1__i0"
                       }
                       kind: OBJ_LAMBDA
                       parameter {
@@ -74,9 +74,9 @@ expression {
                       result_type {
                         name: "UInt"
                       }
-                      function_name: "__local_lambda_1"
+                      function_name: "_local_lambda_1"
                       qualified_name {
-                        full_name: "lambda_simple.__local_lambda_1"
+                        full_name: "lambda_simple._local_lambda_1__i0"
                       }
                       body {
                         kind: EXPR_BLOCK

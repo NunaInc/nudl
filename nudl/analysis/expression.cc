@@ -474,6 +474,7 @@ absl::StatusOr<const TypeSpec*> FunctionResultExpression::NegotiateType(
 
 namespace {
 struct TypeUpdater {
+  Scope* scope = nullptr;
   std::string name;
   const TypeSpec* type_spec = nullptr;
   bool is_updated = false;
@@ -489,6 +490,8 @@ struct TypeUpdater {
              << " of type: " << crt_type->full_name() << " in " << name
              << " expecting: " << type_spec->full_name();
     }
+    RETURN_IF_ERROR(TypeUtils::CheckFunctionTypeIsBound(crt_type))
+        << "For element " << index << " in " << name;
     if (!type_spec->IsBound() && crt_type->IsBound()) {
       type_spec = crt_type;
       is_updated = true;
@@ -552,6 +555,8 @@ absl::StatusOr<const TypeSpec*> ArrayDefinitionExpression::NegotiateTuple(
              << " in tuple expression; expecting: "
              << expected_type.value()->full_name();
     }
+    RETURN_IF_ERROR(TypeUtils::CheckFunctionTypeIsBound(crt_type))
+        << "For named tuple element: " << i;
     elements.emplace_back(TypeBindingArg{crt_type});
   }
   ASSIGN_OR_RETURN(auto negotiated_type, tuple_type->Bind(elements),
@@ -563,7 +568,7 @@ absl::StatusOr<const TypeSpec*> ArrayDefinitionExpression::NegotiateTuple(
 absl::StatusOr<const TypeSpec*> ArrayDefinitionExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   const TypeSpec* base_type = nullptr;
-  TypeUpdater element_type{"array element"};
+  TypeUpdater element_type{scope_, "array element"};
   if (type_hint.has_value()) {
     RET_CHECK(type_hint.value() != nullptr) << kBugNotice;
     if (type_hint.value()->type_id() == pb::TypeId::ANY_ID ||
@@ -628,8 +633,8 @@ std::string MapDefinitionExpression::DebugString() const {
 absl::StatusOr<const TypeSpec*> MapDefinitionExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   const TypeSpec* base_type = nullptr;
-  TypeUpdater key_type{"map element key"};
-  TypeUpdater value_type{"map element value"};
+  TypeUpdater key_type{scope_, "map element key"};
+  TypeUpdater value_type{scope_, "map element value"};
   ASSIGN_OR_RETURN(base_type, scope_->FindTypeByName(kTypeNameMap),
                    _ << "Finding base Map type " << kBugNotice);
   if (type_hint.has_value()) {
@@ -662,6 +667,138 @@ absl::StatusOr<const TypeSpec*> MapDefinitionExpression::NegotiateType(
                                     TypeBindingArg{value_type.type_spec}}),
                    _ << "Building type for map definition");
   negotiated_types_.emplace_back(std::move(negotiated_type));
+  return negotiated_types_.back().get();
+}
+
+TupleDefinitionExpression::TupleDefinitionExpression(
+    Scope* scope, std::vector<std::string> names,
+    std::vector<absl::optional<const TypeSpec*>> types,
+    std::vector<std::unique_ptr<Expression>> elements)
+    : Expression(scope), names_(std::move(names)), types_(std::move(types)) {
+  children_ = std::move(elements);
+}
+
+void TupleDefinitionExpression::CheckSizes() const {
+  CHECK(!children_.empty());
+  CHECK_EQ(children_.size(), names_.size());
+  CHECK_EQ(children_.size(), types_.size());
+}
+
+const std::vector<std::string>& TupleDefinitionExpression::names() const {
+  return names_;
+}
+
+const std::vector<absl::optional<const TypeSpec*>>&
+TupleDefinitionExpression::types() const {
+  return types_;
+}
+
+pb::ExpressionKind TupleDefinitionExpression::expr_kind() const {
+  return pb::ExpressionKind::EXPR_TUPLE_DEF;
+}
+
+std::string TupleDefinitionExpression::DebugString() const {
+  CheckSizes();
+  std::vector<std::string> elements;
+  for (size_t i = 0; i < children_.size(); ++i) {
+    std::string s(names_[i]);
+    if (types_[i].has_value()) {
+      absl::StrAppend(&s, ": ", types_[i].value()->full_name());
+    }
+    absl::StrAppend(&s, " = ", children_[i]->DebugString());
+  }
+  return absl::StrCat("TupleDef {\n", absl::StrJoin(elements, "\n"), "}");
+}
+
+pb::ExpressionSpec TupleDefinitionExpression::ToProto() const {
+  CheckSizes();
+  auto proto = Expression::ToProto();
+  auto tuple_def = proto.mutable_tuple_def();
+  for (size_t i = 0; i < names_.size(); ++i) {
+    auto elem = tuple_def->add_element();
+    elem->set_name(names_[i]);
+    if (types_[i].has_value()) {
+      *elem->mutable_type_spec() = types_[i].value()->ToProto();
+    }
+  }
+  if (type_spec_.has_value() && !proto.has_type_spec()) {
+    *proto.mutable_type_spec() = type_spec_.value()->ToProto();
+  }
+  return proto;
+}
+
+absl::StatusOr<const TypeSpec*> TupleDefinitionExpression::NegotiateType(
+    absl::optional<const TypeSpec*> type_hint) {
+  CheckSizes();
+  const TypeTuple* tuple_type = nullptr;
+  bool is_abstract_tuple = true;
+  std::vector<std::string> names;
+  std::vector<const TypeSpec*> child_types;
+  if (type_hint.has_value()) {
+    if (type_hint.value()->type_id() != pb::TypeId::TUPLE_ID) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Cannot coerce Tuple type to: "
+             << type_hint.value()->full_name();
+    }
+    tuple_type = static_cast<const TypeTuple*>(type_hint.value());
+    if (!tuple_type->parameters().empty()) {
+      is_abstract_tuple = false;
+      if (tuple_type->parameters().size() != children_.size()) {
+        return status::InvalidArgumentErrorBuilder()
+               << "Cannot coerce Tuple with: " << children_.size()
+               << " elements to a tuple with: "
+               << tuple_type->parameters().size()
+               << " elements, more exactly: " << type_hint.value()->full_name();
+      }
+    }
+  } else {
+    tuple_type = static_cast<const TypeTuple*>(scope_->FindTypeTuple());
+  }
+  for (size_t i = 0; i < children_.size(); ++i) {
+    if (!NameUtil::IsValidName(names_[i])) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Invalid name for element: " << i
+             << " of the named tuple definition";
+    }
+    names.emplace_back(names_[i]);
+    absl::optional<const TypeSpec*> child_type_hint;
+    if (!is_abstract_tuple) {
+      child_type_hint = tuple_type->parameters()[i];
+    }
+    ASSIGN_OR_RETURN(const TypeSpec* child_type,
+                     children_[i]->type_spec(child_type_hint));
+    if (is_abstract_tuple) {
+      child_types.emplace_back(child_type);
+      continue;
+    }
+    if (!child_type_hint.value()->IsAncestorOf(*child_type)) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Invalid type for element: " << i
+             << " of the tuple definition. "
+                "Type: "
+             << child_type->full_name() << " is not an ancestor of expected: "
+             << child_type_hint.value()->full_name();
+    }
+    RETURN_IF_ERROR(TypeUtils::CheckFunctionTypeIsBound(child_type))
+        << "For named tuple element: " << i;
+    if (!tuple_type->names()[i].empty() &&
+        names_[i] != tuple_type->names()[i]) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Invalid name for element: " << i
+             << " of the named tuple definition. "
+             << "Expecting `" << tuple_type->names()[i]
+             << " got: " << names_[i];
+    }
+    if ((child_type->IsBound() && !child_type_hint.value()->IsBound()) ||
+        child_type->IsEqual(*child_type_hint.value())) {
+      child_types.emplace_back(child_type);
+    } else {
+      child_types.emplace_back(child_type_hint.value());
+    }
+  }
+  negotiated_types_.emplace_back(std::make_unique<TypeTuple>(
+      scope_->type_store(), tuple_type->type_member_store_ptr(),
+      std::move(child_types), std::move(names)));
   return negotiated_types_.back().get();
 }
 
@@ -856,12 +993,17 @@ absl::StatusOr<const TypeSpec*> TupleIndexExpression::GetIndexedType(
   return object_type->parameters()[index_];
 }
 
-LambdaExpression::LambdaExpression(Scope* scope, Function* lambda_function)
-    : Expression(scope), lambda_function_(lambda_function) {}
+LambdaExpression::LambdaExpression(Scope* scope, Function* lambda_function,
+                                   FunctionGroup* lambda_group)
+    : Expression(scope),
+      lambda_function_(lambda_function),
+      lambda_group_(lambda_group) {}
 
 pb::ExpressionKind LambdaExpression::expr_kind() const {
   return pb::ExpressionKind::EXPR_LAMBDA;
 }
+
+FunctionGroup* LambdaExpression::lambda_group() const { return lambda_group_; }
 
 Function* LambdaExpression::lambda_function() const { return lambda_function_; }
 
@@ -873,7 +1015,7 @@ absl::optional<NamedObject*> LambdaExpression::named_object() const {
 }
 
 std::string LambdaExpression::DebugString() const {
-  return lambda_function_->DebugString();
+  return lambda_group_->DebugString();
 }
 
 pb::ExpressionSpec LambdaExpression::ToProto() const {
@@ -886,7 +1028,36 @@ absl::StatusOr<const TypeSpec*> LambdaExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   if (type_hint.has_value() && lambda_function_->type_spec()->IsAncestorOf(
                                    *CHECK_NOTNULL(type_hint.value()))) {
-    return type_hint.value();
+    const TypeSpec* t = type_hint.value();
+    std::vector<FunctionCallArgument> bind_args;
+    bind_args.reserve(t->parameters().size());
+    for (size_t i = 0; i + 1 < t->parameters().size(); ++i) {
+      if (TypeUtils::IsUndefinedArgType(t->parameters()[i])) {
+        // Just bail out on this, return the hint.
+        return t;
+      }
+      FunctionCallArgument arg;
+      if (i < lambda_function_->arguments().size()) {
+        arg.name = lambda_function_->arguments()[i]->name();
+      }
+      arg.type_spec = t->parameters()[i];
+      bind_args.emplace_back(std::move(arg));
+    }
+    ASSIGN_OR_RETURN(auto lambda_binding,
+                     lambda_function_->BindArguments(bind_args),
+                     _ << "Binding type hint arguments to lambda function");
+    lambda_bindings_.emplace_back(std::move(lambda_binding));
+    ASSIGN_OR_RETURN(
+        lambda_function_,
+        lambda_function_->Bind(lambda_bindings_.back().get(), true));
+    if (!t->IsAncestorOf(*lambda_bindings_.back()->type_spec)) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Rebinded lambda function has an incompatible type "
+             << "with expected type: "
+             << lambda_bindings_.back()->type_spec->full_name()
+             << " expected: " << t->full_name();
+    }
+    return lambda_bindings_.back()->type_spec;
   }
   return lambda_function_->type_spec();
 }
@@ -1020,6 +1191,16 @@ absl::StatusOr<const TypeSpec*> FunctionCallExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   return CHECK_NOTNULL(
       CHECK_NOTNULL(function_binding_->type_spec)->ResultType());
+}
+
+const absl::flat_hash_set<Function*>&
+FunctionCallExpression::dependent_functions() const {
+  return dependent_functions_;
+}
+
+void FunctionCallExpression::set_dependent_functions(
+    absl::flat_hash_set<Function*> fun) {
+  dependent_functions_ = std::move(fun);
 }
 
 ImportStatementExpression::ImportStatementExpression(

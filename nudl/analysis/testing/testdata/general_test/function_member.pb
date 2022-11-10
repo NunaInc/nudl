@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "function_member::f::f"
+      name: "function_member::f::f__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -17,7 +17,7 @@ expression {
     }
     function_name: "f"
     qualified_name {
-      full_name: "function_member.f"
+      full_name: "function_member.f__i0"
     }
     body {
       kind: EXPR_BLOCK
@@ -34,7 +34,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "function_member::g::g"
+      name: "function_member::g::g__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -48,7 +48,7 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "function_member.g"
+      full_name: "function_member.g__i0"
     }
     body {
       kind: EXPR_BLOCK

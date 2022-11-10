@@ -60,6 +60,9 @@ class PseudoConverter : public Converter {
   absl::Status ConvertMapDefinition(
       const analysis::MapDefinitionExpression& expression,
       ConvertState* state) const override;
+  absl::Status ConvertTupleDefinition(
+      const analysis::TupleDefinitionExpression& expression,
+      ConvertState* state) const override;
   absl::Status ConvertIfExpression(const analysis::IfExpression& expression,
                                    ConvertState* state) const override;
   absl::Status ConvertExpressionBlock(

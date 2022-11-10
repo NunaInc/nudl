@@ -3,7 +3,7 @@ expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
-      name: "tuple_direct_call::g::g"
+      name: "tuple_direct_call::g::g__i0"
     }
     kind: OBJ_FUNCTION
     parameter {
@@ -17,11 +17,11 @@ expression {
     }
     function_name: "g"
     qualified_name {
-      full_name: "tuple_direct_call.g"
+      full_name: "tuple_direct_call.g__i0"
     }
     binding {
       scope_name {
-        name: "tuple_direct_call::g::g__bind_1"
+        name: "tuple_direct_call::g::g__i0__bind_1"
       }
       kind: OBJ_FUNCTION
       parameter {
@@ -35,7 +35,7 @@ expression {
       }
       function_name: "g"
       qualified_name {
-        full_name: "tuple_direct_call.g__bind_1"
+        full_name: "tuple_direct_call.g__i0__bind_1"
       }
       body {
         kind: EXPR_BLOCK

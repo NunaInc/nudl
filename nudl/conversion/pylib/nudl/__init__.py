@@ -29,6 +29,7 @@ import types
 import typing
 
 from nudl import dataproc
+from nudl import dataset
 
 UTC_TIMEZONE: datetime.tzinfo = pytz.utc
 NUDL_TIMEZONE: datetime.tzinfo = pytz.utc
@@ -59,6 +60,17 @@ _HashAggregateTuple = typing.Tuple[_Sortable, collections.abc.Hashable]
 _HashAggregateTupleIterable = typing.Iterable[_HashAggregateTuple]
 _AggregateTuple = typing.Tuple[_Sortable, typing.Any]
 _AggregateTupleIterable = typing.Iterable[_AggregateTuple]
+
+
+def collect(obj: _AnyIterable) -> _AnyIterable:
+    """Expands recursive generators
+    - essential for preprocessing any iterable"""
+    for o in obj:
+        if isinstance(o, types.GeneratorType):
+            for x in collect(o):
+                yield x
+        else:
+            yield o
 
 
 def _pick_first(e: _AggregateTuple) -> _Sortable:
@@ -113,14 +125,14 @@ def aggregate_to_set(
 
 def safe_max(l: _AnyIterable) -> _AnyOptional:
     try:
-        return max(l)
+        return max(collect(l))
     except ValueError:
         return None
 
 
 def safe_min(l: _AnyIterable) -> _AnyOptional:
     try:
-        return min(l)
+        return min(collect(l))
     except ValueError:
         return None
 
@@ -128,7 +140,7 @@ def safe_min(l: _AnyIterable) -> _AnyOptional:
 def max_by(l: _AnyIterable, f: _SortMapper) -> _AnyOptional:
     try:
         # mypy gives some error here - pretty bogus:
-        return max(map(lambda e, f=f: (f(e), e), l))[1]
+        return max(map(lambda e, f=f: (f(e), e), collect(l)))[1]
     except ValueError:
         return None
 
@@ -136,7 +148,7 @@ def max_by(l: _AnyIterable, f: _SortMapper) -> _AnyOptional:
 def min_by(l: _AnyIterable, f: _SortMapper) -> _AnyOptional:
     try:
         # mypy gives some error here - pretty bogus:
-        return min(map(lambda e, f=f: (f(e), e), l))[1]
+        return min(map(lambda e, f=f: (f(e), e), collect(l)))[1]
     except ValueError:
         return None
 
@@ -146,8 +158,12 @@ def sort(l: _AnyList, key: _SortMapper, reverse: bool) -> _AnyList:
     return l
 
 
+def safe_front(l: _AnyList) -> _AnyOptional:
+    return l[0] if l else None
+
+
 def front(l: _AnyIterable) -> _AnyOptional:
-    return front(list(itertools.islice(l, 1)))
+    return safe_front(list(collect(itertools.islice(l, 1))))
 
 
 def shuffle(l: _AnyList) -> _AnyList:
@@ -246,14 +262,7 @@ def default_datetime() -> DateTime:
     return _ZERO_DATETIME
 
 
-def _collect(obj: _AnyIterable) -> _AnyIterable:
-    for o in obj:
-        if isinstance(o, types.GeneratorType):
-            for x in _collect(o):
-                yield x
-        else:
-            yield o
-
-
-def collect(obj: _AnyIterable) -> _AnyList:
-    return list(_collect(obj))
+def as_list(obj: _AnyIterable) -> _AnyList:
+    if isinstance(obj, list):
+        return obj
+    return list(collect(obj))

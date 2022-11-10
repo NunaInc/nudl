@@ -14,8 +14,12 @@
 // limitations under the License.
 //
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "nudl/analysis/testing/analysis_test.h"
 #include "nudl/status/testing.h"
+
+ABSL_DECLARE_FLAG(bool, nudl_accept_abstract_function_objects);
 
 namespace nudl {
 namespace analysis {
@@ -346,8 +350,7 @@ def g() => f().prefix.len()
   CheckError("unbuilt_function2", R"(
 def g() => { z = (x => x + 1); z(3) }
 )",
-             "when defining a variable typed as a Function, "
-             "this type needs to be bound");
+             "Provided function type needs to be bound.");
   CheckError("missing_arg", R"(
 import cdm
 def f(names: Array<cdm.HumanName>) => _ensured(names.front())
@@ -715,6 +718,136 @@ def h(t: Tuple) => t[4]
 zz = h([1, "foo", "bar"])
 )",
              "Tuples index: 4 out of tuple type range");
+  CheckCode("general_test", "tuple_direct_call", R"(
+def g(t: Tuple) => t[2]
+z = g([1, "foo", 2.3])
+)");
+}
+
+TEST_F(AnalysisTest, AbstractFunctions) {
+  // We set this to accept binds:
+  absl::SetFlag(&FLAGS_nudl_accept_abstract_function_objects, true);
+  CheckCode("general_test", "with_default_arg", R"(
+def f(x: Array<Int>, y: Int = 3) =>
+  x.map((p, q = y) => p + q).sum()
+
+z = f([1,2,3,4])
+)");
+  CheckCode("general_test", "var_function", R"(
+def ff(x, y) => x + y
+gg = ff
+v1 = gg(1, 2)
+v2 = gg(1.1, 2.2)
+)");
+  /* TODO(catalin):
+     This fails in conversion - we never get to bind the lambda
+     of the second assignment.
+  PrepareCode("general_test", "var_function2", R"(
+def ff(x, y) => x + y
+gg = ff
+v1 = gg(1, 2)
+gg = (x, y) => x * y
+v2 = gg(1.1, 2.2)
+)");
+  */
+  CheckCode("general_test", "var_function3", R"(
+def f(x: {T}, y: T, fun: Function<T, T>) => {
+  if (x > y) {
+    fun = (x => x * x)
+  }
+  fun(x)
+}
+def g(x) => x + x
+def h(x) => x - x
+
+ff = g
+v1 = f(100, 20, ff)
+ff = h
+v2 = f(20.0, 100.0, ff)
+)");
+  CheckCode("general_test", "var_function4", R"(
+g = {a = 1, b = 2.3, c = (s, t) => s + t}
+h = g
+v1 = g[2](333, 22)
+v2 = g[2](333.3, 3.5)
+)");
+  CheckCode("general_test", "named_tuples", R"(
+def f(x) => x + 1
+x = { a = 3, b = "foo", c = f }
+)");
+  CheckCode("general_test", "named_tuples2", R"(
+def f(x) => x + 1
+x = { a = 3, b = "foo", c = f }
+g = x[2](4)
+)");
+  CheckError("bad_reassignment1", R"(
+def ff(x, y) => x + y
+gg = ff
+v1 = gg(1, 2)
+def fff(x, y, z) => x + y + z
+gg = fff
+)",
+             "Type mismatch in assignment");
+  CheckError("bad_reassignment2", R"(
+def ff(x, y) => x + y
+gg = ff
+v1 = gg(1, 2)
+def fff(x, y, z = 1) => x + y + z
+gg = fff
+)",
+             "Type mismatch in assignment");
+  CheckError("bad_reassignment3", R"(
+def ff(x, y) => x + y
+def ff(x, y, z) => x + y + z
+gg = ff
+v1 = gg(1, 2)
+)",
+             "Cannot call non-function type");
+  // There is a discussion here:
+  //   - this raises an error and after some thought it
+  //   definitely should.
+  //   - the problem is that as defined, ff provided no
+  //   relation between the input types and output types,
+  //   so, when we call `main(ff)`, and we bind gg, there
+  //   is no way to determine the type of gg from the actual
+  //   provided bind (ie. Function<Any, Any, Any>)
+  //   - We can do something and because we call with ff,
+  //   we know that for that particular call we would get
+  //   an int, but for the general purpose, not.
+  CheckError("untyped_function", R"(
+def ff(x, y) => x * y
+def gg(f) => {
+  f(2, 3)
+}
+v1 = gg(ff)
+)",
+             "is unbound and not a function");
+
+  // TODO(catalin): while this runs correctly, it does so because
+  // of the dynamic nature of python. There are some issues here..
+  CheckCode("general_test", "reassigned_multiple_binds", R"(
+def ff(x: {T}, y: {T}) : T => x * y
+def gg(x, y): Int => x + y
+def main(f) => {
+  f(2, 3)
+}
+def main2(f) => {
+   f(2.0, 3.0)
+}
+v1 = main(ff)
+v2 = main(gg)
+v3 = main2(ff)
+)");
+  // This exercises a previous crash during error recovery:
+  CheckError("bad_array_coercion", R"(
+def agg(t: {T}): Tuple<T, Tuple<T>> => {
+  result = [t, {_arg = t}]
+  pragma log_type {result}
+  return result
+}
+x = agg(0)
+)",
+             "Cannot coerce Tuple type to: Int");
 }
 
 TEST_F(AnalysisTest, JustPrepare) {
