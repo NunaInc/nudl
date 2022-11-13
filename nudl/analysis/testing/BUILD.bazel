@@ -46,7 +46,7 @@ cc_library(
     testonly = 1,
     srcs = ["analysis_test.cc"],
     hdrs = ["analysis_test.h"],
-    data = ["//nudl/analysis/testing/testdata:builtins.ndl"],
+    data = ["//nudl/analysis/testing/testdata:nudl_builtins.ndl"],
     deps = [
         "//nudl/analysis",
         "//nudl/conversion",

@@ -14,26 +14,30 @@
 // limitations under the License.
 //
 
+// A virtual type for underlying engines.
+typedef Engine = Struct<String>
+
 // Reads a CSV file specification and creates a dataset with
 // a specified schema determined by T.
 // Example: read_csv(Foo(), '/path/to/foo.parquet')
-def read_csv(seed: {T: Struct}, file_spec: String) : Dataset<T> =>
-[[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.read_csv(${seed}, ${file_spec})[[end]]
+def method read_csv(
+  engine: Engine, seed: {T: Struct},
+  file_spec: String) : Dataset<T> =>
+[[pyinline]]${engine}.read_csv(${seed}, ${file_spec})[[end]]
 
 // Reads a Parquet file specification and creates a
 // dataset with specified schema determined by T.
 // Example: read_parquet(Foo(), '/path/to/foo.parquet')
-def read_parquet(seed: {T: Struct}, file_spec: String) : Dataset<T> =>
-[[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.read_parquet(${seed}, ${file_spec})[[end]]
+def method read_parquet(
+  engine: Engine, seed: {T: Struct},
+  file_spec: String) : Dataset<T> =>
+[[pyinline]]${engine}.read_parquet(${seed}, ${file_spec})[[end]]
 
 // Applies the provided function on all members of src dataset,
 // obtaining a dataset from the results.
 def method map(src: Dataset<{T: Any}>,
                f: Function<T, {Y: Struct}>) : Dataset<Y> =>
-[[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.dataset_map(${src}, ${f})[[end]]
+[[pyinline]]${src}.dataset_map(${f})[[end]]
 
 // Applies the provided function that returns an array, then
 // flattens it into the output. E.g. if you return this
@@ -41,18 +45,12 @@ def method map(src: Dataset<{T: Any}>,
 // 1,2,3,4,5,6 as output.
 def method flat_map(src: Dataset<{T: Any}>,
                     f: Function<T, Array<{Y: Struct}>>) : Dataset<Y> =>
-[[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.dataset_flat_map(${src}, ${f})[[end]]
+[[pyinline]]${src}.dataset_flat_map(${f})[[end]]
 
 // Filters the input dataset by the provided predicate `f`.
 def method filter(src: Dataset<{T: Any}>,
                   f: Function<T, Bool>) : Dataset<T> =>
-[[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.dataset_filter(${src}, ${f})[[end]]
-
-// Root for an aggregation.
-// For detail specification of aggregates check aggregate.ndl
-def agg(t: {T}): Tuple<T, Tuple<T>> => [t, {_arg = t}]
+[[pyinline]]${src}.dataset_filter(${f})[[end]]
 
 // Specification for a join. We do only left joins.
 //
@@ -81,8 +79,7 @@ def method join_left(
   left_key: {F: Function<T, {K}>},
   right_spec: {Spec: Tuple}
 ) : DatasetJoin<T, F, Spec> =>
-[[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.dataset_join_left(${left_src}, ${left_key}, ${right_spec})[[end]]
+[[pyinline]]${left_src}.dataset_join_left(${left_key}, ${right_spec})[[end]]
 
 def method join_by(
   right_src: {R: Dataset<{T: Struct}>},
@@ -95,10 +92,102 @@ def method join_multi_by(
 ) : Tuple<R, F> => {right_multi = right_src, key = right_key}
 
 
+//
+// Aggregates: we build an aggregation specification as a tuple, then
+// pass it to an aggregate dataset function. Examples:
+//
+// my_dataset.aggregate(
+//   s => _agg(s)
+//          .group_by({foo = s.foo})
+//          .count({num_foos = 1})
+//          .sum({total_bar = s.bar})
+// )
+//
+def method aggregate(src: Dataset<{T}>,
+  builder: Function<T, Tuple<T, {Spec: Tuple}>>)
+    : DatasetAggregate<Spec> =>
+[[pyinline]]${src}.dataset_aggregate(${builder})[[end]]
+
+// Root for an aggregation.
+// For detail specification of aggregates check aggregate.ndl
+def agg(t: {T}): Tuple<T, Tuple<T>> => [t, {_arg = t}]
+
+def method group_by(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{G}>)
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<G>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {group_by = value}) }
+
+def method group_by(t: Tuple<{T}, {A: Tuple}>, value: {G})
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<G>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {group_by = { _unnamed = value }}) }
+
+def method sum(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{V: Numeric}>)
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {sum = value}) }
+
+def method sum(t: Tuple<{T}, {A: Tuple}>, value: {V: Numeric})
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {sum = { _unnamed = value }}) }
+
+def method min(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{V: Sortable}>)
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {min = value}) }
+
+def method min(t: Tuple<{T}, {A: Tuple}>, value: {V: Sortable})
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {min = { _unnamed = value }}) }
+
+def method max(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{V: Sortable}>)
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {max = value}) }
+
+def method max(t: Tuple<{T}, {A: Tuple}>, value: {V: Sortable})
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {max = { _unnamed = value }}) }
+
+def method count_distinct(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{V: Any}>)
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {count_distinct = value}) }
+
+def method count_distinct(t: Tuple<{T}, {A: Tuple}>, value: {V: Sortable})
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(
+    t[1], {count_distinct = { _unnamed = value }}) }
+
+def method count(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{C: Numeric}>)
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<C>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {count = value}) }
+
+def method count(t: Tuple<{T}, {A: Tuple}>, value: {C: Numeric})
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<{C}>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {count = { _unnamed = value }}) }
+
+def method mean(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{V: Numeric}>)
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {mean = value}) }
+
+def method mean(t: Tuple<{T}, {A: Tuple}>, value: {V: Numeric})
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {mean = { _unnamed = value }}) }
+
+def method to_set(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{V: Any}>)
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {to_set = value}) }
+
+def method to_set(t: Tuple<{T}, {A: Tuple}>, value: {V: Any})
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {to_set = { _unnamed = value }}) }
+
+def method to_array(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{V: Any}>)
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {to_array = value}) }
+
+def method to_array(t: Tuple<{T}, {A: Tuple}>, value: {V: Any})
+    : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
+  return { arg = t[0], agg = tuple_join(t[1], {to_array = { _unnamed = value }}) }
+
 // Collects the result of a dataset as an array.
 // Of course, it must fit in memory or so :)
 // We may choose to limit the collection to say 10k records, but
 // still should fit in memory.
 def method collect(src: Dataset<{T}>) : Array<T> =>
-[[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.dataset_collect(${src})[[end]]
+[[pyinline]]${src}.dataset_collect()[[end]]

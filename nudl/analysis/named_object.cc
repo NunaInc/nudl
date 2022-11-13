@@ -64,6 +64,8 @@ absl::string_view ObjectKindName(pb::ObjectKind kind) {
       return "MethodGroup";
     case pb::ObjectKind::OBJ_TYPE_MEMBER_STORE:
       return "TypeMemberStore";
+    case pb::ObjectKind::OBJ_MAIN_FUNCTION:
+      return "MainFunction";
   }
   return "Unknown";
 }

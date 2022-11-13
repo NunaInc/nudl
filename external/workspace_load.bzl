@@ -114,4 +114,17 @@ def nuna_nudl_load_workspace():
         urls = ["https://github.com/bazelbuild/platforms/archive/da5541f26b7de1dc8e04c075c99df5351742a4a2.zip"],  # 2022-05-27
     )
 
+    http_archive(
+        name = "rules_python",
+        sha256 = "8c8fe44ef0a9afc256d1e75ad5f448bb59b81aba149b8958f02f7b3a98f5d9b4",
+        strip_prefix = "rules_python-0.13.0",
+        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.13.0.tar.gz",
+    )
+
+    http_archive(
+        name = "build_bazel_rules_nodejs",
+        sha256 = "d63ecec7192394f5cc4ad95a115f8a6c9de55c60d56c1f08da79c306355e4654",
+        urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.6.1/rules_nodejs-4.6.1.tar.gz"],
+    )
+
     cpplint()

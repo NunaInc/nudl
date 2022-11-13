@@ -228,6 +228,7 @@ enum FunctionType {
   FUN_NONE = 0;
   FUN_METHOD = 1;
   FUN_CONSTRUCTOR = 2;
+  FUN_MAIN = 3;
 }
 
 message FunctionDefinition {

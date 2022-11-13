@@ -80,6 +80,8 @@ enum ObjectKind {
   OBJ_METHOD_GROUP = 12;
   // A store of member function and fields of a type.
   OBJ_TYPE_MEMBER_STORE = 14;
+  // A function that acts as a 'main' for the current module
+  OBJ_MAIN_FUNCTION = 15;
 }
 
 enum FunctionResultKind {

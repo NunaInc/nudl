@@ -55,6 +55,8 @@ const std::vector<Function*> FunctionGroup::functions() const {
   return functions_;
 }
 
+bool FunctionGroup::is_main() const { return is_main_; }
+
 bool FunctionGroup::IsFunctionGroup(const NamedObject& object) {
   return (object.kind() == pb::ObjectKind::OBJ_FUNCTION_GROUP ||
           object.kind() == pb::ObjectKind::OBJ_METHOD_GROUP);
@@ -81,6 +83,13 @@ std::string FunctionGroup::DebugString() const {
 }
 
 absl::Status FunctionGroup::AddFunction(Function* fun) {
+  if (is_main_ || (!functions_.empty() &&
+                   fun->kind() == pb::ObjectKind::OBJ_MAIN_FUNCTION)) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Cannot add multiple functions with the same name "
+              "as the main function in "
+           << name() << " adding: " << fun->function_name();
+  }
   if (is_method_group_ && !Function::IsMethodKind(*fun)) {
     return status::InvalidArgumentErrorBuilder()
            << "Functions added as object members can only be methods "
@@ -112,6 +121,7 @@ absl::Status FunctionGroup::AddFunction(Function* fun) {
   if (new_group_type) {
     types_.emplace_back(std::move(new_group_type));
   }
+  is_main_ = (fun->kind() == pb::ObjectKind::OBJ_MAIN_FUNCTION);
   functions_.emplace_back(fun);
   return absl::OkStatus();
 }
@@ -218,6 +228,7 @@ bool IsFunctionObjectKind(pb::ObjectKind kind) {
   static const auto* const kFunctionKinds =
       new absl::flat_hash_set<pb::ObjectKind>({
           pb::ObjectKind::OBJ_FUNCTION,
+          pb::ObjectKind::OBJ_MAIN_FUNCTION,
           pb::ObjectKind::OBJ_METHOD,
           pb::ObjectKind::OBJ_CONSTRUCTOR,
           pb::ObjectKind::OBJ_LAMBDA,
@@ -378,6 +389,9 @@ bool Function::IsFunctionKind(const NamedObject& object) {
 bool Function::IsMethodKind(const NamedObject& object) {
   return IsMethodObjectKind(object.kind());
 }
+bool Function::IsFunctionMainKind(const NamedObject& object) {
+  return object.kind() == pb::ObjectKind::OBJ_MAIN_FUNCTION;
+}
 
 namespace {
 absl::StatusOr<FunctionGroup*> PrepareFunctionGroup(
@@ -428,6 +442,8 @@ absl::StatusOr<Function*> Function::BuildInScope(
       object_kind = pb::ObjectKind::OBJ_METHOD;
     } else if (element.fun_type() == pb::FunctionType::FUN_CONSTRUCTOR) {
       object_kind = pb::ObjectKind::OBJ_CONSTRUCTOR;
+    } else if (element.fun_type() == pb::FunctionType::FUN_MAIN) {
+      object_kind = pb::ObjectKind::OBJ_MAIN_FUNCTION;
     }
   }
   if (!NameUtil::IsValidName(function_name)) {
@@ -590,6 +606,13 @@ absl::Status Function::InitializeDefinition(
     RETURN_IF_ERROR(InitializeAsConstructor(result_type))
         << "Setting up function: " << function_name() << " as a constructor"
         << context.ToErrorInfo("In function definition");
+  } else if (kind_ == pb::ObjectKind::OBJ_MAIN_FUNCTION) {
+    if (!arguments_.empty() || is_native() || expressions_.empty()) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Function: " << name()
+             << " declared as a main, needs "
+                "to have no arguments and with a proper body.";
+    }
   }
   return absl::OkStatus();
 }

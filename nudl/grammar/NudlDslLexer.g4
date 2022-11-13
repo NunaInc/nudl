@@ -33,6 +33,7 @@ KW_CONSTRUCTOR: 'constructor';
 KW_TYPEDEF: 'typedef';
 KW_PRAGMA: 'pragma';
 KW_WITH: 'with';
+KW_MAIN_FUNCTION: 'main_function';
 
 // Reserved Literals
 KW_NULL: 'null';
@@ -68,6 +69,7 @@ fragment IDENTIFIER_KEYWORDS
     | KW_CONSTRUCTOR
     | KW_PARAM
     | KW_SCHEMA
+    | KW_MAIN_FUNCTION
     ;
 
 fragment LETTER: [a-zA-Z];

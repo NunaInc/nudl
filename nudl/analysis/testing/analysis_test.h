@@ -106,7 +106,7 @@ class AnalysisTest : public ::testing::Test {
                          bool skip_write) const;
 
   std::unique_ptr<Environment> env_;
-  std::string builtin_file_{"nudl/analysis/testing/testdata/builtins.ndl"};
+  std::string builtin_file_{"nudl/analysis/testing/testdata/nudl_builtins.ndl"};
   std::string search_path_{"nudl/analysis/testing/testdata"};
   size_t next_id_ = 0;
   absl::Duration setup_duration_ = absl::ZeroDuration();

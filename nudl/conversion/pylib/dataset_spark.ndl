@@ -13,32 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+import dataset
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// Utilities for dates and times
-//
-def method year(date: Date) : Int =>
-$$pyinline
-${date}.year
-$$end
-
-def method month(date: Date) : Int =>
-$$pyinline
-${date}.month
-$$end
-
-def method day(date: Date) : Int =>
-$$pyinline
-${date}.day
-$$end
-
-def method isoformat(date: Date) : String =>
-$$pyinline
-${date}.isoformat()
-$$end
-
-def method strftime(date: Date, format: String) : String =>
-$$pyinline
-${date}.isoformat(format)
-$$end
+def default_local_engine(name: String) : dataset.Engine =>
+[[pyimport]]import nudl.dataset_spark[[end]]
+[[pyinline]]nudl.dataset_spark.SparkEngineImpl(nudl.dataset_spark.spark_init_session(${name}))[[end]]
