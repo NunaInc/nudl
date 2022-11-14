@@ -30,6 +30,8 @@ import typing
 
 from nudl import dataproc
 from nudl import dataset
+from nudl import dataset_spark
+from nudl import flags
 
 UTC_TIMEZONE: datetime.tzinfo = pytz.utc
 NUDL_TIMEZONE: datetime.tzinfo = pytz.utc

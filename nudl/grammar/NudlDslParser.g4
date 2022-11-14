@@ -143,7 +143,7 @@ inlineBody
     ;
 
 functionAnnotation
-    : KW_METHOD | KW_CONSTRUCTOR
+    : KW_METHOD | KW_CONSTRUCTOR | KW_MAIN_FUNCTION
     ;
 
 functionDefinition

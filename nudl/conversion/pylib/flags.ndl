@@ -1,0 +1,50 @@
+//
+// Copyright 2022 Nuna inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+// Some basic flags to be used w/ nudl.
+// Runtime errors may happen if not used correctly.
+
+def define(value: Int, name: String, description: String): String =>
+[[pyimport]]import nudl.flags[[end]]
+[[pyinline]]nudl.flags.define_int_flag(${name}, ${value}, ${description})[[end]]
+
+def define(value: String, name: String, description: String): String =>
+[[pyimport]]import nudl.flags[[end]]
+[[pyinline]]nudl.flags.define_str_flag(${name}, ${value}, ${description})[[end]]
+
+def define(value: Bool, name: String, description: String): String =>
+[[pyimport]]import nudl.flags[[end]]
+[[pyinline]]nudl.flags.define_bool_flag(${name}, ${value}, ${description})[[end]]
+
+def define(value: Array<String>, name: String, description: String): String =>
+[[pyimport]]import nudl.flags[[end]]
+[[pyinline]]nudl.flags.define_list_flag(${name}, ${value}, ${description})[[end]]
+
+def get_int(name: String): Int =>
+[[pyimport]]import absl.flags[[end]]
+[[pyinline]]getattr(absl.flags.FLAGS, ${name}, 0)[[end]]
+
+def get_string(name: String): String =>
+[[pyimport]]import absl.flags[[end]]
+[[pyinline]]getattr(absl.flags.FLAGS, ${name}, "")[[end]]
+
+def get_bool(name: String): Bool =>
+[[pyimport]]import absl.flags[[end]]
+[[pyinline]]getattr(absl.flags.FLAGS, ${name}, False)[[end]]
+
+def get_list(name: String): Array<String> =>
+[[pyimport]]import absl.flags[[end]]
+[[pyinline]]getattr(absl.flags.FLAGS, ${name}, [])[[end]]

@@ -51,17 +51,21 @@ DEFAULT_RE = (
      ('choice', (['en', 'es', 'fr', 'zh', 'pt', 'vi', 'ro', 'it', 'de'],))),
 )
 
-def _generate_data(seeds: typing.Tuple, gendir: str, count: int,
-                   writer: data_writer.BaseWriter,
-                   generators: typing.Optional[typing.Tuple]
-                   ) -> typing.List[str]:
+
+def _generate_data(
+        seeds: typing.Tuple, gendir: str, count: int,
+        writer: data_writer.BaseWriter,
+        generators: typing.Optional[typing.Tuple]) -> typing.List[str]:
     if not generators:
         generators = DEFAULT_RE
-    builder = schema_synth.Builder(re_generators=list(generators))
+    builder = schema_synth.Builder(
+        re_generators=list(generators))  # type:ignore
     gens = builder.schema_generator(
-        output_type=writer.data_types()[0],
-        data_classes=[type(seed[1]) if isinstance(seed, typing.Tuple)
-                      else type(seed) for seed in seeds])
+        output_type=writer.data_types()[0],  # type:ignore
+        data_classes=[
+            type(seed[1]) if isinstance(seed, typing.Tuple) else type(seed)
+            for seed in seeds
+        ])
     for gen in gens:
         gen.pregenerate_keys(count)
     fileinfo = [
@@ -69,20 +73,17 @@ def _generate_data(seeds: typing.Tuple, gendir: str, count: int,
         for gen in gens
     ]
     result = schema_synth.GenerateFiles(fileinfo, writer, gendir)
-    return [result[fi.generator.name()][0]
-            for fi in fileinfo]
+    return [result[fi.generator.name()][0] for fi in fileinfo]
 
-def generate_csv(seeds: typing.Tuple, gendir: str,
-                 count: int, generators: typing.Optional[typing.Tuple]
-                 ) -> typing.List[str]:
-    return _generate_data(seeds, gendir, count,
-                          data_writer.CsvWriter(),
+
+def generate_csv(seeds: typing.Tuple, gendir: str, count: int,
+                 generators: typing.Optional[typing.Tuple]) -> typing.List[str]:
+    return _generate_data(seeds, gendir, count, data_writer.CsvWriter(),
                           generators)
 
 
-def generate_parquet(seeds: typing.Tuple, gendir: str,
-                    count: int, generators: typing.Optional[typing.Tuple]
-                    ) -> typing.List[str]:
+def generate_parquet(
+        seeds: typing.Tuple, gendir: str, count: int,
+        generators: typing.Optional[typing.Tuple]) -> typing.List[str]:
     return _generate_data(seeds, gendir, count,
-                          data_writer.ParquetWriter(no_uint=True),
-                          generators)
+                          data_writer.ParquetWriter(no_uint=True), generators)

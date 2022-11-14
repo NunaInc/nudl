@@ -17,8 +17,8 @@
 import examples.claim
 import examples.dataproc
 import dataset
-import aggregate
-
+import dataset_spark
+import flags
 
 GENERATORS_RE : Tuple = [
   Tuple([".*npi_id", Tuple(["str", Tuple([3, "ABC"])])]),
@@ -56,7 +56,7 @@ def generate_parquet(gendir: String, count: Int = 20000) => {
 }
 
 // Run analyzer on all Claims in provided CSV filename:
-def analyze(filename: String) => {
+def analyze_array(filename: String) => {
   print("Analyzing: " + filename)
   // Read the CSV with provided schema:
   examples.dataproc.read_csv(examples.claim.Claim(), filename)
@@ -73,9 +73,9 @@ def analyze(filename: String) => {
     })
 }
 
-def analyze_dataset(filename: String) => {
+def analyze_dataset(engine: dataset.Engine, filename: String) => {
   print("Analyzing w/ datasets: " + filename)
-  dataset.read_parquet(examples.claim.Claim(), filename)
+  dataset.read_parquet(engine, examples.claim.Claim(), filename)
     .aggregate(c => dataset.agg(c)
       .group_by({person_id_syn = c.person_id_syn})
       .to_array({claims = c}))
@@ -88,9 +88,22 @@ def analyze_dataset(filename: String) => {
             assigned = assignMember(c.person_id_syn, c.claims, 2u)));
 }
 
-// This module level variable computation acts as a main:
-// main = analyze(generate_csv("/tmp/demodata")).to_array().len()
+demo_dir = flags.define(
+  "/tmp/demodata", "demo_dir",
+  "Use this directory for storing temporary data");
+use_dataset = flags.define(
+  true, "use_dataset",
+  "Use the dataset based implementation for demo, else use arrays");
 
-init = examples.dataproc.spark_init_session("Demo")
-main = analyze_dataset(generate_parquet("/tmp/demodata")).collect()
-     .map(t => print(t)).to_array().len()
+def main_function main() => {
+  dir = flags.get_string(demo_dir)
+  size = 0u
+  if (flags.get_bool(use_dataset)) {
+    engine = dataset_spark.default_local_engine("Assign Demo")
+    size = analyze_dataset(engine, generate_parquet(dir)).collect()
+      .map(t => print(t)).to_array().len()
+  } else {
+    size = analyze_array(generate_csv(dir)).to_array().len()
+  }
+  print("Final size: " + str(size))
+}

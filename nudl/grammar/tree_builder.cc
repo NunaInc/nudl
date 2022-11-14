@@ -428,6 +428,8 @@ class DslVisitor : public NudlDslParserBaseVisitor {
         fundef.set_fun_type(pb::FunctionType::FUN_METHOD);
       } else if (context->functionAnnotation()->KW_CONSTRUCTOR()) {
         fundef.set_fun_type(pb::FunctionType::FUN_CONSTRUCTOR);
+      } else if (context->functionAnnotation()->KW_MAIN_FUNCTION()) {
+        fundef.set_fun_type(pb::FunctionType::FUN_MAIN);
       }
     }
     if (context->expressionBlock()) {

@@ -16,8 +16,9 @@
 // This exemplifies a simple join:
 //
 import dataset
-import aggregate
+import dataset_spark
 import examples.dataproc
+import flags
 
 schema Left = {
   l_id : Int;
@@ -41,17 +42,24 @@ def generate_parquet(gendir: String, count: Int = 2000) => {
     Tuple([Left(), Right()]), gendir, count, GENERATORS_RE)
 }
 
-def process(filenames: Array<String>) => {
-  left = dataset.read_parquet(Left(), _ensured(filenames[0]))
-  right = dataset.read_parquet(Right(), _ensured(filenames[1]));
+def process(engine: dataset.Engine, filenames: Array<String>) => {
+  left = engine.read_parquet(Left(), _ensured(filenames[0]))
+  right = engine.read_parquet(Right(), _ensured(filenames[1]));
   src = left.join_left(
     l => l.l_id,
     {right = right.join_by(r => r.l_id),
      right_multi = right.join_multi_by(r => r.l_id % 500 + 1)})
 }
 
-init = examples.dataproc.spark_init_session("Demo")
-main = print(process(generate_parquet("/tmp/protest"))
-  .filter(t => len(t.right_multi) > 0u)
-  .aggregate(t => dataset.agg(t).count(1).sum({s = len(t.right_multi)}))
-  .collect())
+demo_dir = flags.define(
+  "/tmp/jointest", "demo_dir",
+  "Use this directory for storing temporary data")
+
+def main_function main() => {
+    engine = dataset_spark.default_local_engine("Join Demo")
+    print(process(engine, generate_parquet(flags.get_string(demo_dir)))
+      .filter(t => len(t.right_multi) > 0u)
+      .aggregate(t => dataset.agg(t)
+        .count(1).sum({s = len(t.right_multi)}))
+      .collect())
+}

@@ -159,6 +159,8 @@ class Module : public Scope {
   absl::Duration parse_duration() const;
   // Type and binding analysis type:
   absl::Duration analysis_duration() const;
+  // If a main function is defined in this module, it is this one:
+  absl::optional<Function*> main_function() const;
 
   // Imports the definitions in this module from proto.
   absl::Status Import(const pb::Module& module,
@@ -200,6 +202,7 @@ class Module : public Scope {
   const std::string module_name_;
   ModuleStore* module_store_ = nullptr;
   std::unique_ptr<TypeSpec> module_type_;
+  absl::optional<Function*> main_function_;
   bool is_init_module_ = false;
   PragmaHandler pragma_handler_;
   absl::Duration parse_duration_;

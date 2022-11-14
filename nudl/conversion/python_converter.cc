@@ -299,11 +299,17 @@ absl::Status PythonConverter::ProcessModule(analysis::Module* module,
   local_state.add_import("import nudl");
   // TODO(catalin) : to see here how we do exactly for name overloading..
   if (module->built_in_scope() != module) {
-    local_state.add_import("from _nudl_builtin import *");
+    local_state.add_import("from nudl_builtins import *");
   }
   for (const auto& expression : module->expressions()) {
     PythonConvertState expression_state(&local_state);
     RETURN_IF_ERROR(ConvertExpression(*expression.get(), &expression_state));
+    RETURN_IF_ERROR(local_state.AddState(expression_state));
+  }
+  if (module->main_function().has_value()) {
+    PythonConvertState expression_state(&local_state);
+    RETURN_IF_ERROR(ConvertMainFunction(module->main_function().value(),
+                                        &expression_state));
     RETURN_IF_ERROR(local_state.AddState(expression_state));
   }
   std::vector<std::string> imports(local_state.imports().begin(),
@@ -1467,6 +1473,16 @@ absl::StatusOr<bool> PythonConverter::ConvertFunction(
   superstate->AddImports(local_state);
   RETURN_IF_ERROR(ConvertBindings(fun, bstate).status());
   return true;
+}
+
+absl::Status PythonConverter::ConvertMainFunction(
+    analysis::Function* fun, PythonConvertState* state) const {
+  state->add_import("import absl.app");
+  ASSIGN_OR_RETURN(auto fname, LocalFunctionName(fun, true, state));
+  state->out() << std::endl
+               << "if __name__ == \"__main__\":" << std::endl
+               << "  absl.app.run(lambda _: " << fname << "())" << std::endl;
+  return absl::OkStatus();
 }
 
 absl::StatusOr<std::string> PythonConverter::LocalFunctionName(

@@ -120,6 +120,8 @@ class PythonConverter : public Converter {
   absl::StatusOr<std::string> LocalFunctionName(analysis::Function* fun,
                                                 bool is_on_use,
                                                 ConvertState* state) const;
+  absl::Status ConvertMainFunction(analysis::Function* fun,
+                                   PythonConvertState* state) const;
 
   // If we define function bindings where they are used, as opposed
   // to where they are defined.

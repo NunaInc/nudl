@@ -9,5 +9,8 @@ LICENSE
 README.md
 WORKSPACE
 analyze.sh
+bazel
 external
 nudl
+requirements.txt
+requirements_lock.txt

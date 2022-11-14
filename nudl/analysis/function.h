@@ -141,6 +141,9 @@ class FunctionGroup : public Scope {
 
   std::string DebugString() const override;
 
+  // If this corresponds to the 'main' function in a binary.
+  bool is_main() const;
+
   static bool IsFunctionGroup(const NamedObject& object);
 
  private:
@@ -151,6 +154,7 @@ class FunctionGroup : public Scope {
   const bool is_method_group_;
   std::vector<Function*> functions_;
   std::vector<std::unique_ptr<TypeSpec>> types_;
+  bool is_main_ = false;
 };
 
 inline constexpr absl::string_view kConstructorName = "__init__";
@@ -252,6 +256,7 @@ class Function : public Scope {
   // If provided named object is a function.
   static bool IsFunctionKind(const NamedObject& object);
   static bool IsMethodKind(const NamedObject& object);
+  static bool IsFunctionMainKind(const NamedObject& object);
   // Returns a name for a result kind of a function.
   static absl::string_view ResultKindName(pb::FunctionResultKind result_kind);
 

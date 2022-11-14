@@ -654,9 +654,6 @@ run_on_emr_config.json
 .idea-old/
 .idea-old/*
 
-
-compile_commands.json
-user.bazelrc
 # Prerequisites
 *.d
 
@@ -689,3 +686,10 @@ user.bazelrc
 *.exe
 *.out
 *.app
+
+# extra bazel stuff
+compile_commands.json
+user.bazelrc
+
+# antlr
+.antlr

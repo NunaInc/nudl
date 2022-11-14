@@ -101,19 +101,36 @@ PathBasedFileReader::ReadModule(absl::string_view module_name) const {
   std::vector<std::string> search_paths;
   search_paths.reserve(search_paths_.size());
   for (const auto& path : search_paths_) {
+    const std::string module_path = ModuleNameToPath(module_name);
+    const std::string module_file = absl::StrCat(module_path, extension_);
+    const std::string module_init_file =
+        (std_filesystem::path(module_path) / kDefaultModuleFile).native();
     try {
-      auto crt_path =
-          path / absl::StrCat(ModuleNameToPath(module_name), extension_);
-      if (std_filesystem::is_regular_file(crt_path)) {
-        return ReadFile(crt_path, ModuleFileReader::ModuleReadResult{
-                                      std::string(module_name), path.native(),
-                                      crt_path.native(), false});
-      }
-      auto top_path = path / ModuleNameToPath(module_name) / kDefaultModuleFile;
-      if (std_filesystem::is_regular_file(top_path)) {
-        return ReadFile(top_path, ModuleFileReader::ModuleReadResult{
-                                      std::string(module_name), path.native(),
-                                      top_path.native(), true});
+      if (std_filesystem::is_regular_file(path)) {
+        std::string full_path = path.native();
+        if (absl::EndsWith(full_path, absl::StrCat("/", module_file))) {
+          return ReadFile(
+              path, ModuleFileReader::ModuleReadResult{std::string(module_name),
+                                                       path, path, false});
+        }
+        if (absl::EndsWith(full_path, absl::StrCat("/", module_init_file))) {
+          return ReadFile(
+              path, ModuleFileReader::ModuleReadResult{std::string(module_name),
+                                                       path, path, true});
+        }
+      } else if (std_filesystem::is_directory(path)) {
+        auto crt_path = path / module_file;
+        if (std_filesystem::is_regular_file(crt_path)) {
+          return ReadFile(crt_path,
+                          ModuleFileReader::ModuleReadResult{
+                              std::string(module_name), path, crt_path, false});
+        }
+        auto top_path = path / module_init_file;
+        if (std_filesystem::is_regular_file(top_path)) {
+          return ReadFile(top_path,
+                          ModuleFileReader::ModuleReadResult{
+                              std::string(module_name), path, top_path, true});
+        }
       }
     } catch (const std_filesystem::filesystem_error& ex) {
       return status::InternalErrorBuilder()
@@ -307,6 +324,10 @@ const std::string& Module::module_name() const { return module_name_; }
 
 PragmaHandler* Module::pragma_handler() { return &pragma_handler_; }
 
+absl::optional<Function*> Module::main_function() const {
+  return main_function_;
+}
+
 absl::Status Module::Import(const pb::Module& module,
                             std::vector<std::string>* import_chain) {
   absl::Status status;
@@ -446,6 +467,16 @@ absl::Status Module::ProcessFunctionDef(const pb::FunctionDefinition& element,
                    Function::BuildInScope(this, element, "", context));
   expressions_.emplace_back(
       std::make_unique<FunctionDefinitionExpression>(this, def_function));
+  if (Function::IsFunctionMainKind(*def_function)) {
+    if (main_function_.has_value()) {
+      return status::InvalidArgumentErrorBuilder()
+             << "Cannot define multiple main functions in the "
+                " same module. Existing: "
+             << main_function_.value()->full_name()
+             << " Adding: " << def_function->full_name();
+    }
+    main_function_ = def_function;
+  }
   return absl::OkStatus();
 }
 

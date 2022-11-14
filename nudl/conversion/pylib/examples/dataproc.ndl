@@ -54,8 +54,3 @@ def generate_parquet(
   generators: Nullable<Tuple> = null) : Array<String> =>
 [[pyimport]]import nudl.dataproc[[end]]
 [[pyinline]]nudl.dataproc.generate_parquet(${seeds}, ${gendir}, ${count}, ${generators})[[end]]
-
-// This is supposed to be provided by execution environment.
-def spark_init_session(name: String) : Null =>
-[[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.spark_init_session(${name})[[end]]
