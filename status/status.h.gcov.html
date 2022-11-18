@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-11-14 21:17:31</td>
+            <td class="headerValue">2022-11-18 13:21:07</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">86</td>
@@ -101,18 +101,18 @@
 <a name="39"><span class="lineNum">      39 </span>            : </a>
 <a name="40"><span class="lineNum">      40 </span>            : class StatusWriter {</a>
 <a name="41"><span class="lineNum">      41 </span>            :  public:</a>
-<a name="42"><span class="lineNum">      42 </span><span class="lineCov">       8663 :   explicit StatusWriter(absl::Status status) : status_(std::move(status)) {}</span></a>
+<a name="42"><span class="lineNum">      42 </span><span class="lineCov">      15596 :   explicit StatusWriter(absl::Status status) : status_(std::move(status)) {}</span></a>
 <a name="43"><span class="lineNum">      43 </span>            : </a>
-<a name="44"><span class="lineNum">      44 </span><span class="lineCov">       8663 :   operator absl::Status() const {</span></a>
-<a name="45"><span class="lineNum">      45 </span><span class="lineCov">       8663 :     if (message_.empty() || status_.ok()) {</span></a>
-<a name="46"><span class="lineNum">      46 </span><span class="lineCov">        749 :       return status_;</span></a>
+<a name="44"><span class="lineNum">      44 </span><span class="lineCov">      15596 :   operator absl::Status() const {</span></a>
+<a name="45"><span class="lineNum">      45 </span><span class="lineCov">      15596 :     if (message_.empty() || status_.ok()) {</span></a>
+<a name="46"><span class="lineNum">      46 </span><span class="lineCov">       1989 :       return status_;</span></a>
 <a name="47"><span class="lineNum">      47 </span>            :     }</a>
-<a name="48"><span class="lineNum">      48 </span><span class="lineCov">       7914 :     return Annotate(status_, message_);</span></a>
+<a name="48"><span class="lineNum">      48 </span><span class="lineCov">      13607 :     return Annotate(status_, message_);</span></a>
 <a name="49"><span class="lineNum">      49 </span>            :   }</a>
 <a name="50"><span class="lineNum">      50 </span>            :   template &lt;class T&gt;</a>
-<a name="51"><span class="lineNum">      51 </span><span class="lineCov">      37849 :   StatusWriter&amp; operator&lt;&lt;(const T&amp; value) {</span></a>
-<a name="52"><span class="lineNum">      52 </span><span class="lineCov">      37849 :     absl::StrAppend(&amp;message_, value);</span></a>
-<a name="53"><span class="lineNum">      53 </span><span class="lineCov">      37849 :     return *this;</span></a>
+<a name="51"><span class="lineNum">      51 </span><span class="lineCov">      59489 :   StatusWriter&amp; operator&lt;&lt;(const T&amp; value) {</span></a>
+<a name="52"><span class="lineNum">      52 </span><span class="lineCov">      59489 :     absl::StrAppend(&amp;message_, value);</span></a>
+<a name="53"><span class="lineNum">      53 </span><span class="lineCov">      59489 :     return *this;</span></a>
 <a name="54"><span class="lineNum">      54 </span>            :   }</a>
 <a name="55"><span class="lineNum">      55 </span>            : </a>
 <a name="56"><span class="lineNum">      56 </span>            :  protected:</a>
@@ -217,12 +217,12 @@
 <a name="155"><span class="lineNum">     155 </span><span class="lineNoCov">          0 : inline StatusWriter InternalErrorBuilder(absl::string_view message = &quot;&quot;) {</span></a>
 <a name="156"><span class="lineNum">     156 </span><span class="lineNoCov">          0 :   return StatusWriter(absl::InternalError(message));</span></a>
 <a name="157"><span class="lineNum">     157 </span>            : }</a>
-<a name="158"><span class="lineNum">     158 </span><span class="lineCov">        371 : inline StatusWriter InvalidArgumentErrorBuilder(</span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">       1417 : inline StatusWriter InvalidArgumentErrorBuilder(</span></a>
 <a name="159"><span class="lineNum">     159 </span>            :     absl::string_view message = &quot;&quot;) {</a>
-<a name="160"><span class="lineNum">     160 </span><span class="lineCov">        371 :   return StatusWriter(absl::InvalidArgumentError(message));</span></a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">       1417 :   return StatusWriter(absl::InvalidArgumentError(message));</span></a>
 <a name="161"><span class="lineNum">     161 </span>            : }</a>
-<a name="162"><span class="lineNum">     162 </span><span class="lineCov">       2289 : inline StatusWriter NotFoundErrorBuilder(absl::string_view message = &quot;&quot;) {</span></a>
-<a name="163"><span class="lineNum">     163 </span><span class="lineCov">       2289 :   return StatusWriter(absl::NotFoundError(message));</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">       2528 : inline StatusWriter NotFoundErrorBuilder(absl::string_view message = &quot;&quot;) {</span></a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">       2528 :   return StatusWriter(absl::NotFoundError(message));</span></a>
 <a name="164"><span class="lineNum">     164 </span>            : }</a>
 <a name="165"><span class="lineNum">     165 </span>            : inline StatusWriter OutOfRangeErrorBuilder(absl::string_view message = &quot;&quot;) {</a>
 <a name="166"><span class="lineNum">     166 </span>            :   return StatusWriter(absl::OutOfRangeError(message));</a>
@@ -242,8 +242,8 @@
 <a name="180"><span class="lineNum">     180 </span>            : inline StatusWriter UnavailableErrorBuilder(absl::string_view message = &quot;&quot;) {</a>
 <a name="181"><span class="lineNum">     181 </span>            :   return StatusWriter(absl::UnavailableError(message));</a>
 <a name="182"><span class="lineNum">     182 </span>            : }</a>
-<a name="183"><span class="lineNum">     183 </span><span class="lineCov">         12 : inline StatusWriter UnimplementedErrorBuilder(absl::string_view message = &quot;&quot;) {</span></a>
-<a name="184"><span class="lineNum">     184 </span><span class="lineCov">         12 :   return StatusWriter(absl::UnimplementedError(message));</span></a>
+<a name="183"><span class="lineNum">     183 </span><span class="lineCov">         15 : inline StatusWriter UnimplementedErrorBuilder(absl::string_view message = &quot;&quot;) {</span></a>
+<a name="184"><span class="lineNum">     184 </span><span class="lineCov">         15 :   return StatusWriter(absl::UnimplementedError(message));</span></a>
 <a name="185"><span class="lineNum">     185 </span>            : }</a>
 <a name="186"><span class="lineNum">     186 </span>            : inline StatusWriter UnknownErrorBuilder(absl::string_view message = &quot;&quot;) {</a>
 <a name="187"><span class="lineNum">     187 </span>            :   return StatusWriter(absl::UnknownError(message));</a>

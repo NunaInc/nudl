@@ -31,18 +31,18 @@
             <td class="headerValue">_coverage_report.dat</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">780</td>
-            <td class="headerCovTableEntry">843</td>
-            <td class="headerCovTableEntryHi">92.5 %</td>
+            <td class="headerCovTableEntry">773</td>
+            <td class="headerCovTableEntry">851</td>
+            <td class="headerCovTableEntryHi">90.8 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-11-14 21:17:31</td>
+            <td class="headerValue">2022-11-18 13:21:07</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">80</td>
-            <td class="headerCovTableEntry">80</td>
-            <td class="headerCovTableEntryHi">100.0 %</td>
+            <td class="headerCovTableEntry">82</td>
+            <td class="headerCovTableEntryHi">97.6 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -114,30 +114,30 @@
 <a name="52"><span class="lineNum">      52 </span><span class="lineCov">         71 :       type_store_(built_in_scope ? built_in_scope-&gt;type_store()</span></a>
 <a name="53"><span class="lineNum">      53 </span><span class="lineCov">        213 :                                  : top_type_store_.get()) {}</span></a>
 <a name="54"><span class="lineNum">      54 </span>            : </a>
-<a name="55"><span class="lineNum">      55 </span><span class="lineCov">       7608 : Scope::Scope(std::shared_ptr&lt;ScopeName&gt; scope_name, Scope* parent,</span></a>
-<a name="56"><span class="lineNum">      56 </span><span class="lineCov">       7608 :              bool is_module)</span></a>
-<a name="57"><span class="lineNum">      57 </span><span class="lineCov">       7608 :     : BaseNameStore(scope_name-&gt;name()),</span></a>
-<a name="58"><span class="lineNum">      58 </span><span class="lineCov">       7608 :       scope_name_(std::move(scope_name)),</span></a>
-<a name="59"><span class="lineNum">      59 </span><span class="lineCov">       7608 :       parent_(CHECK_NOTNULL(parent)),</span></a>
-<a name="60"><span class="lineNum">      60 </span><span class="lineCov">       7608 :       top_scope_(CHECK_NOTNULL(parent-&gt;top_scope())),</span></a>
-<a name="61"><span class="lineNum">      61 </span><span class="lineCov">       7608 :       built_in_scope_(CHECK_NOTNULL(parent-&gt;built_in_scope())),</span></a>
-<a name="62"><span class="lineNum">      62 </span><span class="lineCov">       7608 :       module_scope_(is_module ? this : CHECK_NOTNULL(parent-&gt;module_scope())),</span></a>
-<a name="63"><span class="lineNum">      63 </span><span class="lineCov">      45648 :       type_store_(CHECK_NOTNULL(parent-&gt;type_store())) {}</span></a>
+<a name="55"><span class="lineNum">      55 </span><span class="lineCov">       8848 : Scope::Scope(std::shared_ptr&lt;ScopeName&gt; scope_name, Scope* parent,</span></a>
+<a name="56"><span class="lineNum">      56 </span><span class="lineCov">       8848 :              bool is_module)</span></a>
+<a name="57"><span class="lineNum">      57 </span><span class="lineCov">       8848 :     : BaseNameStore(scope_name-&gt;name()),</span></a>
+<a name="58"><span class="lineNum">      58 </span><span class="lineCov">       8848 :       scope_name_(std::move(scope_name)),</span></a>
+<a name="59"><span class="lineNum">      59 </span><span class="lineCov">       8848 :       parent_(CHECK_NOTNULL(parent)),</span></a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineCov">       8848 :       top_scope_(CHECK_NOTNULL(parent-&gt;top_scope())),</span></a>
+<a name="61"><span class="lineNum">      61 </span><span class="lineCov">       8848 :       built_in_scope_(CHECK_NOTNULL(parent-&gt;built_in_scope())),</span></a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">       8848 :       module_scope_(is_module ? this : CHECK_NOTNULL(parent-&gt;module_scope())),</span></a>
+<a name="63"><span class="lineNum">      63 </span><span class="lineCov">      53088 :       type_store_(CHECK_NOTNULL(parent-&gt;type_store())) {}</span></a>
 <a name="64"><span class="lineNum">      64 </span>            : </a>
-<a name="65"><span class="lineNum">      65 </span><span class="lineCov">      15267 : Scope::~Scope() {</span></a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">      17747 : Scope::~Scope() {</span></a>
 <a name="66"><span class="lineNum">      66 </span>            :   // We need to release scopes and expressions in reverse order.</a>
 <a name="67"><span class="lineNum">      67 </span>            :   // May add a utility for that.</a>
-<a name="68"><span class="lineNum">      68 </span><span class="lineCov">      11419 :   while (!expressions_.empty()) {</span></a>
-<a name="69"><span class="lineNum">      69 </span><span class="lineCov">       3803 :     expressions_.pop_back();</span></a>
+<a name="68"><span class="lineNum">      68 </span><span class="lineCov">      13496 :   while (!expressions_.empty()) {</span></a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineCov">       4640 :     expressions_.pop_back();</span></a>
 <a name="70"><span class="lineNum">      70 </span>            :   }</a>
-<a name="71"><span class="lineNum">      71 </span><span class="lineCov">      13870 :   while (!defined_names_.empty()) {</span></a>
-<a name="72"><span class="lineNum">      72 </span><span class="lineCov">       6254 :     defined_names_.pop_back();</span></a>
+<a name="71"><span class="lineNum">      71 </span><span class="lineCov">      16164 :   while (!defined_names_.empty()) {</span></a>
+<a name="72"><span class="lineNum">      72 </span><span class="lineCov">       7308 :     defined_names_.pop_back();</span></a>
 <a name="73"><span class="lineNum">      73 </span>            :   }</a>
-<a name="74"><span class="lineNum">      74 </span><span class="lineCov">       7651 : }</span></a>
+<a name="74"><span class="lineNum">      74 </span><span class="lineCov">       8891 : }</span></a>
 <a name="75"><span class="lineNum">      75 </span>            : </a>
 <a name="76"><span class="lineNum">      76 </span><span class="lineCov">        172 : pb::ObjectKind Scope::kind() const { return pb::ObjectKind::OBJ_SCOPE; }</span></a>
 <a name="77"><span class="lineNum">      77 </span>            : </a>
-<a name="78"><span class="lineNum">      78 </span><span class="lineCov">      57329 : const ScopeName&amp; Scope::scope_name() const { return *scope_name_; }</span></a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineCov">      75116 : const ScopeName&amp; Scope::scope_name() const { return *scope_name_; }</span></a>
 <a name="79"><span class="lineNum">      79 </span>            : </a>
 <a name="80"><span class="lineNum">      80 </span><span class="lineCov">          3 : const TypeSpec* Scope::type_spec() const {</span></a>
 <a name="81"><span class="lineNum">      81 </span><span class="lineCov">          3 :   if (!expressions_.empty()) {</span></a>
@@ -149,30 +149,30 @@
 <a name="87"><span class="lineNum">      87 </span><span class="lineCov">          2 :   return TypeUnknown::Instance();</span></a>
 <a name="88"><span class="lineNum">      88 </span>            : }</a>
 <a name="89"><span class="lineNum">      89 </span>            : </a>
-<a name="90"><span class="lineNum">      90 </span><span class="lineCov">      26157 : absl::optional&lt;NameStore*&gt; Scope::parent_store() const {</span></a>
-<a name="91"><span class="lineNum">      91 </span><span class="lineCov">      26157 :   if (!parent_) {</span></a>
-<a name="92"><span class="lineNum">      92 </span><span class="lineCov">      10872 :     return {};</span></a>
+<a name="90"><span class="lineNum">      90 </span><span class="lineCov">      31750 : absl::optional&lt;NameStore*&gt; Scope::parent_store() const {</span></a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineCov">      31750 :   if (!parent_) {</span></a>
+<a name="92"><span class="lineNum">      92 </span><span class="lineCov">      13222 :     return {};</span></a>
 <a name="93"><span class="lineNum">      93 </span>            :   }</a>
-<a name="94"><span class="lineNum">      94 </span><span class="lineCov">      15285 :   return parent_;</span></a>
+<a name="94"><span class="lineNum">      94 </span><span class="lineCov">      18528 :   return parent_;</span></a>
 <a name="95"><span class="lineNum">      95 </span>            : }</a>
 <a name="96"><span class="lineNum">      96 </span>            : </a>
-<a name="97"><span class="lineNum">      97 </span><span class="lineCov">       6692 : std::shared_ptr&lt;ScopeName&gt; Scope::scope_name_ptr() const { return scope_name_; }</span></a>
+<a name="97"><span class="lineNum">      97 </span><span class="lineCov">       7752 : std::shared_ptr&lt;ScopeName&gt; Scope::scope_name_ptr() const { return scope_name_; }</span></a>
 <a name="98"><span class="lineNum">      98 </span>            : </a>
-<a name="99"><span class="lineNum">      99 </span><span class="lineCov">       3836 : Scope* Scope::parent() const { return parent_; }</span></a>
+<a name="99"><span class="lineNum">      99 </span><span class="lineCov">       5057 : Scope* Scope::parent() const { return parent_; }</span></a>
 <a name="100"><span class="lineNum">     100 </span>            : </a>
-<a name="101"><span class="lineNum">     101 </span><span class="lineCov">      10631 : Scope* Scope::top_scope() const { return top_scope_; }</span></a>
+<a name="101"><span class="lineNum">     101 </span><span class="lineCov">      12902 : Scope* Scope::top_scope() const { return top_scope_; }</span></a>
 <a name="102"><span class="lineNum">     102 </span>            : </a>
-<a name="103"><span class="lineNum">     103 </span><span class="lineCov">      13109 : Scope* Scope::module_scope() const { return module_scope_; }</span></a>
+<a name="103"><span class="lineNum">     103 </span><span class="lineCov">      20805 : Scope* Scope::module_scope() const { return module_scope_; }</span></a>
 <a name="104"><span class="lineNum">     104 </span>            : </a>
 <a name="105"><span class="lineNum">     105 </span><span class="lineCov">          1 : bool Scope::is_module() const { return module_scope_ == this; }</span></a>
 <a name="106"><span class="lineNum">     106 </span>            : </a>
-<a name="107"><span class="lineNum">     107 </span><span class="lineCov">       9375 : Scope* Scope::built_in_scope() const { return built_in_scope_; }</span></a>
+<a name="107"><span class="lineNum">     107 </span><span class="lineCov">      10804 : Scope* Scope::built_in_scope() const { return built_in_scope_; }</span></a>
 <a name="108"><span class="lineNum">     108 </span>            : </a>
-<a name="109"><span class="lineNum">     109 </span><span class="lineCov">       7651 : GlobalTypeStore* Scope::type_store() const { return type_store_; }</span></a>
+<a name="109"><span class="lineNum">     109 </span><span class="lineCov">       8891 : GlobalTypeStore* Scope::type_store() const { return type_store_; }</span></a>
 <a name="110"><span class="lineNum">     110 </span>            : </a>
-<a name="111"><span class="lineNum">     111 </span><span class="lineCov">       2327 : PragmaHandler* Scope::pragma_handler() const {</span></a>
-<a name="112"><span class="lineNum">     112 </span><span class="lineCov">       2327 :   CHECK_EQ(CHECK_NOTNULL(module_scope())-&gt;kind(), pb::ObjectKind::OBJ_MODULE);</span></a>
-<a name="113"><span class="lineNum">     113 </span><span class="lineCov">       2327 :   return static_cast&lt;Module*&gt;(module_scope())-&gt;pragma_handler();</span></a>
+<a name="111"><span class="lineNum">     111 </span><span class="lineCov">       5551 : PragmaHandler* Scope::pragma_handler() const {</span></a>
+<a name="112"><span class="lineNum">     112 </span><span class="lineCov">       5551 :   CHECK_EQ(CHECK_NOTNULL(module_scope())-&gt;kind(), pb::ObjectKind::OBJ_MODULE);</span></a>
+<a name="113"><span class="lineNum">     113 </span><span class="lineCov">       5551 :   return static_cast&lt;Module*&gt;(module_scope())-&gt;pragma_handler();</span></a>
 <a name="114"><span class="lineNum">     114 </span>            : }</a>
 <a name="115"><span class="lineNum">     115 </span>            : </a>
 <a name="116"><span class="lineNum">     116 </span><span class="lineCov">       2942 : const std::vector&lt;std::unique_ptr&lt;Expression&gt;&gt;&amp; Scope::expressions() const {</span></a>
@@ -183,15 +183,15 @@
 <a name="121"><span class="lineNum">     121 </span><span class="lineCov">          2 :   expressions_.emplace_back(std::move(expression));</span></a>
 <a name="122"><span class="lineNum">     122 </span><span class="lineCov">          2 : }</span></a>
 <a name="123"><span class="lineNum">     123 </span>            : </a>
-<a name="124"><span class="lineNum">     124 </span><span class="lineCov">        304 : std::string Scope::full_name() const {</span></a>
-<a name="125"><span class="lineNum">     125 </span><span class="lineCov">        304 :   std::string s(BaseNameStore::full_name());</span></a>
-<a name="126"><span class="lineNum">     126 </span><span class="lineCov">        304 :   if (built_in_scope_ == this) {</span></a>
-<a name="127"><span class="lineNum">     127 </span><span class="lineCov">         13 :     absl::StrAppend(&amp;s, &quot; [Built in Scope]&quot;);</span></a>
+<a name="124"><span class="lineNum">     124 </span><span class="lineCov">        301 : std::string Scope::full_name() const {</span></a>
+<a name="125"><span class="lineNum">     125 </span><span class="lineCov">        301 :   std::string s(BaseNameStore::full_name());</span></a>
+<a name="126"><span class="lineNum">     126 </span><span class="lineCov">        301 :   if (built_in_scope_ == this) {</span></a>
+<a name="127"><span class="lineNum">     127 </span><span class="lineCov">         11 :     absl::StrAppend(&amp;s, &quot; [Built in Scope]&quot;);</span></a>
 <a name="128"><span class="lineNum">     128 </span>            :   }</a>
-<a name="129"><span class="lineNum">     129 </span><span class="lineCov">        304 :   if (top_scope_ == this) {</span></a>
-<a name="130"><span class="lineNum">     130 </span><span class="lineCov">         26 :     absl::StrAppend(&amp;s, &quot; [Top Scope]&quot;);</span></a>
+<a name="129"><span class="lineNum">     129 </span><span class="lineCov">        301 :   if (top_scope_ == this) {</span></a>
+<a name="130"><span class="lineNum">     130 </span><span class="lineCov">         23 :     absl::StrAppend(&amp;s, &quot; [Top Scope]&quot;);</span></a>
 <a name="131"><span class="lineNum">     131 </span>            :   }</a>
-<a name="132"><span class="lineNum">     132 </span><span class="lineCov">        304 :   return s;</span></a>
+<a name="132"><span class="lineNum">     132 </span><span class="lineCov">        301 :   return s;</span></a>
 <a name="133"><span class="lineNum">     133 </span>            : }</a>
 <a name="134"><span class="lineNum">     134 </span>            : </a>
 <a name="135"><span class="lineNum">     135 </span><span class="lineCov">         52 : std::string Scope::NextLocalName(absl::string_view name,</span></a>
@@ -208,31 +208,31 @@
 <a name="146"><span class="lineNum">     146 </span><span class="lineCov">         47 :   return absl::StrCat(name, &quot;__bind_&quot;, ++it-&gt;second);</span></a>
 <a name="147"><span class="lineNum">     147 </span>            : }</a>
 <a name="148"><span class="lineNum">     148 </span>            : </a>
-<a name="149"><span class="lineNum">     149 </span><span class="lineCov">       6130 : absl::Status Scope::AddSubScope(std::unique_ptr&lt;Scope&gt; scope) {</span></a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineCov">       7184 : absl::Status Scope::AddSubScope(std::unique_ptr&lt;Scope&gt; scope) {</span></a>
 <a name="150"><span class="lineNum">     150 </span><span class="lineCov">          3 :   absl::Cleanup mark_failed = [this, &amp;scope]() {</span></a>
 <a name="151"><span class="lineNum">     151 </span><span class="lineCov">          3 :     failed_names_.emplace_back(std::move(scope));</span></a>
-<a name="152"><span class="lineNum">     152 </span><span class="lineCov">      12260 :   };</span></a>
-<a name="153"><span class="lineNum">     153 </span><span class="lineCov">       6130 :   if (!scope_name_-&gt;IsPrefixScope(scope-&gt;scope_name())) {</span></a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">      14368 :   };</span></a>
+<a name="153"><span class="lineNum">     153 </span><span class="lineCov">       7184 :   if (!scope_name_-&gt;IsPrefixScope(scope-&gt;scope_name())) {</span></a>
 <a name="154"><span class="lineNum">     154 </span><span class="lineCov">          2 :     return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="155"><span class="lineNum">     155 </span><span class="lineCov">          1 :            &lt;&lt; &quot;Expected child scope name: &quot; &lt;&lt; scope-&gt;name() &lt;&lt; &quot; to &quot;</span></a>
 <a name="156"><span class="lineNum">     156 </span><span class="lineCov">          1 :            &lt;&lt; &quot;be prefixed by the parent name: &quot; &lt;&lt; name();</span></a>
 <a name="157"><span class="lineNum">     157 </span>            :   }</a>
-<a name="158"><span class="lineNum">     158 </span><span class="lineCov">      18387 :   RETURN_IF_ERROR(type_store_-&gt;AddScope(scope-&gt;scope_name_ptr()))</span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">      21549 :   RETURN_IF_ERROR(type_store_-&gt;AddScope(scope-&gt;scope_name_ptr()))</span></a>
 <a name="159"><span class="lineNum">     159 </span><span class="lineCov">          1 :       &lt;&lt; &quot;Creating child type store for: &quot; &lt;&lt; scope-&gt;name()</span></a>
 <a name="160"><span class="lineNum">     160 </span><span class="lineCov">          1 :       &lt;&lt; &quot; while adding to parent: &quot; &lt;&lt; name();</span></a>
 <a name="161"><span class="lineNum">     161 </span>            :   const std::string local_name(</a>
-<a name="162"><span class="lineNum">     162 </span><span class="lineCov">      12256 :       scope-&gt;scope_name().SuffixName(scope_name_-&gt;size()));</span></a>
-<a name="163"><span class="lineNum">     163 </span><span class="lineCov">      12256 :   RETURN_IF_ERROR(AddChildStore(local_name, scope.get()));</span></a>
-<a name="164"><span class="lineNum">     164 </span><span class="lineCov">       6127 :   std::move(mark_failed).Cancel();</span></a>
-<a name="165"><span class="lineNum">     165 </span><span class="lineCov">       6127 :   defined_names_.emplace_back(std::move(scope));</span></a>
-<a name="166"><span class="lineNum">     166 </span><span class="lineCov">       6127 :   return absl::OkStatus();</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">      14364 :       scope-&gt;scope_name().SuffixName(scope_name_-&gt;size()));</span></a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">      14364 :   RETURN_IF_ERROR(AddChildStore(local_name, scope.get()));</span></a>
+<a name="164"><span class="lineNum">     164 </span><span class="lineCov">       7181 :   std::move(mark_failed).Cancel();</span></a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">       7181 :   defined_names_.emplace_back(std::move(scope));</span></a>
+<a name="166"><span class="lineNum">     166 </span><span class="lineCov">       7181 :   return absl::OkStatus();</span></a>
 <a name="167"><span class="lineNum">     167 </span>            : }</a>
 <a name="168"><span class="lineNum">     168 </span>            : </a>
-<a name="169"><span class="lineNum">     169 </span><span class="lineCov">       2597 : absl::Status Scope::AddOwnedChildStore(absl::string_view local_name,</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">       3000 : absl::Status Scope::AddOwnedChildStore(absl::string_view local_name,</span></a>
 <a name="170"><span class="lineNum">     170 </span>            :                                        std::unique_ptr&lt;NameStore&gt; store) {</a>
-<a name="171"><span class="lineNum">     171 </span><span class="lineCov">       2597 :   if (IsScopeKind(*store)) {</span></a>
+<a name="171"><span class="lineNum">     171 </span><span class="lineCov">       3000 :   if (IsScopeKind(*store)) {</span></a>
 <a name="172"><span class="lineNum">     172 </span>            :     return AddSubScope(</a>
-<a name="173"><span class="lineNum">     173 </span><span class="lineCov">       5194 :         std::unique_ptr&lt;Scope&gt;(static_cast&lt;Scope*&gt;(store.release())));</span></a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">       6000 :         std::unique_ptr&lt;Scope&gt;(static_cast&lt;Scope*&gt;(store.release())));</span></a>
 <a name="174"><span class="lineNum">     174 </span>            :   }</a>
 <a name="175"><span class="lineNum">     175 </span><span class="lineNoCov">          0 :   return BaseNameStore::AddOwnedChildStore(local_name, std::move(store));</span></a>
 <a name="176"><span class="lineNum">     176 </span>            : }</a>
@@ -267,30 +267,30 @@
 <a name="205"><span class="lineNum">     205 </span><span class="lineCov">         33 :   return local_scope_ptr;</span></a>
 <a name="206"><span class="lineNum">     206 </span>            : }</a>
 <a name="207"><span class="lineNum">     207 </span>            : </a>
-<a name="208"><span class="lineNum">     208 </span><span class="lineCov">       2150 : absl::StatusOr&lt;NamedObject*&gt; Scope::FindName(const ScopeName&amp; lookup_scope,</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">       3074 : absl::StatusOr&lt;NamedObject*&gt; Scope::FindName(const ScopeName&amp; lookup_scope,</span></a>
 <a name="209"><span class="lineNum">     209 </span>            :                                              const ScopedName&amp; scoped_name) {</a>
-<a name="210"><span class="lineNum">     210 </span><span class="lineCov">       4300 :   std::vector&lt;absl::Status&gt; find_status;</span></a>
-<a name="211"><span class="lineNum">     211 </span><span class="lineCov">       2150 :   absl::optional&lt;Function*&gt; local_function;</span></a>
-<a name="212"><span class="lineNum">     212 </span><span class="lineCov">       4300 :   std::vector&lt;NamedObject*&gt; result;</span></a>
-<a name="213"><span class="lineNum">     213 </span><span class="lineCov">       2150 :   if (lookup_scope.name() == name()) {</span></a>
-<a name="214"><span class="lineNum">     214 </span><span class="lineCov">       2149 :     local_function = FindFunctionAncestor();</span></a>
-<a name="215"><span class="lineNum">     215 </span><span class="lineCov">       2149 :     if (scoped_name.scope_name().empty()) {</span></a>
-<a name="216"><span class="lineNum">     216 </span><span class="lineCov">       2076 :       if (HasName(scoped_name.name(), false)) {</span></a>
-<a name="217"><span class="lineNum">     217 </span><span class="lineCov">        995 :         return GetName(scoped_name.name(), false);</span></a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">       6148 :   std::vector&lt;absl::Status&gt; find_status;</span></a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineCov">       3074 :   absl::optional&lt;Function*&gt; local_function;</span></a>
+<a name="212"><span class="lineNum">     212 </span><span class="lineCov">       6148 :   std::vector&lt;NamedObject*&gt; result;</span></a>
+<a name="213"><span class="lineNum">     213 </span><span class="lineCov">       3074 :   if (lookup_scope.name() == name()) {</span></a>
+<a name="214"><span class="lineNum">     214 </span><span class="lineCov">       3073 :     local_function = FindFunctionAncestor();</span></a>
+<a name="215"><span class="lineNum">     215 </span><span class="lineCov">       3073 :     if (scoped_name.scope_name().empty()) {</span></a>
+<a name="216"><span class="lineNum">     216 </span><span class="lineCov">       3002 :       if (HasName(scoped_name.name(), false)) {</span></a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">       1521 :         return GetName(scoped_name.name(), false);</span></a>
 <a name="218"><span class="lineNum">     218 </span>            :       } else {</a>
-<a name="219"><span class="lineNum">     219 </span><span class="lineCov">       2162 :         find_status.emplace_back(status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
-<a name="220"><span class="lineNum">     220 </span><span class="lineCov">       1081 :                                  &lt;&lt; &quot;Cannot find name: `&quot; &lt;&lt; scoped_name.name()</span></a>
-<a name="221"><span class="lineNum">     221 </span><span class="lineCov">       1081 :                                  &lt;&lt; &quot;` in local &quot; &lt;&lt; name());</span></a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">       2962 :         find_status.emplace_back(status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
+<a name="220"><span class="lineNum">     220 </span><span class="lineCov">       1481 :                                  &lt;&lt; &quot;Cannot find name: `&quot; &lt;&lt; scoped_name.name()</span></a>
+<a name="221"><span class="lineNum">     221 </span><span class="lineCov">       1481 :                                  &lt;&lt; &quot;` in local &quot; &lt;&lt; name());</span></a>
 <a name="222"><span class="lineNum">     222 </span>            :       }</a>
 <a name="223"><span class="lineNum">     223 </span>            :     } else {</a>
 <a name="224"><span class="lineNum">     224 </span>            :       // Finally search it here:</a>
-<a name="225"><span class="lineNum">     225 </span><span class="lineCov">         73 :       auto scope_result = FindChildStore(scoped_name.scope_name());</span></a>
-<a name="226"><span class="lineNum">     226 </span><span class="lineCov">         73 :       if (scope_result.ok()) {</span></a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">         71 :       auto scope_result = FindChildStore(scoped_name.scope_name());</span></a>
+<a name="226"><span class="lineNum">     226 </span><span class="lineCov">         71 :       if (scope_result.ok()) {</span></a>
 <a name="227"><span class="lineNum">     227 </span>            :         const bool is_unaccessible_function =</a>
-<a name="228"><span class="lineNum">     228 </span><span class="lineCov">         58 :             (Function::IsFunctionKind(*scope_result.value()) &amp;&amp;</span></a>
+<a name="228"><span class="lineNum">     228 </span><span class="lineCov">         57 :             (Function::IsFunctionKind(*scope_result.value()) &amp;&amp;</span></a>
 <a name="229"><span class="lineNum">     229 </span><span class="lineNoCov">          0 :              (!local_function.has_value() ||</span></a>
 <a name="230"><span class="lineNum">     230 </span><span class="lineNoCov">          0 :               local_function.value() != scope_result.value()));</span></a>
-<a name="231"><span class="lineNum">     231 </span><span class="lineCov">         58 :         if (scope_result.value()-&gt;HasName(scoped_name.name(), false)) {</span></a>
+<a name="231"><span class="lineNum">     231 </span><span class="lineCov">         57 :         if (scope_result.value()-&gt;HasName(scoped_name.name(), false)) {</span></a>
 <a name="232"><span class="lineNum">     232 </span><span class="lineCov">         55 :           if (!is_unaccessible_function || scope_result.value() == this) {</span></a>
 <a name="233"><span class="lineNum">     233 </span><span class="lineCov">         55 :             return scope_result.value()-&gt;GetName(scoped_name.name(), false);</span></a>
 <a name="234"><span class="lineNum">     234 </span>            :           } else {</a>
@@ -301,40 +301,40 @@
 <a name="239"><span class="lineNum">     239 </span><span class="lineNoCov">          0 :                 &lt;&lt; &quot; cannot be accessed from scope: &quot; &lt;&lt; lookup_scope.name());</span></a>
 <a name="240"><span class="lineNum">     240 </span>            :           }</a>
 <a name="241"><span class="lineNum">     241 </span>            :         }</a>
-<a name="242"><span class="lineNum">     242 </span><span class="lineCov">          3 :         if (!is_unaccessible_function) {</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">          2 :         if (!is_unaccessible_function) {</span></a>
 <a name="243"><span class="lineNum">     243 </span>            :           // TODO(catalin): Here find closest names, 'Did you mean ...'</a>
 <a name="244"><span class="lineNum">     244 </span>            :           find_status.emplace_back(</a>
-<a name="245"><span class="lineNum">     245 </span><span class="lineCov">          6 :               status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
-<a name="246"><span class="lineNum">     246 </span><span class="lineCov">          3 :               &lt;&lt; &quot;Cannot find name: `&quot; &lt;&lt; scoped_name.name()</span></a>
-<a name="247"><span class="lineNum">     247 </span><span class="lineCov">          3 :               &lt;&lt; &quot;` in child name store &quot; &lt;&lt; scope_result.value()-&gt;name()</span></a>
-<a name="248"><span class="lineNum">     248 </span><span class="lineCov">          3 :               &lt;&lt; &quot;; Available names: &quot;</span></a>
-<a name="249"><span class="lineNum">     249 </span><span class="lineCov">          3 :               &lt;&lt; absl::StrJoin(scope_result.value()-&gt;DefinedNames(), &quot;, &quot;));</span></a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineCov">          4 :               status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
+<a name="246"><span class="lineNum">     246 </span><span class="lineCov">          2 :               &lt;&lt; &quot;Cannot find name: `&quot; &lt;&lt; scoped_name.name()</span></a>
+<a name="247"><span class="lineNum">     247 </span><span class="lineCov">          2 :               &lt;&lt; &quot;` in child name store &quot; &lt;&lt; scope_result.value()-&gt;name()</span></a>
+<a name="248"><span class="lineNum">     248 </span><span class="lineCov">          2 :               &lt;&lt; &quot;; Available names: &quot;</span></a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">          2 :               &lt;&lt; absl::StrJoin(scope_result.value()-&gt;DefinedNames(), &quot;, &quot;));</span></a>
 <a name="250"><span class="lineNum">     250 </span>            :         }</a>
 <a name="251"><span class="lineNum">     251 </span>            :       } else {</a>
-<a name="252"><span class="lineNum">     252 </span><span class="lineCov">         30 :         find_status.emplace_back(status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
-<a name="253"><span class="lineNum">     253 </span><span class="lineCov">         15 :                                  &lt;&lt; &quot;Cannot find name store: `&quot;</span></a>
-<a name="254"><span class="lineNum">     254 </span><span class="lineCov">         15 :                                  &lt;&lt; scoped_name.scope_name().name()</span></a>
-<a name="255"><span class="lineNum">     255 </span><span class="lineCov">         15 :                                  &lt;&lt; &quot;` in local &quot; &lt;&lt; name());</span></a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineCov">         28 :         find_status.emplace_back(status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
+<a name="253"><span class="lineNum">     253 </span><span class="lineCov">         14 :                                  &lt;&lt; &quot;Cannot find name store: `&quot;</span></a>
+<a name="254"><span class="lineNum">     254 </span><span class="lineCov">         14 :                                  &lt;&lt; scoped_name.scope_name().name()</span></a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">         14 :                                  &lt;&lt; &quot;` in local &quot; &lt;&lt; name());</span></a>
 <a name="256"><span class="lineNum">     256 </span>            :       }</a>
 <a name="257"><span class="lineNum">     257 </span>            :     }</a>
 <a name="258"><span class="lineNum">     258 </span>            :   }</a>
-<a name="259"><span class="lineNum">     259 </span><span class="lineCov">       3604 :   for (size_t i = lookup_scope.size() + 1; i &gt; 0; --i) {</span></a>
-<a name="260"><span class="lineNum">     260 </span><span class="lineCov">       3042 :     const ScopeName prefix_scope(lookup_scope.PrefixScopeName(i - 1));</span></a>
-<a name="261"><span class="lineNum">     261 </span><span class="lineCov">       4626 :     if (!prefix_scope.function_names().empty() &amp;&amp;</span></a>
-<a name="262"><span class="lineNum">     262 </span><span class="lineCov">       4626 :         (!scoped_name.scope_name().module_name().empty())) {</span></a>
+<a name="259"><span class="lineNum">     259 </span><span class="lineCov">       4723 :   for (size_t i = lookup_scope.size() + 1; i &gt; 0; --i) {</span></a>
+<a name="260"><span class="lineNum">     260 </span><span class="lineCov">       4073 :     const ScopeName prefix_scope(lookup_scope.PrefixScopeName(i - 1));</span></a>
+<a name="261"><span class="lineNum">     261 </span><span class="lineCov">       6277 :     if (!prefix_scope.function_names().empty() &amp;&amp;</span></a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineCov">       6277 :         (!scoped_name.scope_name().module_name().empty())) {</span></a>
 <a name="263"><span class="lineNum">     263 </span>            :       // May actually bail out directly on the !function_names().empty()</a>
 <a name="264"><span class="lineNum">     264 </span><span class="lineCov">         20 :       continue;</span></a>
 <a name="265"><span class="lineNum">     265 </span>            :     }</a>
-<a name="266"><span class="lineNum">     266 </span><span class="lineCov">       3022 :     const ScopeName crt_name(prefix_scope.Subscope(scoped_name.scope_name()));</span></a>
-<a name="267"><span class="lineNum">     267 </span><span class="lineCov">       3022 :     auto result = top_scope()-&gt;FindChildStore(crt_name);</span></a>
-<a name="268"><span class="lineNum">     268 </span><span class="lineCov">       3022 :     if (result.ok()) {</span></a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineCov">       4053 :     const ScopeName crt_name(prefix_scope.Subscope(scoped_name.scope_name()));</span></a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineCov">       4053 :     auto result = top_scope()-&gt;FindChildStore(crt_name);</span></a>
+<a name="268"><span class="lineNum">     268 </span><span class="lineCov">       4053 :     if (result.ok()) {</span></a>
 <a name="269"><span class="lineNum">     269 </span>            :       const bool is_unaccessible_function =</a>
-<a name="270"><span class="lineNum">     270 </span><span class="lineCov">       3771 :           (Function::IsFunctionKind(*result.value()) &amp;&amp;</span></a>
-<a name="271"><span class="lineNum">     271 </span><span class="lineCov">        768 :            (!local_function.has_value() ||</span></a>
-<a name="272"><span class="lineNum">     272 </span><span class="lineCov">        768 :             local_function.value() != result.value()));</span></a>
-<a name="273"><span class="lineNum">     273 </span><span class="lineCov">       3003 :       if (result.value()-&gt;HasName(scoped_name.name(), false)) {</span></a>
-<a name="274"><span class="lineNum">     274 </span><span class="lineCov">        539 :         if (!is_unaccessible_function || result.value() == this) {</span></a>
-<a name="275"><span class="lineNum">     275 </span><span class="lineCov">        538 :           return result.value()-&gt;GetName(scoped_name.name(), false);</span></a>
+<a name="270"><span class="lineNum">     270 </span><span class="lineCov">       5114 :           (Function::IsFunctionKind(*result.value()) &amp;&amp;</span></a>
+<a name="271"><span class="lineNum">     271 </span><span class="lineCov">       1078 :            (!local_function.has_value() ||</span></a>
+<a name="272"><span class="lineNum">     272 </span><span class="lineCov">       1078 :             local_function.value() != result.value()));</span></a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineCov">       4036 :       if (result.value()-&gt;HasName(scoped_name.name(), false)) {</span></a>
+<a name="274"><span class="lineNum">     274 </span><span class="lineCov">        849 :         if (!is_unaccessible_function || result.value() == this) {</span></a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineCov">        848 :           return result.value()-&gt;GetName(scoped_name.name(), false);</span></a>
 <a name="276"><span class="lineNum">     276 </span>            :         } else {</a>
 <a name="277"><span class="lineNum">     277 </span><span class="lineCov">          2 :           find_status.emplace_back(status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
 <a name="278"><span class="lineNum">     278 </span><span class="lineCov">          1 :                                    &lt;&lt; &quot;Found name: &quot; &lt;&lt; scoped_name.name()</span></a>
@@ -342,66 +342,66 @@
 <a name="280"><span class="lineNum">     280 </span><span class="lineCov">          1 :                                    &lt;&lt; &quot; cannot be accessed from scope: &quot;</span></a>
 <a name="281"><span class="lineNum">     281 </span><span class="lineCov">          1 :                                    &lt;&lt; lookup_scope.name());</span></a>
 <a name="282"><span class="lineNum">     282 </span>            :         }</a>
-<a name="283"><span class="lineNum">     283 </span><span class="lineCov">       4378 :       } else if (!result.value()-&gt;name().empty() &amp;&amp;</span></a>
-<a name="284"><span class="lineNum">     284 </span><span class="lineCov">       1914 :                  (!is_unaccessible_function || result.value() == this)) {</span></a>
+<a name="283"><span class="lineNum">     283 </span><span class="lineCov">       5734 :       } else if (!result.value()-&gt;name().empty() &amp;&amp;</span></a>
+<a name="284"><span class="lineNum">     284 </span><span class="lineCov">       2547 :                  (!is_unaccessible_function || result.value() == this)) {</span></a>
 <a name="285"><span class="lineNum">     285 </span>            :         // TODO(catalin): Here find closest names, 'Did you mean ...'</a>
 <a name="286"><span class="lineNum">     286 </span>            :         find_status.emplace_back(</a>
-<a name="287"><span class="lineNum">     287 </span><span class="lineCov">       3794 :             status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
-<a name="288"><span class="lineNum">     288 </span><span class="lineCov">       1897 :             &lt;&lt; &quot;Cannot find name: `&quot; &lt;&lt; scoped_name.name() &lt;&lt; &quot;` in name store &quot;</span></a>
-<a name="289"><span class="lineNum">     289 </span><span class="lineCov">       1897 :             &lt;&lt; result.value()-&gt;name() &lt;&lt; &quot; from: &quot; &lt;&lt; crt_name.name()</span></a>
-<a name="290"><span class="lineNum">     290 </span><span class="lineCov">       1897 :             &lt;&lt; &quot; available names: &quot;</span></a>
-<a name="291"><span class="lineNum">     291 </span><span class="lineCov">       1897 :             &lt;&lt; absl::StrJoin(result.value()-&gt;DefinedNames(), &quot;, &quot;));</span></a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">       5060 :             status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
+<a name="288"><span class="lineNum">     288 </span><span class="lineCov">       2530 :             &lt;&lt; &quot;Cannot find name: `&quot; &lt;&lt; scoped_name.name() &lt;&lt; &quot;` in name store &quot;</span></a>
+<a name="289"><span class="lineNum">     289 </span><span class="lineCov">       2530 :             &lt;&lt; result.value()-&gt;name() &lt;&lt; &quot; from: &quot; &lt;&lt; crt_name.name()</span></a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineCov">       2530 :             &lt;&lt; &quot; available names: &quot;</span></a>
+<a name="291"><span class="lineNum">     291 </span><span class="lineCov">       2530 :             &lt;&lt; absl::StrJoin(result.value()-&gt;DefinedNames(), &quot;, &quot;));</span></a>
 <a name="292"><span class="lineNum">     292 </span>            :       }</a>
 <a name="293"><span class="lineNum">     293 </span>            :     }</a>
 <a name="294"><span class="lineNum">     294 </span>            :   }</a>
-<a name="295"><span class="lineNum">     295 </span><span class="lineCov">        562 :   if (built_in_scope() &amp;&amp; built_in_scope() != this) {</span></a>
-<a name="296"><span class="lineNum">     296 </span><span class="lineCov">        387 :     auto result = built_in_scope()-&gt;FindName(ScopeName(), scoped_name);</span></a>
-<a name="297"><span class="lineNum">     297 </span><span class="lineCov">        387 :     if (result.ok()) {</span></a>
-<a name="298"><span class="lineNum">     298 </span><span class="lineCov">        236 :       return result;</span></a>
+<a name="295"><span class="lineNum">     295 </span><span class="lineCov">        650 :   if (built_in_scope() &amp;&amp; built_in_scope() != this) {</span></a>
+<a name="296"><span class="lineNum">     296 </span><span class="lineCov">        400 :     auto result = built_in_scope()-&gt;FindName(ScopeName(), scoped_name);</span></a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">        400 :     if (result.ok()) {</span></a>
+<a name="298"><span class="lineNum">     298 </span><span class="lineCov">        252 :       return result;</span></a>
 <a name="299"><span class="lineNum">     299 </span>            :     }</a>
 <a name="300"><span class="lineNum">     300 </span>            :   }</a>
-<a name="301"><span class="lineNum">     301 </span><span class="lineCov">        326 :   if (find_status.empty()) {</span></a>
+<a name="301"><span class="lineNum">     301 </span><span class="lineCov">        398 :   if (find_status.empty()) {</span></a>
 <a name="302"><span class="lineNum">     302 </span><span class="lineCov">          2 :     find_status.emplace_back(status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
 <a name="303"><span class="lineNum">     303 </span><span class="lineCov">          2 :                              &lt;&lt; &quot;Cannot find name: `&quot; &lt;&lt; scoped_name.full_name()</span></a>
 <a name="304"><span class="lineNum">     304 </span><span class="lineCov">          1 :                              &lt;&lt; &quot;` looked up in scope: `&quot; &lt;&lt; lookup_scope.name()</span></a>
 <a name="305"><span class="lineNum">     305 </span><span class="lineCov">          1 :                              &lt;&lt; &quot;`&quot;);</span></a>
 <a name="306"><span class="lineNum">     306 </span>            :   }</a>
-<a name="307"><span class="lineNum">     307 </span><span class="lineCov">        326 :   if (scoped_name.scope_name().function_names().empty()) {</span></a>
+<a name="307"><span class="lineNum">     307 </span><span class="lineCov">        398 :   if (scoped_name.scope_name().function_names().empty()) {</span></a>
 <a name="308"><span class="lineNum">     308 </span>            :     auto type_result =</a>
-<a name="309"><span class="lineNum">     309 </span><span class="lineCov">        326 :         type_store_-&gt;FindType(lookup_scope, scoped_name.ToTypeSpec());</span></a>
-<a name="310"><span class="lineNum">     310 </span><span class="lineCov">        326 :     if (type_result.ok()) {</span></a>
-<a name="311"><span class="lineNum">     311 </span><span class="lineCov">         54 :       return {const_cast&lt;TypeSpec*&gt;(type_result.value())};</span></a>
+<a name="309"><span class="lineNum">     309 </span><span class="lineCov">        398 :         type_store_-&gt;FindType(lookup_scope, scoped_name.ToTypeSpec());</span></a>
+<a name="310"><span class="lineNum">     310 </span><span class="lineCov">        398 :     if (type_result.ok()) {</span></a>
+<a name="311"><span class="lineNum">     311 </span><span class="lineCov">        204 :       return {const_cast&lt;TypeSpec*&gt;(type_result.value())};</span></a>
 <a name="312"><span class="lineNum">     312 </span>            :     }</a>
-<a name="313"><span class="lineNum">     313 </span><span class="lineCov">        598 :     find_status.emplace_back(status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
-<a name="314"><span class="lineNum">     314 </span><span class="lineCov">        299 :                              &lt;&lt; &quot;Cannot find type name: `&quot;</span></a>
-<a name="315"><span class="lineNum">     315 </span><span class="lineCov">        299 :                              &lt;&lt; scoped_name.full_name() &lt;&lt; &quot;` either&quot;);</span></a>
+<a name="313"><span class="lineNum">     313 </span><span class="lineCov">        592 :     find_status.emplace_back(status::StatusWriter(absl::NotFoundError(&quot;&quot;))</span></a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">        296 :                              &lt;&lt; &quot;Cannot find type name: `&quot;</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineCov">        296 :                              &lt;&lt; scoped_name.full_name() &lt;&lt; &quot;` either&quot;);</span></a>
 <a name="316"><span class="lineNum">     316 </span>            :   }</a>
-<a name="317"><span class="lineNum">     317 </span><span class="lineCov">        598 :   return status::JoinStatus(find_status);</span></a>
+<a name="317"><span class="lineNum">     317 </span><span class="lineCov">        592 :   return status::JoinStatus(find_status);</span></a>
 <a name="318"><span class="lineNum">     318 </span>            : }</a>
 <a name="319"><span class="lineNum">     319 </span>            : </a>
-<a name="320"><span class="lineNum">     320 </span><span class="lineCov">      19545 : absl::StatusOr&lt;const TypeSpec*&gt; Scope::FindType(const pb::TypeSpec&amp; type_spec) {</span></a>
-<a name="321"><span class="lineNum">     321 </span><span class="lineCov">      19545 :   return type_store_-&gt;FindType(scope_name(), type_spec);</span></a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineCov">      24043 : absl::StatusOr&lt;const TypeSpec*&gt; Scope::FindType(const pb::TypeSpec&amp; type_spec) {</span></a>
+<a name="321"><span class="lineNum">     321 </span><span class="lineCov">      24043 :   return type_store_-&gt;FindType(scope_name(), type_spec);</span></a>
 <a name="322"><span class="lineNum">     322 </span>            : }</a>
 <a name="323"><span class="lineNum">     323 </span>            : </a>
-<a name="324"><span class="lineNum">     324 </span><span class="lineCov">      11883 : absl::StatusOr&lt;const TypeSpec*&gt; Scope::FindTypeByName(</span></a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineCov">      14332 : absl::StatusOr&lt;const TypeSpec*&gt; Scope::FindTypeByName(</span></a>
 <a name="325"><span class="lineNum">     325 </span>            :     absl::string_view type_name) {</a>
-<a name="326"><span class="lineNum">     326 </span><span class="lineCov">      23766 :   ASSIGN_OR_RETURN(auto type_spec, grammar::ParseTypeSpec(type_name),</span></a>
+<a name="326"><span class="lineNum">     326 </span><span class="lineCov">      28664 :   ASSIGN_OR_RETURN(auto type_spec, grammar::ParseTypeSpec(type_name),</span></a>
 <a name="327"><span class="lineNum">     327 </span>            :                    _ &lt;&lt; &quot;For type_name: `&quot; &lt;&lt; type_name &lt;&lt; &quot;`&quot;);</a>
-<a name="328"><span class="lineNum">     328 </span><span class="lineCov">      11883 :   return FindType(*type_spec);</span></a>
+<a name="328"><span class="lineNum">     328 </span><span class="lineCov">      14332 :   return FindType(*type_spec);</span></a>
 <a name="329"><span class="lineNum">     329 </span>            : }</a>
 <a name="330"><span class="lineNum">     330 </span>            : </a>
-<a name="331"><span class="lineNum">     331 </span><span class="lineCov">       6686 : const TypeSpec* Scope::FindTypeAny() {</span></a>
-<a name="332"><span class="lineNum">     332 </span><span class="lineCov">      13372 :   auto result = FindTypeByName(kTypeNameAny);</span></a>
-<a name="333"><span class="lineNum">     333 </span><span class="lineCov">       6686 :   CHECK_OK(result.status())</span></a>
+<a name="331"><span class="lineNum">     331 </span><span class="lineCov">       7988 : const TypeSpec* Scope::FindTypeAny() {</span></a>
+<a name="332"><span class="lineNum">     332 </span><span class="lineCov">      15976 :   auto result = FindTypeByName(kTypeNameAny);</span></a>
+<a name="333"><span class="lineNum">     333 </span><span class="lineCov">       7988 :   CHECK_OK(result.status())</span></a>
 <a name="334"><span class="lineNum">     334 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot;Cannot find type `Any` - Badly initialized scope&quot; &lt;&lt; kBugNotice;</span></a>
-<a name="335"><span class="lineNum">     335 </span><span class="lineCov">      13372 :   return result.value();</span></a>
+<a name="335"><span class="lineNum">     335 </span><span class="lineCov">      15976 :   return result.value();</span></a>
 <a name="336"><span class="lineNum">     336 </span>            : }</a>
 <a name="337"><span class="lineNum">     337 </span>            : </a>
-<a name="338"><span class="lineNum">     338 </span><span class="lineCov">       3338 : const TypeSpec* Scope::FindTypeFunction() {</span></a>
-<a name="339"><span class="lineNum">     339 </span><span class="lineCov">       6676 :   auto result = FindTypeByName(kTypeNameFunction);</span></a>
-<a name="340"><span class="lineNum">     340 </span><span class="lineCov">       3338 :   CHECK_OK(result.status())</span></a>
+<a name="338"><span class="lineNum">     338 </span><span class="lineCov">       3989 : const TypeSpec* Scope::FindTypeFunction() {</span></a>
+<a name="339"><span class="lineNum">     339 </span><span class="lineCov">       7978 :   auto result = FindTypeByName(kTypeNameFunction);</span></a>
+<a name="340"><span class="lineNum">     340 </span><span class="lineCov">       3989 :   CHECK_OK(result.status())</span></a>
 <a name="341"><span class="lineNum">     341 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot;Cannot find type `Function` - Badly initialized scope&quot; &lt;&lt; kBugNotice;</span></a>
-<a name="342"><span class="lineNum">     342 </span><span class="lineCov">       6676 :   return result.value();</span></a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineCov">       7978 :   return result.value();</span></a>
 <a name="343"><span class="lineNum">     343 </span>            : }</a>
 <a name="344"><span class="lineNum">     344 </span>            : </a>
 <a name="345"><span class="lineNum">     345 </span><span class="lineCov">         30 : const TypeSpec* Scope::FindTypeBool() {</span></a>
@@ -418,11 +418,11 @@
 <a name="356"><span class="lineNum">     356 </span><span class="lineCov">         12 :   return result.value();</span></a>
 <a name="357"><span class="lineNum">     357 </span>            : }</a>
 <a name="358"><span class="lineNum">     358 </span>            : </a>
-<a name="359"><span class="lineNum">     359 </span><span class="lineCov">       1060 : const TypeSpec* Scope::FindTypeUnion() {</span></a>
-<a name="360"><span class="lineNum">     360 </span><span class="lineCov">       2120 :   auto result = FindTypeByName(kTypeNameUnion);</span></a>
-<a name="361"><span class="lineNum">     361 </span><span class="lineCov">       1060 :   CHECK_OK(result.status())</span></a>
+<a name="359"><span class="lineNum">     359 </span><span class="lineCov">       1432 : const TypeSpec* Scope::FindTypeUnion() {</span></a>
+<a name="360"><span class="lineNum">     360 </span><span class="lineCov">       2864 :   auto result = FindTypeByName(kTypeNameUnion);</span></a>
+<a name="361"><span class="lineNum">     361 </span><span class="lineCov">       1432 :   CHECK_OK(result.status())</span></a>
 <a name="362"><span class="lineNum">     362 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot;Cannot find type `Union` - Badly initialized scope&quot; &lt;&lt; kBugNotice;</span></a>
-<a name="363"><span class="lineNum">     363 </span><span class="lineCov">       2120 :   return result.value();</span></a>
+<a name="363"><span class="lineNum">     363 </span><span class="lineCov">       2864 :   return result.value();</span></a>
 <a name="364"><span class="lineNum">     364 </span>            : }</a>
 <a name="365"><span class="lineNum">     365 </span>            : </a>
 <a name="366"><span class="lineNum">     366 </span><span class="lineCov">          3 : const TypeSpec* Scope::FindTypeTuple() {</span></a>
@@ -440,7 +440,7 @@
 <a name="378"><span class="lineNum">     378 </span>            : }</a>
 <a name="379"><span class="lineNum">     379 </span>            : </a>
 <a name="380"><span class="lineNum">     380 </span>            : namespace {</a>
-<a name="381"><span class="lineNum">     381 </span><span class="lineCov">       2598 : bool IsScopeObjectKind(pb::ObjectKind kind) {</span></a>
+<a name="381"><span class="lineNum">     381 </span><span class="lineCov">       3001 : bool IsScopeObjectKind(pb::ObjectKind kind) {</span></a>
 <a name="382"><span class="lineNum">     382 </span>            :   static const auto* const kFunctionKinds =</a>
 <a name="383"><span class="lineNum">     383 </span>            :       new absl::flat_hash_set&lt;pb::ObjectKind&gt;({</a>
 <a name="384"><span class="lineNum">     384 </span>            :           pb::ObjectKind::OBJ_SCOPE,</a>
@@ -450,46 +450,46 @@
 <a name="388"><span class="lineNum">     388 </span>            :           pb::ObjectKind::OBJ_FUNCTION_GROUP,</a>
 <a name="389"><span class="lineNum">     389 </span>            :           pb::ObjectKind::OBJ_MODULE,</a>
 <a name="390"><span class="lineNum">     390 </span>            :           pb::ObjectKind::OBJ_LAMBDA,</a>
-<a name="391"><span class="lineNum">     391 </span><span class="lineCov">       2598 :       });</span></a>
-<a name="392"><span class="lineNum">     392 </span><span class="lineCov">       2598 :   return kFunctionKinds-&gt;contains(kind);</span></a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineCov">       3001 :       });</span></a>
+<a name="392"><span class="lineNum">     392 </span><span class="lineCov">       3001 :   return kFunctionKinds-&gt;contains(kind);</span></a>
 <a name="393"><span class="lineNum">     393 </span>            : }</a>
 <a name="394"><span class="lineNum">     394 </span>            : }  // namespace</a>
 <a name="395"><span class="lineNum">     395 </span>            : </a>
-<a name="396"><span class="lineNum">     396 </span><span class="lineCov">       2598 : bool Scope::IsScopeKind(const NamedObject&amp; object) {</span></a>
-<a name="397"><span class="lineNum">     397 </span><span class="lineCov">       2598 :   return IsScopeObjectKind(object.kind());</span></a>
+<a name="396"><span class="lineNum">     396 </span><span class="lineCov">       3001 : bool Scope::IsScopeKind(const NamedObject&amp; object) {</span></a>
+<a name="397"><span class="lineNum">     397 </span><span class="lineCov">       3001 :   return IsScopeObjectKind(object.kind());</span></a>
 <a name="398"><span class="lineNum">     398 </span>            : }</a>
 <a name="399"><span class="lineNum">     399 </span>            : </a>
-<a name="400"><span class="lineNum">     400 </span><span class="lineCov">       2511 : absl::optional&lt;Function*&gt; Scope::FindFunctionAncestor() {</span></a>
-<a name="401"><span class="lineNum">     401 </span><span class="lineCov">       2511 :   Scope* scope = this;</span></a>
-<a name="402"><span class="lineNum">     402 </span><span class="lineCov">       3469 :   while (scope &amp;&amp; scope-&gt;parent() != scope) {</span></a>
-<a name="403"><span class="lineNum">     403 </span><span class="lineCov">       2836 :     if (Function::IsFunctionKind(*scope)) {</span></a>
-<a name="404"><span class="lineNum">     404 </span><span class="lineCov">       1878 :       return static_cast&lt;Function*&gt;(scope);</span></a>
+<a name="400"><span class="lineNum">     400 </span><span class="lineCov">       3621 : absl::optional&lt;Function*&gt; Scope::FindFunctionAncestor() {</span></a>
+<a name="401"><span class="lineNum">     401 </span><span class="lineCov">       3621 :   Scope* scope = this;</span></a>
+<a name="402"><span class="lineNum">     402 </span><span class="lineCov">       4678 :   while (scope &amp;&amp; scope-&gt;parent() != scope) {</span></a>
+<a name="403"><span class="lineNum">     403 </span><span class="lineCov">       3958 :     if (Function::IsFunctionKind(*scope)) {</span></a>
+<a name="404"><span class="lineNum">     404 </span><span class="lineCov">       2901 :       return static_cast&lt;Function*&gt;(scope);</span></a>
 <a name="405"><span class="lineNum">     405 </span>            :     }</a>
-<a name="406"><span class="lineNum">     406 </span><span class="lineCov">        958 :     scope = scope-&gt;parent();</span></a>
+<a name="406"><span class="lineNum">     406 </span><span class="lineCov">       1057 :     scope = scope-&gt;parent();</span></a>
 <a name="407"><span class="lineNum">     407 </span>            :   }</a>
-<a name="408"><span class="lineNum">     408 </span><span class="lineCov">        633 :   return {};</span></a>
+<a name="408"><span class="lineNum">     408 </span><span class="lineCov">        720 :   return {};</span></a>
 <a name="409"><span class="lineNum">     409 </span>            : }</a>
 <a name="410"><span class="lineNum">     410 </span>            : </a>
 <a name="411"><span class="lineNum">     411 </span>            : namespace {</a>
-<a name="412"><span class="lineNum">     412 </span><span class="lineCov">       1216 : absl::StatusOr&lt;std::unique_ptr&lt;FunctionBinding&gt;&gt; FindFunctionInStore(</span></a>
+<a name="412"><span class="lineNum">     412 </span><span class="lineCov">       1604 : absl::StatusOr&lt;std::unique_ptr&lt;FunctionBinding&gt;&gt; FindFunctionInStore(</span></a>
 <a name="413"><span class="lineNum">     413 </span>            :     NameStore* store, const ScopeName&amp; lookup_scope, const ScopedName&amp; name,</a>
 <a name="414"><span class="lineNum">     414 </span>            :     const std::vector&lt;FunctionCallArgument&gt;&amp; arguments) {</a>
-<a name="415"><span class="lineNum">     415 </span><span class="lineCov">       1216 :   std::unique_ptr&lt;FunctionBinding&gt; binding;</span></a>
-<a name="416"><span class="lineNum">     416 </span><span class="lineCov">       4192 :   ASSIGN_OR_RETURN(</span></a>
+<a name="415"><span class="lineNum">     415 </span><span class="lineCov">       1604 :   std::unique_ptr&lt;FunctionBinding&gt; binding;</span></a>
+<a name="416"><span class="lineNum">     416 </span><span class="lineCov">       5216 :   ASSIGN_OR_RETURN(</span></a>
 <a name="417"><span class="lineNum">     417 </span>            :       auto object, store-&gt;FindName(lookup_scope, name),</a>
 <a name="418"><span class="lineNum">     418 </span>            :       _ &lt;&lt; &quot;Finding function &quot; &lt;&lt; name.name() &lt;&lt; &quot; in &quot; &lt;&lt; store-&gt;full_name());</a>
-<a name="419"><span class="lineNum">     419 </span><span class="lineCov">        336 :   if (Function::IsFunctionKind(*object)) {</span></a>
+<a name="419"><span class="lineNum">     419 </span><span class="lineCov">        600 :   if (Function::IsFunctionKind(*object)) {</span></a>
 <a name="420"><span class="lineNum">     420 </span><span class="lineNoCov">          0 :     ASSIGN_OR_RETURN(binding,</span></a>
 <a name="421"><span class="lineNum">     421 </span>            :                      static_cast&lt;Function*&gt;(object)-&gt;BindArguments(arguments),</a>
 <a name="422"><span class="lineNum">     422 </span>            :                      _ &lt;&lt; &quot;Binding call arguments to function &quot; &lt;&lt; name.name()</a>
 <a name="423"><span class="lineNum">     423 </span>            :                        &lt;&lt; &quot; from &quot; &lt;&lt; store-&gt;full_name());</a>
 <a name="424"><span class="lineNum">     424 </span><span class="lineNoCov">          0 :     return {std::move(binding)};</span></a>
-<a name="425"><span class="lineNum">     425 </span><span class="lineCov">        336 :   } else if (FunctionGroup::IsFunctionGroup(*object)) {</span></a>
-<a name="426"><span class="lineNum">     426 </span><span class="lineCov">        678 :     ASSIGN_OR_RETURN(</span></a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">        600 :   } else if (FunctionGroup::IsFunctionGroup(*object)) {</span></a>
+<a name="426"><span class="lineNum">     426 </span><span class="lineCov">       1206 :     ASSIGN_OR_RETURN(</span></a>
 <a name="427"><span class="lineNum">     427 </span>            :         binding, static_cast&lt;FunctionGroup*&gt;(object)-&gt;FindSignature(arguments),</a>
 <a name="428"><span class="lineNum">     428 </span>            :         _ &lt;&lt; &quot;Finding signature to bind to function &quot; &lt;&lt; name.name() &lt;&lt; &quot; from &quot;</a>
 <a name="429"><span class="lineNum">     429 </span>            :           &lt;&lt; store-&gt;full_name());</a>
-<a name="430"><span class="lineNum">     430 </span><span class="lineCov">        333 :     return {std::move(binding)};</span></a>
+<a name="430"><span class="lineNum">     430 </span><span class="lineCov">        597 :     return {std::move(binding)};</span></a>
 <a name="431"><span class="lineNum">     431 </span>            :   }</a>
 <a name="432"><span class="lineNum">     432 </span><span class="lineNoCov">          0 :   return status::NotFoundErrorBuilder()</span></a>
 <a name="433"><span class="lineNum">     433 </span><span class="lineNoCov">          0 :          &lt;&lt; &quot;The found object: &quot; &lt;&lt; object-&gt;full_name() &lt;&lt; &quot; in &quot;</span></a>
@@ -497,29 +497,29 @@
 <a name="435"><span class="lineNum">     435 </span>            : }</a>
 <a name="436"><span class="lineNum">     436 </span>            : }  // namespace</a>
 <a name="437"><span class="lineNum">     437 </span>            : </a>
-<a name="438"><span class="lineNum">     438 </span><span class="lineCov">        307 : absl::StatusOr&lt;std::unique_ptr&lt;FunctionBinding&gt;&gt; Scope::FindFunctionByName(</span></a>
+<a name="438"><span class="lineNum">     438 </span><span class="lineCov">        369 : absl::StatusOr&lt;std::unique_ptr&lt;FunctionBinding&gt;&gt; Scope::FindFunctionByName(</span></a>
 <a name="439"><span class="lineNum">     439 </span>            :     const ScopedName&amp; name, const TypeSpec* type_spec,</a>
 <a name="440"><span class="lineNum">     440 </span>            :     const std::vector&lt;FunctionCallArgument&gt;&amp; arguments) {</a>
-<a name="441"><span class="lineNum">     441 </span><span class="lineCov">        614 :   std::vector&lt;absl::Status&gt; find_status;</span></a>
-<a name="442"><span class="lineNum">     442 </span><span class="lineCov">        614 :   std::vector&lt;absl::Status&gt; bind_status;</span></a>
-<a name="443"><span class="lineNum">     443 </span><span class="lineCov">        307 :   if (type_spec &amp;&amp; type_spec-&gt;type_member_store()) {</span></a>
-<a name="444"><span class="lineNum">     444 </span><span class="lineCov">        307 :     auto type_stores = type_spec-&gt;type_member_store()-&gt;FindBindingOrder();</span></a>
-<a name="445"><span class="lineNum">     445 </span><span class="lineCov">       1187 :     for (auto type_store : type_stores) {</span></a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineCov">        738 :   std::vector&lt;absl::Status&gt; find_status;</span></a>
+<a name="442"><span class="lineNum">     442 </span><span class="lineCov">        738 :   std::vector&lt;absl::Status&gt; bind_status;</span></a>
+<a name="443"><span class="lineNum">     443 </span><span class="lineCov">        369 :   if (type_spec &amp;&amp; type_spec-&gt;type_member_store()) {</span></a>
+<a name="444"><span class="lineNum">     444 </span><span class="lineCov">        369 :     auto type_stores = type_spec-&gt;type_member_store()-&gt;FindBindingOrder();</span></a>
+<a name="445"><span class="lineNum">     445 </span><span class="lineCov">       1373 :     for (auto type_store : type_stores) {</span></a>
 <a name="446"><span class="lineNum">     446 </span>            :       auto find_result =</a>
-<a name="447"><span class="lineNum">     447 </span><span class="lineCov">        880 :           FindFunctionInStore(type_store, scope_name(), name, arguments);</span></a>
-<a name="448"><span class="lineNum">     448 </span><span class="lineCov">        880 :       if (find_result.ok()) {</span></a>
+<a name="447"><span class="lineNum">     447 </span><span class="lineCov">       1004 :           FindFunctionInStore(type_store, scope_name(), name, arguments);</span></a>
+<a name="448"><span class="lineNum">     448 </span><span class="lineCov">       1004 :       if (find_result.ok()) {</span></a>
 <a name="449"><span class="lineNum">     449 </span><span class="lineNoCov">          0 :         return find_result;</span></a>
 <a name="450"><span class="lineNum">     450 </span>            :       }</a>
-<a name="451"><span class="lineNum">     451 </span><span class="lineCov">        880 :       if (absl::IsNotFound(find_result.status())) {</span></a>
-<a name="452"><span class="lineNum">     452 </span><span class="lineCov">        880 :         find_status.emplace_back(std::move(find_result).status());</span></a>
+<a name="451"><span class="lineNum">     451 </span><span class="lineCov">       1004 :       if (absl::IsNotFound(find_result.status())) {</span></a>
+<a name="452"><span class="lineNum">     452 </span><span class="lineCov">       1004 :         find_status.emplace_back(std::move(find_result).status());</span></a>
 <a name="453"><span class="lineNum">     453 </span>            :       } else {</a>
 <a name="454"><span class="lineNum">     454 </span><span class="lineNoCov">          0 :         bind_status.emplace_back(std::move(find_result).status());</span></a>
 <a name="455"><span class="lineNum">     455 </span>            :       }</a>
 <a name="456"><span class="lineNum">     456 </span>            :     }</a>
 <a name="457"><span class="lineNum">     457 </span>            :   }</a>
-<a name="458"><span class="lineNum">     458 </span><span class="lineCov">        614 :   auto find_result = FindFunctionInStore(this, scope_name(), name, arguments);</span></a>
-<a name="459"><span class="lineNum">     459 </span><span class="lineCov">        307 :   if (find_result.ok()) {</span></a>
-<a name="460"><span class="lineNum">     460 </span><span class="lineCov">        306 :     return find_result;</span></a>
+<a name="458"><span class="lineNum">     458 </span><span class="lineCov">        738 :   auto find_result = FindFunctionInStore(this, scope_name(), name, arguments);</span></a>
+<a name="459"><span class="lineNum">     459 </span><span class="lineCov">        369 :   if (find_result.ok()) {</span></a>
+<a name="460"><span class="lineNum">     460 </span><span class="lineCov">        368 :     return find_result;</span></a>
 <a name="461"><span class="lineNum">     461 </span>            :   }</a>
 <a name="462"><span class="lineNum">     462 </span><span class="lineCov">          1 :   if (absl::IsNotFound(find_result.status())) {</span></a>
 <a name="463"><span class="lineNum">     463 </span><span class="lineNoCov">          0 :     find_status.emplace_back(std::move(find_result).status());</span></a>
@@ -613,45 +613,45 @@
 <a name="551"><span class="lineNum">     551 </span><span class="lineCov">         42 :   return static_cast&lt;VarBase*&gt;(object);</span></a>
 <a name="552"><span class="lineNum">     552 </span>            : }</a>
 <a name="553"><span class="lineNum">     553 </span>            : </a>
-<a name="554"><span class="lineNum">     554 </span><span class="lineCov">       3010 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildExpression(</span></a>
+<a name="554"><span class="lineNum">     554 </span><span class="lineCov">       4483 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildExpression(</span></a>
 <a name="555"><span class="lineNum">     555 </span>            :     const pb::Expression&amp; expression) {</a>
-<a name="556"><span class="lineNum">     556 </span><span class="lineCov">       3010 :   CodeContext context = CodeContext::FromProto(expression);</span></a>
-<a name="557"><span class="lineNum">     557 </span><span class="lineCov">       6020 :   std::string expression_type;</span></a>
-<a name="558"><span class="lineNum">     558 </span><span class="lineCov">       3010 :   if (expression.has_literal()) {</span></a>
-<a name="559"><span class="lineNum">     559 </span><span class="lineCov">        690 :     return BuildLiteral(expression.literal(), context);</span></a>
-<a name="560"><span class="lineNum">     560 </span><span class="lineCov">       2320 :   } else if (expression.has_identifier()) {</span></a>
-<a name="561"><span class="lineNum">     561 </span><span class="lineCov">       1269 :     return BuildIdentifier(expression.identifier(), context);</span></a>
-<a name="562"><span class="lineNum">     562 </span><span class="lineCov">       1051 :   } else if (expression.has_operator_expr()) {</span></a>
-<a name="563"><span class="lineNum">     563 </span><span class="lineCov">        309 :     return BuildOperator(expression.operator_expr(), context);</span></a>
-<a name="564"><span class="lineNum">     564 </span><span class="lineCov">        742 :   } else if (expression.has_function_call()) {</span></a>
-<a name="565"><span class="lineNum">     565 </span><span class="lineCov">        513 :     return BuildFunctionCall(expression.function_call(), nullptr, context);</span></a>
-<a name="566"><span class="lineNum">     566 </span><span class="lineCov">        229 :   } else if (expression.has_dot_expr()) {</span></a>
+<a name="556"><span class="lineNum">     556 </span><span class="lineCov">       4483 :   CodeContext context = CodeContext::FromProto(expression);</span></a>
+<a name="557"><span class="lineNum">     557 </span><span class="lineCov">       8966 :   std::string expression_type;</span></a>
+<a name="558"><span class="lineNum">     558 </span><span class="lineCov">       4483 :   if (expression.has_literal()) {</span></a>
+<a name="559"><span class="lineNum">     559 </span><span class="lineCov">        830 :     return BuildLiteral(expression.literal(), context);</span></a>
+<a name="560"><span class="lineNum">     560 </span><span class="lineCov">       3653 :   } else if (expression.has_identifier()) {</span></a>
+<a name="561"><span class="lineNum">     561 </span><span class="lineCov">       2106 :     return BuildIdentifier(expression.identifier(), context);</span></a>
+<a name="562"><span class="lineNum">     562 </span><span class="lineCov">       1547 :   } else if (expression.has_operator_expr()) {</span></a>
+<a name="563"><span class="lineNum">     563 </span><span class="lineCov">        371 :     return BuildOperator(expression.operator_expr(), context);</span></a>
+<a name="564"><span class="lineNum">     564 </span><span class="lineCov">       1176 :   } else if (expression.has_function_call()) {</span></a>
+<a name="565"><span class="lineNum">     565 </span><span class="lineCov">        963 :     return BuildFunctionCall(expression.function_call(), nullptr, context);</span></a>
+<a name="566"><span class="lineNum">     566 </span><span class="lineCov">        213 :   } else if (expression.has_dot_expr()) {</span></a>
 <a name="567"><span class="lineNum">     567 </span><span class="lineCov">         23 :     return BuildDotExpression(expression.dot_expr(), context);</span></a>
-<a name="568"><span class="lineNum">     568 </span><span class="lineCov">        206 :   } else if (expression.has_index_expr()) {</span></a>
+<a name="568"><span class="lineNum">     568 </span><span class="lineCov">        190 :   } else if (expression.has_index_expr()) {</span></a>
 <a name="569"><span class="lineNum">     569 </span><span class="lineCov">         20 :     return BuildIndexExpression(expression.index_expr(), context);</span></a>
-<a name="570"><span class="lineNum">     570 </span><span class="lineCov">        186 :   } else if (expression.has_lambda_def()) {</span></a>
+<a name="570"><span class="lineNum">     570 </span><span class="lineCov">        170 :   } else if (expression.has_lambda_def()) {</span></a>
 <a name="571"><span class="lineNum">     571 </span><span class="lineCov">         19 :     return BuildLambdaExpression(expression.lambda_def(), context);</span></a>
-<a name="572"><span class="lineNum">     572 </span><span class="lineCov">        167 :   } else if (expression.has_if_expr()) {</span></a>
+<a name="572"><span class="lineNum">     572 </span><span class="lineCov">        151 :   } else if (expression.has_if_expr()) {</span></a>
 <a name="573"><span class="lineNum">     573 </span><span class="lineCov">         29 :     return BuildIfExpression(expression.if_expr(), context);</span></a>
-<a name="574"><span class="lineNum">     574 </span><span class="lineCov">        138 :   } else if (expression.has_array_def()) {</span></a>
+<a name="574"><span class="lineNum">     574 </span><span class="lineCov">        122 :   } else if (expression.has_array_def()) {</span></a>
 <a name="575"><span class="lineNum">     575 </span><span class="lineCov">         25 :     return BuildArrayDefinition(expression.array_def(), context);</span></a>
-<a name="576"><span class="lineNum">     576 </span><span class="lineCov">        113 :   } else if (expression.has_map_def()) {</span></a>
+<a name="576"><span class="lineNum">     576 </span><span class="lineCov">         97 :   } else if (expression.has_map_def()) {</span></a>
 <a name="577"><span class="lineNum">     577 </span><span class="lineCov">          6 :     return BuildMapDefinition(expression.map_def(), context);</span></a>
-<a name="578"><span class="lineNum">     578 </span><span class="lineCov">        107 :   } else if (expression.has_tuple_def()) {</span></a>
+<a name="578"><span class="lineNum">     578 </span><span class="lineCov">         91 :   } else if (expression.has_tuple_def()) {</span></a>
 <a name="579"><span class="lineNum">     579 </span><span class="lineCov">          4 :     return BuildNamedTupleDefinition(expression.tuple_def(), context);</span></a>
-<a name="580"><span class="lineNum">     580 </span><span class="lineCov">        103 :   } else if (expression.has_assignment()) {</span></a>
+<a name="580"><span class="lineNum">     580 </span><span class="lineCov">         87 :   } else if (expression.has_assignment()) {</span></a>
 <a name="581"><span class="lineNum">     581 </span><span class="lineCov">         31 :     return BuildAssignment(expression.assignment(), context);</span></a>
-<a name="582"><span class="lineNum">     582 </span><span class="lineCov">         72 :   } else if (expression.has_yield_expr()) {</span></a>
+<a name="582"><span class="lineNum">     582 </span><span class="lineCov">         56 :   } else if (expression.has_yield_expr()) {</span></a>
 <a name="583"><span class="lineNum">     583 </span><span class="lineCov">         12 :     return BuildFunctionResult(&amp;expression.yield_expr(),</span></a>
 <a name="584"><span class="lineNum">     584 </span><span class="lineCov">         12 :                                pb::FunctionResultKind::RESULT_YIELD, context);</span></a>
-<a name="585"><span class="lineNum">     585 </span><span class="lineCov">         60 :   } else if (expression.has_return_expr()) {</span></a>
+<a name="585"><span class="lineNum">     585 </span><span class="lineCov">         44 :   } else if (expression.has_return_expr()) {</span></a>
 <a name="586"><span class="lineNum">     586 </span><span class="lineCov">         22 :     return BuildFunctionResult(&amp;expression.return_expr(),</span></a>
 <a name="587"><span class="lineNum">     587 </span><span class="lineCov">         22 :                                pb::FunctionResultKind::RESULT_RETURN, context);</span></a>
-<a name="588"><span class="lineNum">     588 </span><span class="lineCov">         38 :   } else if (expression.has_pass_expr()) {</span></a>
+<a name="588"><span class="lineNum">     588 </span><span class="lineCov">         22 :   } else if (expression.has_pass_expr()) {</span></a>
 <a name="589"><span class="lineNum">     589 </span>            :     return BuildFunctionResult({}, pb::FunctionResultKind::RESULT_PASS,</a>
 <a name="590"><span class="lineNum">     590 </span><span class="lineCov">          8 :                                context);</span></a>
-<a name="591"><span class="lineNum">     591 </span><span class="lineCov">         30 :   } else if (expression.has_empty_struct()) {</span></a>
-<a name="592"><span class="lineNum">     592 </span><span class="lineCov">         42 :     return std::make_unique&lt;EmptyStruct&gt;(this);</span></a>
+<a name="591"><span class="lineNum">     591 </span><span class="lineCov">         14 :   } else if (expression.has_empty_struct()) {</span></a>
+<a name="592"><span class="lineNum">     592 </span><span class="lineCov">         10 :     return std::make_unique&lt;EmptyStruct&gt;(this);</span></a>
 <a name="593"><span class="lineNum">     593 </span><span class="lineCov">          9 :   } else if (expression.has_pragma_expr()) {</span></a>
 <a name="594"><span class="lineNum">     594 </span><span class="lineCov">         16 :     ASSIGN_OR_RETURN(</span></a>
 <a name="595"><span class="lineNum">     595 </span>            :         auto nop_expression,</a>
@@ -703,22 +703,22 @@
 <a name="641"><span class="lineNum">     641 </span><span class="lineCov">        384 :       element.has_type_spec(), is_initial_assignment)};</span></a>
 <a name="642"><span class="lineNum">     642 </span>            : }</a>
 <a name="643"><span class="lineNum">     643 </span>            : </a>
-<a name="644"><span class="lineNum">     644 </span><span class="lineCov">        690 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildLiteral(</span></a>
+<a name="644"><span class="lineNum">     644 </span><span class="lineCov">        830 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildLiteral(</span></a>
 <a name="645"><span class="lineNum">     645 </span>            :     const pb::Literal&amp; element, const CodeContext&amp; context) {</a>
-<a name="646"><span class="lineNum">     646 </span><span class="lineCov">       1380 :   ASSIGN_OR_RETURN(auto expression, Literal::Build(this, element),</span></a>
+<a name="646"><span class="lineNum">     646 </span><span class="lineCov">       1660 :   ASSIGN_OR_RETURN(auto expression, Literal::Build(this, element),</span></a>
 <a name="647"><span class="lineNum">     647 </span>            :                    _ &lt;&lt; &quot;Building literal from `&quot; &lt;&lt; element.original() &lt;&lt; &quot;`&quot;</a>
 <a name="648"><span class="lineNum">     648 </span>            :                      &lt;&lt; context.ToErrorInfo(&quot;In literal expression&quot;));</a>
-<a name="649"><span class="lineNum">     649 </span><span class="lineCov">        690 :   return {std::move(expression)};</span></a>
+<a name="649"><span class="lineNum">     649 </span><span class="lineCov">        830 :   return {std::move(expression)};</span></a>
 <a name="650"><span class="lineNum">     650 </span>            : }</a>
 <a name="651"><span class="lineNum">     651 </span>            : </a>
-<a name="652"><span class="lineNum">     652 </span><span class="lineCov">       1287 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildIdentifier(</span></a>
+<a name="652"><span class="lineNum">     652 </span><span class="lineCov">       2124 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildIdentifier(</span></a>
 <a name="653"><span class="lineNum">     653 </span>            :     const pb::Identifier&amp; element, const CodeContext&amp; context) {</a>
-<a name="654"><span class="lineNum">     654 </span><span class="lineCov">       2574 :   ASSIGN_OR_RETURN(auto scoped_name, ScopedName::FromIdentifier(element),</span></a>
+<a name="654"><span class="lineNum">     654 </span><span class="lineCov">       4248 :   ASSIGN_OR_RETURN(auto scoped_name, ScopedName::FromIdentifier(element),</span></a>
 <a name="655"><span class="lineNum">     655 </span>            :                    _ &lt;&lt; context.ToErrorInfo(&quot;In identifier name&quot;));</a>
-<a name="656"><span class="lineNum">     656 </span><span class="lineCov">       2600 :   ASSIGN_OR_RETURN(auto named_object, FindName(scope_name(), scoped_name),</span></a>
+<a name="656"><span class="lineNum">     656 </span><span class="lineCov">       4274 :   ASSIGN_OR_RETURN(auto named_object, FindName(scope_name(), scoped_name),</span></a>
 <a name="657"><span class="lineNum">     657 </span>            :                    _ &lt;&lt; context.ToErrorInfo(&quot;Finding identifier in scope&quot;));</a>
-<a name="658"><span class="lineNum">     658 </span><span class="lineCov">       1274 :   RET_CHECK(named_object-&gt;type_spec()) &lt;&lt; kBugNotice;</span></a>
-<a name="659"><span class="lineNum">     659 </span><span class="lineCov">       1274 :   if (Function::IsMethodKind(*named_object)) {</span></a>
+<a name="658"><span class="lineNum">     658 </span><span class="lineCov">       2111 :   RET_CHECK(named_object-&gt;type_spec()) &lt;&lt; kBugNotice;</span></a>
+<a name="659"><span class="lineNum">     659 </span><span class="lineCov">       2111 :   if (Function::IsMethodKind(*named_object)) {</span></a>
 <a name="660"><span class="lineNum">     660 </span><span class="lineCov">         18 :     if (element.name().size() &gt; 1) {</span></a>
 <a name="661"><span class="lineNum">     661 </span><span class="lineCov">         36 :       pb::Identifier object_identifier(element);</span></a>
 <a name="662"><span class="lineNum">     662 </span><span class="lineCov">         18 :       object_identifier.mutable_name()-&gt;RemoveLast();</span></a>
@@ -732,7 +732,7 @@
 <a name="670"><span class="lineNum">     670 </span>            :   // TODO(catalin): Do I want to enable special treatment</a>
 <a name="671"><span class="lineNum">     671 </span>            :   //    if (FunctionGroup::IsFunctionGroup(*named_object)) {..}</a>
 <a name="672"><span class="lineNum">     672 </span>            :   return {</a>
-<a name="673"><span class="lineNum">     673 </span><span class="lineCov">       2512 :       std::make_unique&lt;Identifier&gt;(this, std::move(scoped_name), named_object)};</span></a>
+<a name="673"><span class="lineNum">     673 </span><span class="lineCov">       4186 :       std::make_unique&lt;Identifier&gt;(this, std::move(scoped_name), named_object)};</span></a>
 <a name="674"><span class="lineNum">     674 </span>            : }</a>
 <a name="675"><span class="lineNum">     675 </span>            : </a>
 <a name="676"><span class="lineNum">     676 </span><span class="lineCov">         42 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildFunctionResult(</span></a>
@@ -764,17 +764,17 @@
 <a name="702"><span class="lineNum">     702 </span><span class="lineCov">         33 :   return {std::move(expression)};</span></a>
 <a name="703"><span class="lineNum">     703 </span>            : }</a>
 <a name="704"><span class="lineNum">     704 </span>            : </a>
-<a name="705"><span class="lineNum">     705 </span><span class="lineCov">        309 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildOperator(</span></a>
+<a name="705"><span class="lineNum">     705 </span><span class="lineCov">        371 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildOperator(</span></a>
 <a name="706"><span class="lineNum">     706 </span>            :     const pb::OperatorExpression&amp; element, const CodeContext&amp; context) {</a>
-<a name="707"><span class="lineNum">     707 </span><span class="lineCov">        310 :   RET_CHECK(!element.op().empty() &amp;&amp; !element.argument().empty())</span></a>
+<a name="707"><span class="lineNum">     707 </span><span class="lineCov">        372 :   RET_CHECK(!element.op().empty() &amp;&amp; !element.argument().empty())</span></a>
 <a name="708"><span class="lineNum">     708 </span><span class="lineCov">          1 :       &lt;&lt; &quot;Badly built operator expression: &quot; &lt;&lt; element.op().size()</span></a>
 <a name="709"><span class="lineNum">     709 </span><span class="lineCov">          1 :       &lt;&lt; &quot; operators &quot; &lt;&lt; element.argument().size() &lt;&lt; &quot; arguments &quot;</span></a>
 <a name="710"><span class="lineNum">     710 </span><span class="lineCov">          2 :       &lt;&lt; kBugNotice &lt;&lt; context.ToErrorInfo(&quot;In operator expression&quot;);</span></a>
-<a name="711"><span class="lineNum">     711 </span><span class="lineCov">        308 :   std::unique_ptr&lt;Expression&gt; expression;</span></a>
-<a name="712"><span class="lineNum">     712 </span><span class="lineCov">        308 :   if (element.argument().size() == 1) {</span></a>
+<a name="711"><span class="lineNum">     711 </span><span class="lineCov">        370 :   std::unique_ptr&lt;Expression&gt; expression;</span></a>
+<a name="712"><span class="lineNum">     712 </span><span class="lineCov">        370 :   if (element.argument().size() == 1) {</span></a>
 <a name="713"><span class="lineNum">     713 </span><span class="lineCov">          3 :     return BuildUnaryOperator(element, context);</span></a>
-<a name="714"><span class="lineNum">     714 </span><span class="lineCov">        305 :   } else if (element.op().size() == 1 &amp;&amp; element.argument().size() == 3) {</span></a>
-<a name="715"><span class="lineNum">     715 </span><span class="lineCov">        158 :     return BuildTernaryOperator(element, context);</span></a>
+<a name="714"><span class="lineNum">     714 </span><span class="lineCov">        367 :   } else if (element.op().size() == 1 &amp;&amp; element.argument().size() == 3) {</span></a>
+<a name="715"><span class="lineNum">     715 </span><span class="lineCov">        220 :     return BuildTernaryOperator(element, context);</span></a>
 <a name="716"><span class="lineNum">     716 </span>            :   } else {</a>
 <a name="717"><span class="lineNum">     717 </span><span class="lineCov">        147 :     return BuildBinaryOperator(element, context);</span></a>
 <a name="718"><span class="lineNum">     718 </span>            :   }</a>
@@ -806,26 +806,26 @@
 <a name="744"><span class="lineNum">     744 </span><span class="lineCov">          1 :   return BuildOperatorCall(it-&gt;second, std::move(operands), context);</span></a>
 <a name="745"><span class="lineNum">     745 </span>            : }</a>
 <a name="746"><span class="lineNum">     746 </span>            : </a>
-<a name="747"><span class="lineNum">     747 </span><span class="lineCov">        158 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildTernaryOperator(</span></a>
+<a name="747"><span class="lineNum">     747 </span><span class="lineCov">        220 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildTernaryOperator(</span></a>
 <a name="748"><span class="lineNum">     748 </span>            :     const pb::OperatorExpression&amp; element, const CodeContext&amp; context) {</a>
-<a name="749"><span class="lineNum">     749 </span><span class="lineCov">        158 :   RET_CHECK(element.op().size() == 1 &amp;&amp; element.argument().size() == 3);</span></a>
+<a name="749"><span class="lineNum">     749 </span><span class="lineCov">        220 :   RET_CHECK(element.op().size() == 1 &amp;&amp; element.argument().size() == 3);</span></a>
 <a name="750"><span class="lineNum">     750 </span>            :   static const auto* const kTernaryOperators =</a>
 <a name="751"><span class="lineNum">     751 </span>            :       new absl::flat_hash_map&lt;std::string, std::string&gt;({</a>
 <a name="752"><span class="lineNum">     752 </span>            :           {&quot;?&quot;, &quot;__if__&quot;},</a>
 <a name="753"><span class="lineNum">     753 </span>            :           {&quot;between&quot;, &quot;__between__&quot;},</a>
-<a name="754"><span class="lineNum">     754 </span><span class="lineCov">        168 :       });</span></a>
-<a name="755"><span class="lineNum">     755 </span><span class="lineCov">        158 :   auto it = kTernaryOperators-&gt;find(element.op(0));</span></a>
-<a name="756"><span class="lineNum">     756 </span><span class="lineCov">        158 :   if (it == kTernaryOperators-&gt;end()) {</span></a>
+<a name="754"><span class="lineNum">     754 </span><span class="lineCov">        230 :       });</span></a>
+<a name="755"><span class="lineNum">     755 </span><span class="lineCov">        220 :   auto it = kTernaryOperators-&gt;find(element.op(0));</span></a>
+<a name="756"><span class="lineNum">     756 </span><span class="lineCov">        220 :   if (it == kTernaryOperators-&gt;end()) {</span></a>
 <a name="757"><span class="lineNum">     757 </span><span class="lineCov">          2 :     return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="758"><span class="lineNum">     758 </span><span class="lineCov">          1 :            &lt;&lt; &quot;Unknown ternary operator: &quot; &lt;&lt; element.op(0)</span></a>
 <a name="759"><span class="lineNum">     759 </span><span class="lineCov">          2 :            &lt;&lt; context.ToErrorInfo(&quot;In ternary operator expression&quot;);</span></a>
 <a name="760"><span class="lineNum">     760 </span>            :   }</a>
-<a name="761"><span class="lineNum">     761 </span><span class="lineCov">        314 :   std::vector&lt;std::unique_ptr&lt;Expression&gt;&gt; operands;</span></a>
-<a name="762"><span class="lineNum">     762 </span><span class="lineCov">        628 :   for (const auto&amp; arg : element.argument()) {</span></a>
-<a name="763"><span class="lineNum">     763 </span><span class="lineCov">        942 :     ASSIGN_OR_RETURN(auto operand, BuildExpression(arg));</span></a>
-<a name="764"><span class="lineNum">     764 </span><span class="lineCov">        471 :     operands.emplace_back(std::move(operand));</span></a>
+<a name="761"><span class="lineNum">     761 </span><span class="lineCov">        438 :   std::vector&lt;std::unique_ptr&lt;Expression&gt;&gt; operands;</span></a>
+<a name="762"><span class="lineNum">     762 </span><span class="lineCov">        876 :   for (const auto&amp; arg : element.argument()) {</span></a>
+<a name="763"><span class="lineNum">     763 </span><span class="lineCov">       1314 :     ASSIGN_OR_RETURN(auto operand, BuildExpression(arg));</span></a>
+<a name="764"><span class="lineNum">     764 </span><span class="lineCov">        657 :     operands.emplace_back(std::move(operand));</span></a>
 <a name="765"><span class="lineNum">     765 </span>            :   }</a>
-<a name="766"><span class="lineNum">     766 </span><span class="lineCov">        157 :   return BuildOperatorCall(it-&gt;second, std::move(operands), context);</span></a>
+<a name="766"><span class="lineNum">     766 </span><span class="lineCov">        219 :   return BuildOperatorCall(it-&gt;second, std::move(operands), context);</span></a>
 <a name="767"><span class="lineNum">     767 </span>            : }</a>
 <a name="768"><span class="lineNum">     768 </span>            : </a>
 <a name="769"><span class="lineNum">     769 </span>            : namespace {</a>
@@ -905,32 +905,32 @@
 <a name="843"><span class="lineNum">     843 </span><span class="lineCov">        142 :   return {std::move(CHECK_NOTNULL(last_operand))};</span></a>
 <a name="844"><span class="lineNum">     844 </span>            : }</a>
 <a name="845"><span class="lineNum">     845 </span>            : </a>
-<a name="846"><span class="lineNum">     846 </span><span class="lineCov">        307 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildOperatorCall(</span></a>
+<a name="846"><span class="lineNum">     846 </span><span class="lineCov">        369 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildOperatorCall(</span></a>
 <a name="847"><span class="lineNum">     847 </span>            :     absl::string_view name, std::vector&lt;std::unique_ptr&lt;Expression&gt;&gt; operands,</a>
 <a name="848"><span class="lineNum">     848 </span>            :     const CodeContext&amp; context) {</a>
-<a name="849"><span class="lineNum">     849 </span><span class="lineCov">        307 :   RET_CHECK(!operands.empty());</span></a>
-<a name="850"><span class="lineNum">     850 </span><span class="lineCov">        614 :   ASSIGN_OR_RETURN(auto scoped_name, ScopedName::Parse(name));</span></a>
-<a name="851"><span class="lineNum">     851 </span><span class="lineCov">        614 :   ASSIGN_OR_RETURN(auto type_spec, operands.front()-&gt;type_spec(),</span></a>
+<a name="849"><span class="lineNum">     849 </span><span class="lineCov">        369 :   RET_CHECK(!operands.empty());</span></a>
+<a name="850"><span class="lineNum">     850 </span><span class="lineCov">        738 :   ASSIGN_OR_RETURN(auto scoped_name, ScopedName::Parse(name));</span></a>
+<a name="851"><span class="lineNum">     851 </span><span class="lineCov">        738 :   ASSIGN_OR_RETURN(auto type_spec, operands.front()-&gt;type_spec(),</span></a>
 <a name="852"><span class="lineNum">     852 </span>            :                    _ &lt;&lt; &quot;Determining type of first operand&quot;</a>
 <a name="853"><span class="lineNum">     853 </span>            :                      &lt;&lt; context.ToErrorInfo(&quot;Applying operator on operands&quot;));</a>
-<a name="854"><span class="lineNum">     854 </span><span class="lineCov">        614 :   std::vector&lt;FunctionCallArgument&gt; arguments;</span></a>
-<a name="855"><span class="lineNum">     855 </span><span class="lineCov">        307 :   arguments.reserve(operands.size());</span></a>
-<a name="856"><span class="lineNum">     856 </span><span class="lineCov">       1077 :   for (const auto&amp; op : operands) {</span></a>
-<a name="857"><span class="lineNum">     857 </span><span class="lineCov">        770 :     arguments.emplace_back(FunctionCallArgument{{}, op.get(), {}});</span></a>
+<a name="854"><span class="lineNum">     854 </span><span class="lineCov">        738 :   std::vector&lt;FunctionCallArgument&gt; arguments;</span></a>
+<a name="855"><span class="lineNum">     855 </span><span class="lineCov">        369 :   arguments.reserve(operands.size());</span></a>
+<a name="856"><span class="lineNum">     856 </span><span class="lineCov">       1325 :   for (const auto&amp; op : operands) {</span></a>
+<a name="857"><span class="lineNum">     857 </span><span class="lineCov">        956 :     arguments.emplace_back(FunctionCallArgument{{}, op.get(), {}});</span></a>
 <a name="858"><span class="lineNum">     858 </span>            :   }</a>
-<a name="859"><span class="lineNum">     859 </span><span class="lineCov">        616 :   ASSIGN_OR_RETURN(auto op_function,</span></a>
+<a name="859"><span class="lineNum">     859 </span><span class="lineCov">        740 :   ASSIGN_OR_RETURN(auto op_function,</span></a>
 <a name="860"><span class="lineNum">     860 </span>            :                    FindFunctionByName(scoped_name, type_spec, arguments),</a>
 <a name="861"><span class="lineNum">     861 </span>            :                    _ &lt;&lt; &quot;Finding operator function: &quot; &lt;&lt; name</a>
 <a name="862"><span class="lineNum">     862 </span>            :                      &lt;&lt; context.ToErrorInfo(&quot;Applying operator on operands&quot;));</a>
-<a name="863"><span class="lineNum">     863 </span><span class="lineCov">        612 :   ASSIGN_OR_RETURN(auto bound_function,</span></a>
+<a name="863"><span class="lineNum">     863 </span><span class="lineCov">        736 :   ASSIGN_OR_RETURN(auto bound_function,</span></a>
 <a name="864"><span class="lineNum">     864 </span>            :                    op_function-&gt;fun.value()-&gt;Bind(op_function.get(), true),</a>
 <a name="865"><span class="lineNum">     865 </span>            :                    _ &lt;&lt; &quot;Binding operator function instance&quot;</a>
 <a name="866"><span class="lineNum">     866 </span>            :                      &lt;&lt; context.ToErrorInfo(&quot;Applying operator call&quot;));</a>
 <a name="867"><span class="lineNum">     867 </span>            :   auto call_expression = absl::make_unique&lt;FunctionCallExpression&gt;(</a>
-<a name="868"><span class="lineNum">     868 </span><span class="lineCov">        612 :       this, std::move(op_function), nullptr, std::move(operands), false);</span></a>
-<a name="869"><span class="lineNum">     869 </span><span class="lineCov">        612 :   call_expression-&gt;set_dependent_functions(</span></a>
-<a name="870"><span class="lineNum">     870 </span><span class="lineCov">        612 :       absl::flat_hash_set&lt;Function*&gt;{bound_function});</span></a>
-<a name="871"><span class="lineNum">     871 </span><span class="lineCov">        306 :   return std::move(call_expression);</span></a>
+<a name="868"><span class="lineNum">     868 </span><span class="lineCov">        736 :       this, std::move(op_function), nullptr, std::move(operands), false);</span></a>
+<a name="869"><span class="lineNum">     869 </span><span class="lineCov">        736 :   call_expression-&gt;set_dependent_functions(</span></a>
+<a name="870"><span class="lineNum">     870 </span><span class="lineCov">        736 :       absl::flat_hash_set&lt;Function*&gt;{bound_function});</span></a>
+<a name="871"><span class="lineNum">     871 </span><span class="lineCov">        368 :   return std::move(call_expression);</span></a>
 <a name="872"><span class="lineNum">     872 </span>            : }</a>
 <a name="873"><span class="lineNum">     873 </span>            : </a>
 <a name="874"><span class="lineNum">     874 </span><span class="lineCov">         25 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildArrayDefinition(</span></a>
@@ -1014,9 +1014,9 @@
 <a name="952"><span class="lineNum">     952 </span>            : }</a>
 <a name="953"><span class="lineNum">     953 </span>            : </a>
 <a name="954"><span class="lineNum">     954 </span>            : namespace {</a>
-<a name="955"><span class="lineNum">     955 </span><span class="lineCov">        406 : bool IsResultReturnExpression(const pb::Expression&amp; expression) {</span></a>
-<a name="956"><span class="lineNum">     956 </span><span class="lineCov">        785 :   return (expression.has_yield_expr() || expression.has_return_expr() ||</span></a>
-<a name="957"><span class="lineNum">     957 </span><span class="lineCov">        785 :           expression.has_pass_expr());</span></a>
+<a name="955"><span class="lineNum">     955 </span><span class="lineCov">        592 : bool IsResultReturnExpression(const pb::Expression&amp; expression) {</span></a>
+<a name="956"><span class="lineNum">     956 </span><span class="lineCov">       1157 :   return (expression.has_yield_expr() || expression.has_return_expr() ||</span></a>
+<a name="957"><span class="lineNum">     957 </span><span class="lineCov">       1157 :           expression.has_pass_expr());</span></a>
 <a name="958"><span class="lineNum">     958 </span>            : }</a>
 <a name="959"><span class="lineNum">     959 </span><span class="lineCov">          1 : bool MustUseFunctionCallResultType(const TypeSpec* type_spec) {</span></a>
 <a name="960"><span class="lineNum">     960 </span>            :   static const auto kTypesNoUse = new absl::flat_hash_set&lt;pb::TypeId&gt;(</a>
@@ -1025,46 +1025,46 @@
 <a name="963"><span class="lineNum">     963 </span>            : }</a>
 <a name="964"><span class="lineNum">     964 </span>            : }  // namespace</a>
 <a name="965"><span class="lineNum">     965 </span>            : </a>
-<a name="966"><span class="lineNum">     966 </span><span class="lineCov">        398 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildExpressionBlock(</span></a>
+<a name="966"><span class="lineNum">     966 </span><span class="lineCov">        584 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildExpressionBlock(</span></a>
 <a name="967"><span class="lineNum">     967 </span>            :     const pb::ExpressionBlock&amp; expression_block, bool register_return) {</a>
-<a name="968"><span class="lineNum">     968 </span><span class="lineCov">        398 :   RET_CHECK(!expression_block.expression().empty());</span></a>
-<a name="969"><span class="lineNum">     969 </span><span class="lineCov">        796 :   absl::Status build_status;</span></a>
-<a name="970"><span class="lineNum">     970 </span><span class="lineCov">        796 :   std::vector&lt;std::unique_ptr&lt;Expression&gt;&gt; expressions;</span></a>
-<a name="971"><span class="lineNum">     971 </span><span class="lineCov">        398 :   bool last_is_result = false;</span></a>
-<a name="972"><span class="lineNum">     972 </span><span class="lineCov">        398 :   Expression* last_expression = nullptr;</span></a>
-<a name="973"><span class="lineNum">     973 </span><span class="lineCov">        398 :   int last_expression_index = 0;</span></a>
-<a name="974"><span class="lineNum">     974 </span><span class="lineCov">        398 :   bool contains_return = false;</span></a>
-<a name="975"><span class="lineNum">     975 </span><span class="lineCov">        840 :   for (int i = 0; i &lt; expression_block.expression_size(); ++i) {</span></a>
-<a name="976"><span class="lineNum">     976 </span><span class="lineCov">        442 :     const auto&amp; expression = expression_block.expression(i);</span></a>
-<a name="977"><span class="lineNum">     977 </span><span class="lineCov">        442 :     if (contains_return) {</span></a>
+<a name="968"><span class="lineNum">     968 </span><span class="lineCov">        584 :   RET_CHECK(!expression_block.expression().empty());</span></a>
+<a name="969"><span class="lineNum">     969 </span><span class="lineCov">       1168 :   absl::Status build_status;</span></a>
+<a name="970"><span class="lineNum">     970 </span><span class="lineCov">       1168 :   std::vector&lt;std::unique_ptr&lt;Expression&gt;&gt; expressions;</span></a>
+<a name="971"><span class="lineNum">     971 </span><span class="lineCov">        584 :   bool last_is_result = false;</span></a>
+<a name="972"><span class="lineNum">     972 </span><span class="lineCov">        584 :   Expression* last_expression = nullptr;</span></a>
+<a name="973"><span class="lineNum">     973 </span><span class="lineCov">        584 :   int last_expression_index = 0;</span></a>
+<a name="974"><span class="lineNum">     974 </span><span class="lineCov">        584 :   bool contains_return = false;</span></a>
+<a name="975"><span class="lineNum">     975 </span><span class="lineCov">       1212 :   for (int i = 0; i &lt; expression_block.expression_size(); ++i) {</span></a>
+<a name="976"><span class="lineNum">     976 </span><span class="lineCov">        628 :     const auto&amp; expression = expression_block.expression(i);</span></a>
+<a name="977"><span class="lineNum">     977 </span><span class="lineCov">        628 :     if (contains_return) {</span></a>
 <a name="978"><span class="lineNum">     978 </span><span class="lineCov">          2 :       CodeContext context = CodeContext::FromProto(expression);</span></a>
 <a name="979"><span class="lineNum">     979 </span><span class="lineCov">          4 :       MergeErrorStatus(status::InvalidArgumentErrorBuilder()</span></a>
 <a name="980"><span class="lineNum">     980 </span><span class="lineCov">          2 :                            &lt;&lt; &quot;Meaningless expression after function return&quot;</span></a>
 <a name="981"><span class="lineNum">     981 </span><span class="lineCov">          4 :                            &lt;&lt; context.ToErrorInfo(&quot;In expression block&quot;),</span></a>
 <a name="982"><span class="lineNum">     982 </span><span class="lineCov">          2 :                        build_status);</span></a>
 <a name="983"><span class="lineNum">     983 </span>            :     }</a>
-<a name="984"><span class="lineNum">     984 </span><span class="lineCov">        884 :     auto expression_result = BuildExpression(expression);</span></a>
-<a name="985"><span class="lineNum">     985 </span><span class="lineCov">        442 :     MergeErrorStatus(expression_result.status(), build_status);</span></a>
-<a name="986"><span class="lineNum">     986 </span><span class="lineCov">        442 :     if (expression_result.ok()) {</span></a>
-<a name="987"><span class="lineNum">     987 </span><span class="lineCov">        406 :       if (expression_result.value()-&gt;expr_kind() !=</span></a>
+<a name="984"><span class="lineNum">     984 </span><span class="lineCov">       1256 :     auto expression_result = BuildExpression(expression);</span></a>
+<a name="985"><span class="lineNum">     985 </span><span class="lineCov">        628 :     MergeErrorStatus(expression_result.status(), build_status);</span></a>
+<a name="986"><span class="lineNum">     986 </span><span class="lineCov">        628 :     if (expression_result.ok()) {</span></a>
+<a name="987"><span class="lineNum">     987 </span><span class="lineCov">        592 :       if (expression_result.value()-&gt;expr_kind() !=</span></a>
 <a name="988"><span class="lineNum">     988 </span>            :           pb::ExpressionKind::EXPR_NOP) {</a>
-<a name="989"><span class="lineNum">     989 </span><span class="lineCov">        401 :         last_expression = expression_result.value().get();</span></a>
-<a name="990"><span class="lineNum">     990 </span><span class="lineCov">        401 :         last_expression_index = i;</span></a>
+<a name="989"><span class="lineNum">     989 </span><span class="lineCov">        587 :         last_expression = expression_result.value().get();</span></a>
+<a name="990"><span class="lineNum">     990 </span><span class="lineCov">        587 :         last_expression_index = i;</span></a>
 <a name="991"><span class="lineNum">     991 </span>            :       }</a>
-<a name="992"><span class="lineNum">     992 </span><span class="lineCov">        406 :       if (expression_result.value()-&gt;ContainsFunctionExit()) {</span></a>
+<a name="992"><span class="lineNum">     992 </span><span class="lineCov">        592 :       if (expression_result.value()-&gt;ContainsFunctionExit()) {</span></a>
 <a name="993"><span class="lineNum">     993 </span><span class="lineCov">         35 :         contains_return = true;</span></a>
 <a name="994"><span class="lineNum">     994 </span>            :       }</a>
 <a name="995"><span class="lineNum">     995 </span>            :       // TODO(catalin): maybe negotiate types here..</a>
-<a name="996"><span class="lineNum">     996 </span><span class="lineCov">        406 :       expressions.emplace_back(std::move(expression_result).value());</span></a>
-<a name="997"><span class="lineNum">     997 </span><span class="lineCov">        406 :       last_is_result = IsResultReturnExpression(expression);</span></a>
+<a name="996"><span class="lineNum">     996 </span><span class="lineCov">        592 :       expressions.emplace_back(std::move(expression_result).value());</span></a>
+<a name="997"><span class="lineNum">     997 </span><span class="lineCov">        592 :       last_is_result = IsResultReturnExpression(expression);</span></a>
 <a name="998"><span class="lineNum">     998 </span>            :     }</a>
 <a name="999"><span class="lineNum">     999 </span>            :   }</a>
-<a name="1000"><span class="lineNum">    1000 </span><span class="lineCov">        796 :   RETURN_IF_ERROR(build_status);</span></a>
-<a name="1001"><span class="lineNum">    1001 </span><span class="lineCov">        364 :   RET_CHECK(!expressions.empty());</span></a>
+<a name="1000"><span class="lineNum">    1000 </span><span class="lineCov">       1168 :   RETURN_IF_ERROR(build_status);</span></a>
+<a name="1001"><span class="lineNum">    1001 </span><span class="lineCov">        550 :   RET_CHECK(!expressions.empty());</span></a>
 <a name="1002"><span class="lineNum">    1002 </span>            :   const size_t max_size =</a>
-<a name="1003"><span class="lineNum">    1003 </span><span class="lineCov">        364 :       register_return ? expressions.size() - 1ul : expressions.size();</span></a>
-<a name="1004"><span class="lineNum">    1004 </span><span class="lineCov">        364 :   CHECK_LE(max_size, expressions.size());</span></a>
-<a name="1005"><span class="lineNum">    1005 </span><span class="lineCov">        418 :   for (size_t i = 0; i &lt; max_size; ++i) {</span></a>
+<a name="1003"><span class="lineNum">    1003 </span><span class="lineCov">        550 :       register_return ? expressions.size() - 1ul : expressions.size();</span></a>
+<a name="1004"><span class="lineNum">    1004 </span><span class="lineCov">        550 :   CHECK_LE(max_size, expressions.size());</span></a>
+<a name="1005"><span class="lineNum">    1005 </span><span class="lineCov">        604 :   for (size_t i = 0; i &lt; max_size; ++i) {</span></a>
 <a name="1006"><span class="lineNum">    1006 </span>            :     CodeContext context =</a>
 <a name="1007"><span class="lineNum">    1007 </span><span class="lineCov">         55 :         CodeContext::FromProto(expression_block.expression(i));</span></a>
 <a name="1008"><span class="lineNum">    1008 </span><span class="lineCov">         55 :     ASSIGN_OR_RETURN(auto type_spec, expressions[i]-&gt;type_spec(),</span></a>
@@ -1077,27 +1077,27 @@
 <a name="1015"><span class="lineNum">    1015 </span><span class="lineCov">          2 :              &lt;&lt; context.ToErrorInfo(&quot;In function call expression&quot;);</span></a>
 <a name="1016"><span class="lineNum">    1016 </span>            :     }</a>
 <a name="1017"><span class="lineNum">    1017 </span>            :   }</a>
-<a name="1018"><span class="lineNum">    1018 </span><span class="lineCov">        363 :   if (register_return &amp;&amp; !last_is_result &amp;&amp; !contains_return) {</span></a>
-<a name="1019"><span class="lineNum">    1019 </span><span class="lineCov">        321 :     if (last_expression == nullptr) {</span></a>
+<a name="1018"><span class="lineNum">    1018 </span><span class="lineCov">        549 :   if (register_return &amp;&amp; !last_is_result &amp;&amp; !contains_return) {</span></a>
+<a name="1019"><span class="lineNum">    1019 </span><span class="lineCov">        507 :     if (last_expression == nullptr) {</span></a>
 <a name="1020"><span class="lineNum">    1020 </span><span class="lineCov">          4 :       return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="1021"><span class="lineNum">    1021 </span>            :              &lt;&lt; &quot;Expression block that needs to produce something, does &quot;</a>
 <a name="1022"><span class="lineNum">    1022 </span><span class="lineCov">          2 :                 &quot;not have any proper expressions defined&quot;;</span></a>
 <a name="1023"><span class="lineNum">    1023 </span>            :     }</a>
-<a name="1024"><span class="lineNum">    1024 </span><span class="lineCov">        319 :     auto parent_function = FindFunctionAncestor();</span></a>
-<a name="1025"><span class="lineNum">    1025 </span><span class="lineCov">        319 :     RET_CHECK(parent_function.has_value())</span></a>
+<a name="1024"><span class="lineNum">    1024 </span><span class="lineCov">        505 :     auto parent_function = FindFunctionAncestor();</span></a>
+<a name="1025"><span class="lineNum">    1025 </span><span class="lineCov">        505 :     RET_CHECK(parent_function.has_value())</span></a>
 <a name="1026"><span class="lineNum">    1026 </span><span class="lineNoCov">          0 :         &lt;&lt; &quot;Expecting to be inside a function &quot; &lt;&lt; kBugNotice;</span></a>
 <a name="1027"><span class="lineNum">    1027 </span>            :     CodeContext context = CodeContext::FromProto(</a>
-<a name="1028"><span class="lineNum">    1028 </span><span class="lineCov">        319 :         expression_block.expression(last_expression_index));</span></a>
-<a name="1029"><span class="lineNum">    1029 </span><span class="lineCov">        325 :     RETURN_IF_ERROR(parent_function.value()-&gt;RegisterResultExpression(</span></a>
+<a name="1028"><span class="lineNum">    1028 </span><span class="lineCov">        505 :         expression_block.expression(last_expression_index));</span></a>
+<a name="1029"><span class="lineNum">    1029 </span><span class="lineCov">        511 :     RETURN_IF_ERROR(parent_function.value()-&gt;RegisterResultExpression(</span></a>
 <a name="1030"><span class="lineNum">    1030 </span>            :         pb::FunctionResultKind::RESULT_NONE, last_expression, contains_return))</a>
 <a name="1031"><span class="lineNum">    1031 </span><span class="lineCov">         12 :         &lt;&lt; context.ToErrorInfo(&quot;Registering default function return&quot;);</span></a>
-<a name="1032"><span class="lineNum">    1032 </span><span class="lineCov">        625 :     if (last_expression-&gt;stored_type_spec().has_value() &amp;&amp;</span></a>
-<a name="1033"><span class="lineNum">    1033 </span><span class="lineCov">        625 :         (last_expression-&gt;stored_type_spec().value()-&gt;type_id() !=</span></a>
+<a name="1032"><span class="lineNum">    1032 </span><span class="lineCov">        997 :     if (last_expression-&gt;stored_type_spec().has_value() &amp;&amp;</span></a>
+<a name="1033"><span class="lineNum">    1033 </span><span class="lineCov">        997 :         (last_expression-&gt;stored_type_spec().value()-&gt;type_id() !=</span></a>
 <a name="1034"><span class="lineNum">    1034 </span>            :          pb::TypeId::UNKNOWN_ID)) {</a>
-<a name="1035"><span class="lineNum">    1035 </span><span class="lineCov">        312 :       last_expression-&gt;set_is_default_return();</span></a>
+<a name="1035"><span class="lineNum">    1035 </span><span class="lineCov">        498 :       last_expression-&gt;set_is_default_return();</span></a>
 <a name="1036"><span class="lineNum">    1036 </span>            :     }</a>
 <a name="1037"><span class="lineNum">    1037 </span>            :   }</a>
-<a name="1038"><span class="lineNum">    1038 </span><span class="lineCov">        710 :   return {std::make_unique&lt;ExpressionBlock&gt;(this, std::move(expressions))};</span></a>
+<a name="1038"><span class="lineNum">    1038 </span><span class="lineCov">       1082 :   return {std::make_unique&lt;ExpressionBlock&gt;(this, std::move(expressions))};</span></a>
 <a name="1039"><span class="lineNum">    1039 </span>            : }</a>
 <a name="1040"><span class="lineNum">    1040 </span>            : </a>
 <a name="1041"><span class="lineNum">    1041 </span><span class="lineCov">         29 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildIfExpression(</span></a>
@@ -1250,34 +1250,34 @@
 <a name="1188"><span class="lineNum">    1188 </span>            : // Helper class for preparing a function call expression.</a>
 <a name="1189"><span class="lineNum">    1189 </span>            : class FunctionCallHelper {</a>
 <a name="1190"><span class="lineNum">    1190 </span>            :  public:</a>
-<a name="1191"><span class="lineNum">    1191 </span><span class="lineCov">        514 :   FunctionCallHelper(Scope* scope, const pb::FunctionCall&amp; expression,</span></a>
+<a name="1191"><span class="lineNum">    1191 </span><span class="lineCov">        964 :   FunctionCallHelper(Scope* scope, const pb::FunctionCall&amp; expression,</span></a>
 <a name="1192"><span class="lineNum">    1192 </span>            :                      std::unique_ptr&lt;Expression&gt; left_expression)</a>
-<a name="1193"><span class="lineNum">    1193 </span><span class="lineCov">        514 :       : scope_(scope),</span></a>
+<a name="1193"><span class="lineNum">    1193 </span><span class="lineCov">        964 :       : scope_(scope),</span></a>
 <a name="1194"><span class="lineNum">    1194 </span>            :         expression_(expression),</a>
-<a name="1195"><span class="lineNum">    1195 </span><span class="lineCov">        514 :         left_expression_(std::move(left_expression)),</span></a>
-<a name="1196"><span class="lineNum">    1196 </span><span class="lineCov">        514 :         function_name_store_(scope) {}</span></a>
-<a name="1197"><span class="lineNum">    1197 </span><span class="lineCov">        514 :   absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; PrepareCall() {</span></a>
-<a name="1198"><span class="lineNum">    1198 </span><span class="lineCov">       1028 :     RETURN_IF_ERROR(PrepareLeftExpression());</span></a>
-<a name="1199"><span class="lineNum">    1199 </span><span class="lineCov">        507 :     if (expression_.has_identifier()) {</span></a>
-<a name="1200"><span class="lineNum">    1200 </span><span class="lineCov">         13 :       RETURN_IF_ERROR(PrepareIdentifier());</span></a>
-<a name="1201"><span class="lineNum">    1201 </span><span class="lineCov">        494 :     } else if (expression_.has_type_spec()) {</span></a>
-<a name="1202"><span class="lineNum">    1202 </span><span class="lineCov">          2 :       RETURN_IF_ERROR(PrepareTypeConstruct());</span></a>
-<a name="1203"><span class="lineNum">    1203 </span><span class="lineCov">        492 :     } else if (left_expression_) {</span></a>
-<a name="1204"><span class="lineNum">    1204 </span><span class="lineCov">        492 :       PrepapareObjectFromLeftExpression();</span></a>
+<a name="1195"><span class="lineNum">    1195 </span><span class="lineCov">        964 :         left_expression_(std::move(left_expression)),</span></a>
+<a name="1196"><span class="lineNum">    1196 </span><span class="lineCov">        964 :         function_name_store_(scope) {}</span></a>
+<a name="1197"><span class="lineNum">    1197 </span><span class="lineCov">        964 :   absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; PrepareCall() {</span></a>
+<a name="1198"><span class="lineNum">    1198 </span><span class="lineCov">       1928 :     RETURN_IF_ERROR(PrepareLeftExpression());</span></a>
+<a name="1199"><span class="lineNum">    1199 </span><span class="lineCov">        957 :     if (expression_.has_identifier()) {</span></a>
+<a name="1200"><span class="lineNum">    1200 </span><span class="lineCov">         26 :       RETURN_IF_ERROR(PrepareIdentifier());</span></a>
+<a name="1201"><span class="lineNum">    1201 </span><span class="lineCov">        931 :     } else if (expression_.has_type_spec()) {</span></a>
+<a name="1202"><span class="lineNum">    1202 </span><span class="lineCov">        129 :       RETURN_IF_ERROR(PrepareTypeConstruct());</span></a>
+<a name="1203"><span class="lineNum">    1203 </span><span class="lineCov">        802 :     } else if (left_expression_) {</span></a>
+<a name="1204"><span class="lineNum">    1204 </span><span class="lineCov">        802 :       PrepapareObjectFromLeftExpression();</span></a>
 <a name="1205"><span class="lineNum">    1205 </span>            :     } else {</a>
 <a name="1206"><span class="lineNum">    1206 </span><span class="lineNoCov">          0 :       return absl::InvalidArgumentError(&quot;Badly built function call &quot;);</span></a>
 <a name="1207"><span class="lineNum">    1207 </span>            :     }</a>
-<a name="1208"><span class="lineNum">    1208 </span><span class="lineCov">       1014 :     RETURN_IF_ERROR(PrepareArguments());</span></a>
-<a name="1209"><span class="lineNum">    1209 </span><span class="lineCov">        507 :     std::unique_ptr&lt;FunctionBinding&gt; function_binding;</span></a>
-<a name="1210"><span class="lineNum">    1210 </span><span class="lineCov">        507 :     if (call_type_constructor_) {</span></a>
-<a name="1211"><span class="lineNum">    1211 </span><span class="lineCov">         33 :       ASSIGN_OR_RETURN(</span></a>
+<a name="1208"><span class="lineNum">    1208 </span><span class="lineCov">       1914 :     RETURN_IF_ERROR(PrepareArguments());</span></a>
+<a name="1209"><span class="lineNum">    1209 </span><span class="lineCov">        957 :     std::unique_ptr&lt;FunctionBinding&gt; function_binding;</span></a>
+<a name="1210"><span class="lineNum">    1210 </span><span class="lineCov">        957 :     if (call_type_constructor_) {</span></a>
+<a name="1211"><span class="lineNum">    1211 </span><span class="lineCov">        235 :       ASSIGN_OR_RETURN(</span></a>
 <a name="1212"><span class="lineNum">    1212 </span>            :           function_binding,</a>
 <a name="1213"><span class="lineNum">    1213 </span>            :           FindFunctionInStore(</a>
 <a name="1214"><span class="lineNum">    1214 </span>            :               call_type_constructor_-&gt;type_member_store(), scope_-&gt;scope_name(),</a>
 <a name="1215"><span class="lineNum">    1215 </span>            :               ScopedName::Parse(kConstructorName).value(), arguments_));</a>
-<a name="1216"><span class="lineNum">    1216 </span><span class="lineCov">         27 :       is_method_call_ = true;</span></a>
-<a name="1217"><span class="lineNum">    1217 </span><span class="lineCov">        478 :     } else if (call_object_) {</span></a>
-<a name="1218"><span class="lineNum">    1218 </span><span class="lineCov">        487 :       ASSIGN_OR_RETURN(</span></a>
+<a name="1216"><span class="lineNum">    1216 </span><span class="lineCov">        229 :       is_method_call_ = true;</span></a>
+<a name="1217"><span class="lineNum">    1217 </span><span class="lineCov">        726 :     } else if (call_object_) {</span></a>
+<a name="1218"><span class="lineNum">    1218 </span><span class="lineCov">        735 :       ASSIGN_OR_RETURN(</span></a>
 <a name="1219"><span class="lineNum">    1219 </span>            :           function_binding, BindingFromCallObject(),</a>
 <a name="1220"><span class="lineNum">    1220 </span>            :           _ &lt;&lt; &quot;Preparing call from object: &quot; &lt;&lt; call_object_-&gt;full_name());</a>
 <a name="1221"><span class="lineNum">    1221 </span>            :     } else {</a>
@@ -1287,63 +1287,63 @@
 <a name="1225"><span class="lineNum">    1225 </span>            :           _ &lt;&lt; &quot;Determining the type of function producing expression.&quot;);</a>
 <a name="1226"><span class="lineNum">    1226 </span><span class="lineCov">         11 :       ASSIGN_OR_RETURN(function_binding, BindingFromType(type_spec));</span></a>
 <a name="1227"><span class="lineNum">    1227 </span>            :     }</a>
-<a name="1228"><span class="lineNum">    1228 </span><span class="lineCov">        495 :     if (function_binding-&gt;fun.has_value()) {</span></a>
-<a name="1229"><span class="lineNum">    1229 </span><span class="lineCov">        481 :       ASSIGN_OR_RETURN(</span></a>
+<a name="1228"><span class="lineNum">    1228 </span><span class="lineCov">        945 :     if (function_binding-&gt;fun.has_value()) {</span></a>
+<a name="1229"><span class="lineNum">    1229 </span><span class="lineCov">        931 :       ASSIGN_OR_RETURN(</span></a>
 <a name="1230"><span class="lineNum">    1230 </span>            :           auto bound_function,</a>
 <a name="1231"><span class="lineNum">    1231 </span>            :           function_binding-&gt;fun.value()-&gt;Bind(function_binding.get(), true),</a>
 <a name="1232"><span class="lineNum">    1232 </span>            :           _ &lt;&lt; &quot;Binding function instance&quot;);</a>
-<a name="1233"><span class="lineNum">    1233 </span><span class="lineCov">        472 :       dependent_functions_.insert(bound_function);</span></a>
+<a name="1233"><span class="lineNum">    1233 </span><span class="lineCov">        922 :       dependent_functions_.insert(bound_function);</span></a>
 <a name="1234"><span class="lineNum">    1234 </span>            :     }</a>
 <a name="1235"><span class="lineNum">    1235 </span>            :     auto call_expression = absl::make_unique&lt;FunctionCallExpression&gt;(</a>
-<a name="1236"><span class="lineNum">    1236 </span><span class="lineCov">        492 :         scope_, std::move(function_binding), std::move(left_expression_),</span></a>
-<a name="1237"><span class="lineNum">    1237 </span><span class="lineCov">       1476 :         std::move(argument_expressions_), is_method_call_);</span></a>
-<a name="1238"><span class="lineNum">    1238 </span><span class="lineCov">        492 :     call_expression-&gt;set_dependent_functions(std::move(dependent_functions_));</span></a>
-<a name="1239"><span class="lineNum">    1239 </span><span class="lineCov">        492 :     return {std::move(call_expression)};</span></a>
+<a name="1236"><span class="lineNum">    1236 </span><span class="lineCov">        942 :         scope_, std::move(function_binding), std::move(left_expression_),</span></a>
+<a name="1237"><span class="lineNum">    1237 </span><span class="lineCov">       2826 :         std::move(argument_expressions_), is_method_call_);</span></a>
+<a name="1238"><span class="lineNum">    1238 </span><span class="lineCov">        942 :     call_expression-&gt;set_dependent_functions(std::move(dependent_functions_));</span></a>
+<a name="1239"><span class="lineNum">    1239 </span><span class="lineCov">        942 :     return {std::move(call_expression)};</span></a>
 <a name="1240"><span class="lineNum">    1240 </span>            :   }</a>
 <a name="1241"><span class="lineNum">    1241 </span>            : </a>
 <a name="1242"><span class="lineNum">    1242 </span>            :  private:</a>
-<a name="1243"><span class="lineNum">    1243 </span><span class="lineCov">        514 :   absl::Status PrepareLeftExpression() {</span></a>
-<a name="1244"><span class="lineNum">    1244 </span><span class="lineCov">        514 :     if (expression_.has_expr_spec()) {</span></a>
-<a name="1245"><span class="lineNum">    1245 </span><span class="lineCov">        499 :       RET_CHECK(left_expression_ == nullptr)</span></a>
+<a name="1243"><span class="lineNum">    1243 </span><span class="lineCov">        964 :   absl::Status PrepareLeftExpression() {</span></a>
+<a name="1244"><span class="lineNum">    1244 </span><span class="lineCov">        964 :     if (expression_.has_expr_spec()) {</span></a>
+<a name="1245"><span class="lineNum">    1245 </span><span class="lineCov">        809 :       RET_CHECK(left_expression_ == nullptr)</span></a>
 <a name="1246"><span class="lineNum">    1246 </span>            :           &lt;&lt; &quot;Cannot provide a built left expression in a function call where &quot;</a>
 <a name="1247"><span class="lineNum">    1247 </span><span class="lineNoCov">          0 :              &quot;expression is provided in call&quot;;</span></a>
-<a name="1248"><span class="lineNum">    1248 </span><span class="lineCov">        513 :       ASSIGN_OR_RETURN(left_expression_,</span></a>
+<a name="1248"><span class="lineNum">    1248 </span><span class="lineCov">        823 :       ASSIGN_OR_RETURN(left_expression_,</span></a>
 <a name="1249"><span class="lineNum">    1249 </span>            :                        scope_-&gt;BuildExpression(expression_.expr_spec()));</a>
 <a name="1250"><span class="lineNum">    1250 </span>            :     }</a>
-<a name="1251"><span class="lineNum">    1251 </span><span class="lineCov">        507 :     if (left_expression_) {</span></a>
-<a name="1252"><span class="lineNum">    1252 </span><span class="lineCov">        493 :       ASSIGN_OR_RETURN(</span></a>
+<a name="1251"><span class="lineNum">    1251 </span><span class="lineCov">        957 :     if (left_expression_) {</span></a>
+<a name="1252"><span class="lineNum">    1252 </span><span class="lineCov">        803 :       ASSIGN_OR_RETURN(</span></a>
 <a name="1253"><span class="lineNum">    1253 </span>            :           const TypeSpec* left_type, left_expression_-&gt;type_spec(),</a>
 <a name="1254"><span class="lineNum">    1254 </span>            :           _ &lt;&lt; &quot;Determining type of the left part of call expression&quot;);</a>
-<a name="1255"><span class="lineNum">    1255 </span><span class="lineCov">        493 :       RET_CHECK(left_type-&gt;type_member_store() != nullptr)</span></a>
+<a name="1255"><span class="lineNum">    1255 </span><span class="lineCov">        803 :       RET_CHECK(left_type-&gt;type_member_store() != nullptr)</span></a>
 <a name="1256"><span class="lineNum">    1256 </span><span class="lineNoCov">          0 :           &lt;&lt; &quot;For type: &quot; &lt;&lt; left_type-&gt;full_name() &lt;&lt; kBugNotice;</span></a>
-<a name="1257"><span class="lineNum">    1257 </span><span class="lineCov">        493 :       function_name_store_ = left_type-&gt;type_member_store();</span></a>
+<a name="1257"><span class="lineNum">    1257 </span><span class="lineCov">        803 :       function_name_store_ = left_type-&gt;type_member_store();</span></a>
 <a name="1258"><span class="lineNum">    1258 </span>            :     }</a>
-<a name="1259"><span class="lineNum">    1259 </span><span class="lineCov">        507 :     return absl::OkStatus();</span></a>
+<a name="1259"><span class="lineNum">    1259 </span><span class="lineCov">        957 :     return absl::OkStatus();</span></a>
 <a name="1260"><span class="lineNum">    1260 </span>            :   }</a>
 <a name="1261"><span class="lineNum">    1261 </span>            : </a>
-<a name="1262"><span class="lineNum">    1262 </span><span class="lineCov">         13 :   absl::Status PrepareIdentifier() {</span></a>
-<a name="1263"><span class="lineNum">    1263 </span><span class="lineCov">         13 :     RET_CHECK(expression_.has_identifier());</span></a>
-<a name="1264"><span class="lineNum">    1264 </span><span class="lineCov">         26 :     ASSIGN_OR_RETURN(object_name_,</span></a>
+<a name="1262"><span class="lineNum">    1262 </span><span class="lineCov">         26 :   absl::Status PrepareIdentifier() {</span></a>
+<a name="1263"><span class="lineNum">    1263 </span><span class="lineCov">         26 :     RET_CHECK(expression_.has_identifier());</span></a>
+<a name="1264"><span class="lineNum">    1264 </span><span class="lineCov">         52 :     ASSIGN_OR_RETURN(object_name_,</span></a>
 <a name="1265"><span class="lineNum">    1265 </span>            :                      ScopedName::FromIdentifier(expression_.identifier()),</a>
 <a name="1266"><span class="lineNum">    1266 </span>            :                      _ &lt;&lt; &quot;In function name identifier&quot;);</a>
-<a name="1267"><span class="lineNum">    1267 </span><span class="lineCov">         26 :     ASSIGN_OR_RETURN(call_object_,</span></a>
+<a name="1267"><span class="lineNum">    1267 </span><span class="lineCov">         52 :     ASSIGN_OR_RETURN(call_object_,</span></a>
 <a name="1268"><span class="lineNum">    1268 </span>            :                      function_name_store_-&gt;FindName(scope_-&gt;scope_name(),</a>
 <a name="1269"><span class="lineNum">    1269 </span>            :                                                     object_name_.value()),</a>
 <a name="1270"><span class="lineNum">    1270 </span>            :                      _ &lt;&lt; &quot;Finding function name&quot;);</a>
-<a name="1271"><span class="lineNum">    1271 </span><span class="lineCov">         13 :     if (expression_.identifier().name().size() &gt; 1) {</span></a>
+<a name="1271"><span class="lineNum">    1271 </span><span class="lineCov">         26 :     if (expression_.identifier().name().size() &gt; 1) {</span></a>
 <a name="1272"><span class="lineNum">    1272 </span>            :       // for x().y.z() need to get a handle of x().y directly:</a>
-<a name="1273"><span class="lineNum">    1273 </span><span class="lineCov">          1 :       pb::Identifier source_object_identifier(expression_.identifier());</span></a>
-<a name="1274"><span class="lineNum">    1274 </span><span class="lineCov">          1 :       source_object_identifier.mutable_name()-&gt;RemoveLast();</span></a>
-<a name="1275"><span class="lineNum">    1275 </span><span class="lineCov">          1 :       ASSIGN_OR_RETURN(auto source_object_name,</span></a>
+<a name="1273"><span class="lineNum">    1273 </span><span class="lineNoCov">          0 :       pb::Identifier source_object_identifier(expression_.identifier());</span></a>
+<a name="1274"><span class="lineNum">    1274 </span><span class="lineNoCov">          0 :       source_object_identifier.mutable_name()-&gt;RemoveLast();</span></a>
+<a name="1275"><span class="lineNum">    1275 </span><span class="lineNoCov">          0 :       ASSIGN_OR_RETURN(auto source_object_name,</span></a>
 <a name="1276"><span class="lineNum">    1276 </span>            :                        ScopedName::FromIdentifier(source_object_identifier),</a>
 <a name="1277"><span class="lineNum">    1277 </span>            :                        _ &lt;&lt; &quot;Building source object name&quot; &lt;&lt; kBugNotice);</a>
-<a name="1278"><span class="lineNum">    1278 </span><span class="lineCov">          1 :       ASSIGN_OR_RETURN(auto source_object,</span></a>
+<a name="1278"><span class="lineNum">    1278 </span><span class="lineNoCov">          0 :       ASSIGN_OR_RETURN(auto source_object,</span></a>
 <a name="1279"><span class="lineNum">    1279 </span>            :                        function_name_store_-&gt;FindName(scope_-&gt;scope_name(),</a>
 <a name="1280"><span class="lineNum">    1280 </span>            :                                                       source_object_name),</a>
 <a name="1281"><span class="lineNum">    1281 </span>            :                        _ &lt;&lt; &quot;Finding function source object&quot; &lt;&lt; kBugNotice);</a>
-<a name="1282"><span class="lineNum">    1282 </span><span class="lineCov">          1 :       if (!left_expression_) {</span></a>
-<a name="1283"><span class="lineNum">    1283 </span><span class="lineCov">          1 :         left_expression_ = std::make_unique&lt;Identifier&gt;(</span></a>
-<a name="1284"><span class="lineNum">    1284 </span><span class="lineCov">          1 :             scope_, source_object_name, source_object);</span></a>
+<a name="1282"><span class="lineNum">    1282 </span><span class="lineNoCov">          0 :       if (!left_expression_) {</span></a>
+<a name="1283"><span class="lineNum">    1283 </span><span class="lineNoCov">          0 :         left_expression_ = std::make_unique&lt;Identifier&gt;(</span></a>
+<a name="1284"><span class="lineNum">    1284 </span><span class="lineNoCov">          0 :             scope_, source_object_name, source_object);</span></a>
 <a name="1285"><span class="lineNum">    1285 </span>            :       } else {</a>
 <a name="1286"><span class="lineNum">    1286 </span><span class="lineNoCov">          0 :         ASSIGN_OR_RETURN(</span></a>
 <a name="1287"><span class="lineNum">    1287 </span>            :             auto source_scope_name,</a>
@@ -1353,87 +1353,87 @@
 <a name="1291"><span class="lineNum">    1291 </span><span class="lineNoCov">          0 :             source_object);</span></a>
 <a name="1292"><span class="lineNum">    1292 </span>            :       }</a>
 <a name="1293"><span class="lineNum">    1293 </span>            :     }</a>
-<a name="1294"><span class="lineNum">    1294 </span><span class="lineCov">         13 :     if (left_expression_) {</span></a>
-<a name="1295"><span class="lineNum">    1295 </span><span class="lineCov">          2 :       method_source_expression_ = left_expression_.get();</span></a>
-<a name="1296"><span class="lineNum">    1296 </span><span class="lineCov">          2 :       left_expression_ = std::make_unique&lt;DotAccessExpression&gt;(</span></a>
-<a name="1297"><span class="lineNum">    1297 </span><span class="lineCov">          2 :           scope_, std::move(left_expression_),</span></a>
-<a name="1298"><span class="lineNum">    1298 </span><span class="lineCov">          6 :           *expression_.identifier().name().rbegin(), call_object_);</span></a>
+<a name="1294"><span class="lineNum">    1294 </span><span class="lineCov">         26 :     if (left_expression_) {</span></a>
+<a name="1295"><span class="lineNum">    1295 </span><span class="lineCov">          1 :       method_source_expression_ = left_expression_.get();</span></a>
+<a name="1296"><span class="lineNum">    1296 </span><span class="lineCov">          1 :       left_expression_ = std::make_unique&lt;DotAccessExpression&gt;(</span></a>
+<a name="1297"><span class="lineNum">    1297 </span><span class="lineCov">          1 :           scope_, std::move(left_expression_),</span></a>
+<a name="1298"><span class="lineNum">    1298 </span><span class="lineCov">          3 :           *expression_.identifier().name().rbegin(), call_object_);</span></a>
 <a name="1299"><span class="lineNum">    1299 </span>            :     }</a>
-<a name="1300"><span class="lineNum">    1300 </span><span class="lineCov">         13 :     return absl::OkStatus();</span></a>
+<a name="1300"><span class="lineNum">    1300 </span><span class="lineCov">         26 :     return absl::OkStatus();</span></a>
 <a name="1301"><span class="lineNum">    1301 </span>            :   }</a>
-<a name="1302"><span class="lineNum">    1302 </span><span class="lineCov">          2 :   absl::Status PrepareTypeConstruct() {</span></a>
+<a name="1302"><span class="lineNum">    1302 </span><span class="lineCov">        129 :   absl::Status PrepareTypeConstruct() {</span></a>
 <a name="1303"><span class="lineNum">    1303 </span>            :     // this is probably a templated build.</a>
-<a name="1304"><span class="lineNum">    1304 </span><span class="lineCov">          2 :     Scope* type_lookup_scope = scope_;</span></a>
-<a name="1305"><span class="lineNum">    1305 </span><span class="lineCov">          2 :     if (left_expression_) {</span></a>
+<a name="1304"><span class="lineNum">    1304 </span><span class="lineCov">        129 :     Scope* type_lookup_scope = scope_;</span></a>
+<a name="1305"><span class="lineNum">    1305 </span><span class="lineCov">        129 :     if (left_expression_) {</span></a>
 <a name="1306"><span class="lineNum">    1306 </span><span class="lineNoCov">          0 :       auto named_object = left_expression_-&gt;named_object();</span></a>
 <a name="1307"><span class="lineNum">    1307 </span><span class="lineNoCov">          0 :       if (named_object.has_value() &amp;&amp;</span></a>
 <a name="1308"><span class="lineNum">    1308 </span><span class="lineNoCov">          0 :           Scope::IsScopeKind(*named_object.value())) {</span></a>
 <a name="1309"><span class="lineNum">    1309 </span><span class="lineNoCov">          0 :         type_lookup_scope = static_cast&lt;Scope*&gt;(named_object.value());</span></a>
 <a name="1310"><span class="lineNum">    1310 </span>            :       }</a>
 <a name="1311"><span class="lineNum">    1311 </span>            :     }</a>
-<a name="1312"><span class="lineNum">    1312 </span><span class="lineCov">          4 :     ASSIGN_OR_RETURN(call_type_constructor_,</span></a>
+<a name="1312"><span class="lineNum">    1312 </span><span class="lineCov">        258 :     ASSIGN_OR_RETURN(call_type_constructor_,</span></a>
 <a name="1313"><span class="lineNum">    1313 </span>            :                      type_lookup_scope-&gt;FindType(expression_.type_spec()),</a>
 <a name="1314"><span class="lineNum">    1314 </span>            :                      _ &lt;&lt; &quot;Finding type to construct&quot;);</a>
-<a name="1315"><span class="lineNum">    1315 </span><span class="lineCov">          2 :     return absl::OkStatus();</span></a>
+<a name="1315"><span class="lineNum">    1315 </span><span class="lineCov">        129 :     return absl::OkStatus();</span></a>
 <a name="1316"><span class="lineNum">    1316 </span>            :   }</a>
-<a name="1317"><span class="lineNum">    1317 </span><span class="lineCov">        492 :   void PrepapareObjectFromLeftExpression() {</span></a>
+<a name="1317"><span class="lineNum">    1317 </span><span class="lineCov">        802 :   void PrepapareObjectFromLeftExpression() {</span></a>
 <a name="1318"><span class="lineNum">    1318 </span>            :     // left_expression returns a function directly, but we may need an object</a>
 <a name="1319"><span class="lineNum">    1319 </span>            :     // to that.</a>
-<a name="1320"><span class="lineNum">    1320 </span><span class="lineCov">        492 :     auto call_object_value = CHECK_NOTNULL(left_expression_)-&gt;named_object();</span></a>
-<a name="1321"><span class="lineNum">    1321 </span><span class="lineCov">        492 :     if (call_object_value.has_value()) {</span></a>
-<a name="1322"><span class="lineNum">    1322 </span><span class="lineCov">        485 :       if (left_expression_-&gt;expr_kind() ==</span></a>
-<a name="1323"><span class="lineNum">    1323 </span><span class="lineCov">        516 :               pb::ExpressionKind::EXPR_DOT_ACCESS &amp;&amp;</span></a>
+<a name="1320"><span class="lineNum">    1320 </span><span class="lineCov">        802 :     auto call_object_value = CHECK_NOTNULL(left_expression_)-&gt;named_object();</span></a>
+<a name="1321"><span class="lineNum">    1321 </span><span class="lineCov">        802 :     if (call_object_value.has_value()) {</span></a>
+<a name="1322"><span class="lineNum">    1322 </span><span class="lineCov">        795 :       if (left_expression_-&gt;expr_kind() ==</span></a>
+<a name="1323"><span class="lineNum">    1323 </span><span class="lineCov">        826 :               pb::ExpressionKind::EXPR_DOT_ACCESS &amp;&amp;</span></a>
 <a name="1324"><span class="lineNum">    1324 </span><span class="lineCov">         31 :           !left_expression_-&gt;children().empty()) {</span></a>
 <a name="1325"><span class="lineNum">    1325 </span><span class="lineCov">         31 :         method_source_expression_ = left_expression_-&gt;children().front().get();</span></a>
 <a name="1326"><span class="lineNum">    1326 </span>            :       }</a>
-<a name="1327"><span class="lineNum">    1327 </span><span class="lineCov">        485 :       call_object_ = call_object_value.value();</span></a>
+<a name="1327"><span class="lineNum">    1327 </span><span class="lineCov">        795 :       call_object_ = call_object_value.value();</span></a>
 <a name="1328"><span class="lineNum">    1328 </span>            :     }</a>
-<a name="1329"><span class="lineNum">    1329 </span><span class="lineCov">        492 :   }</span></a>
-<a name="1330"><span class="lineNum">    1330 </span><span class="lineCov">        507 :   absl::Status PrepareArguments() {</span></a>
-<a name="1331"><span class="lineNum">    1331 </span><span class="lineCov">        507 :     if (call_object_ &amp;&amp; call_object_-&gt;kind() == pb::ObjectKind::OBJ_TYPE) {</span></a>
-<a name="1332"><span class="lineNum">    1332 </span><span class="lineCov">         27 :       call_type_constructor_ = static_cast&lt;const TypeSpec*&gt;(call_object_);</span></a>
-<a name="1333"><span class="lineNum">    1333 </span><span class="lineCov">         27 :       call_object_ = nullptr;</span></a>
+<a name="1329"><span class="lineNum">    1329 </span><span class="lineCov">        802 :   }</span></a>
+<a name="1330"><span class="lineNum">    1330 </span><span class="lineCov">        957 :   absl::Status PrepareArguments() {</span></a>
+<a name="1331"><span class="lineNum">    1331 </span><span class="lineCov">        957 :     if (call_object_ &amp;&amp; call_object_-&gt;kind() == pb::ObjectKind::OBJ_TYPE) {</span></a>
+<a name="1332"><span class="lineNum">    1332 </span><span class="lineCov">        102 :       call_type_constructor_ = static_cast&lt;const TypeSpec*&gt;(call_object_);</span></a>
+<a name="1333"><span class="lineNum">    1333 </span><span class="lineCov">        102 :       call_object_ = nullptr;</span></a>
 <a name="1334"><span class="lineNum">    1334 </span>            :     }</a>
-<a name="1335"><span class="lineNum">    1335 </span><span class="lineCov">        507 :     if (call_object_ &amp;&amp; Function::IsMethodKind(*call_object_)) {</span></a>
+<a name="1335"><span class="lineNum">    1335 </span><span class="lineCov">        957 :     if (call_object_ &amp;&amp; Function::IsMethodKind(*call_object_)) {</span></a>
 <a name="1336"><span class="lineNum">    1336 </span><span class="lineCov">         32 :       if (method_source_expression_) {</span></a>
 <a name="1337"><span class="lineNum">    1337 </span>            :         arguments_.emplace_back(</a>
 <a name="1338"><span class="lineNum">    1338 </span><span class="lineCov">         32 :             FunctionCallArgument{{}, method_source_expression_, {}});</span></a>
 <a name="1339"><span class="lineNum">    1339 </span><span class="lineCov">         32 :         is_method_call_ = true;</span></a>
 <a name="1340"><span class="lineNum">    1340 </span>            :       }</a>
 <a name="1341"><span class="lineNum">    1341 </span>            :     }</a>
-<a name="1342"><span class="lineNum">    1342 </span><span class="lineCov">        999 :     for (const auto&amp; arg : expression_.argument()) {</span></a>
+<a name="1342"><span class="lineNum">    1342 </span><span class="lineCov">       2054 :     for (const auto&amp; arg : expression_.argument()) {</span></a>
 <a name="1343"><span class="lineNum">    1343 </span><span class="lineNoCov">          0 :       FunctionCallArgument farg;</span></a>
-<a name="1344"><span class="lineNum">    1344 </span><span class="lineCov">        492 :       if (arg.has_name()) {</span></a>
+<a name="1344"><span class="lineNum">    1344 </span><span class="lineCov">       1097 :       if (arg.has_name()) {</span></a>
 <a name="1345"><span class="lineNum">    1345 </span><span class="lineCov">          1 :         farg.name = arg.name();</span></a>
 <a name="1346"><span class="lineNum">    1346 </span>            :       }</a>
-<a name="1347"><span class="lineNum">    1347 </span><span class="lineCov">        492 :       if (!arg.has_value()) {</span></a>
+<a name="1347"><span class="lineNum">    1347 </span><span class="lineCov">       1097 :       if (!arg.has_value()) {</span></a>
 <a name="1348"><span class="lineNum">    1348 </span><span class="lineNoCov">          0 :         return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="1349"><span class="lineNum">    1349 </span><span class="lineNoCov">          0 :                &lt;&lt; &quot;No value provided for function call argument &quot; &lt;&lt; kBugNotice;</span></a>
 <a name="1350"><span class="lineNum">    1350 </span>            :       }</a>
-<a name="1351"><span class="lineNum">    1351 </span><span class="lineCov">        984 :       ASSIGN_OR_RETURN(auto expression, scope_-&gt;BuildExpression(arg.value()));</span></a>
-<a name="1352"><span class="lineNum">    1352 </span><span class="lineCov">        492 :       farg.value = expression.get();</span></a>
-<a name="1353"><span class="lineNum">    1353 </span><span class="lineCov">        492 :       arguments_.emplace_back(std::move(farg));</span></a>
-<a name="1354"><span class="lineNum">    1354 </span><span class="lineCov">        492 :       argument_expressions_.emplace_back(std::move(expression));</span></a>
+<a name="1351"><span class="lineNum">    1351 </span><span class="lineCov">       2194 :       ASSIGN_OR_RETURN(auto expression, scope_-&gt;BuildExpression(arg.value()));</span></a>
+<a name="1352"><span class="lineNum">    1352 </span><span class="lineCov">       1097 :       farg.value = expression.get();</span></a>
+<a name="1353"><span class="lineNum">    1353 </span><span class="lineCov">       1097 :       arguments_.emplace_back(std::move(farg));</span></a>
+<a name="1354"><span class="lineNum">    1354 </span><span class="lineCov">       1097 :       argument_expressions_.emplace_back(std::move(expression));</span></a>
 <a name="1355"><span class="lineNum">    1355 </span>            :     }</a>
-<a name="1356"><span class="lineNum">    1356 </span><span class="lineCov">        507 :     return absl::OkStatus();</span></a>
+<a name="1356"><span class="lineNum">    1356 </span><span class="lineCov">        957 :     return absl::OkStatus();</span></a>
 <a name="1357"><span class="lineNum">    1357 </span>            :   }</a>
-<a name="1358"><span class="lineNum">    1358 </span><span class="lineCov">        471 :   absl::StatusOr&lt;std::unique_ptr&lt;FunctionBinding&gt;&gt; BindingFromCallObject() {</span></a>
-<a name="1359"><span class="lineNum">    1359 </span><span class="lineCov">        471 :     std::unique_ptr&lt;FunctionBinding&gt; function_binding;</span></a>
-<a name="1360"><span class="lineNum">    1360 </span><span class="lineCov">        471 :     RET_CHECK(call_object_ != nullptr) &lt;&lt; &quot;No call object&quot;;</span></a>
-<a name="1361"><span class="lineNum">    1361 </span><span class="lineCov">        471 :     if (Function::IsFunctionKind(*call_object_)) {</span></a>
+<a name="1358"><span class="lineNum">    1358 </span><span class="lineCov">        719 :   absl::StatusOr&lt;std::unique_ptr&lt;FunctionBinding&gt;&gt; BindingFromCallObject() {</span></a>
+<a name="1359"><span class="lineNum">    1359 </span><span class="lineCov">        719 :     std::unique_ptr&lt;FunctionBinding&gt; function_binding;</span></a>
+<a name="1360"><span class="lineNum">    1360 </span><span class="lineCov">        719 :     RET_CHECK(call_object_ != nullptr) &lt;&lt; &quot;No call object&quot;;</span></a>
+<a name="1361"><span class="lineNum">    1361 </span><span class="lineCov">        719 :     if (Function::IsFunctionKind(*call_object_)) {</span></a>
 <a name="1362"><span class="lineNum">    1362 </span><span class="lineNoCov">          0 :       ASSIGN_OR_RETURN(</span></a>
 <a name="1363"><span class="lineNum">    1363 </span>            :           function_binding,</a>
 <a name="1364"><span class="lineNum">    1364 </span>            :           static_cast&lt;Function*&gt;(call_object_)-&gt;BindArguments(arguments_));</a>
-<a name="1365"><span class="lineNum">    1365 </span><span class="lineCov">        471 :     } else if (FunctionGroup::IsFunctionGroup(*call_object_)) {</span></a>
-<a name="1366"><span class="lineNum">    1366 </span><span class="lineCov">        466 :       ASSIGN_OR_RETURN(</span></a>
+<a name="1365"><span class="lineNum">    1365 </span><span class="lineCov">        719 :     } else if (FunctionGroup::IsFunctionGroup(*call_object_)) {</span></a>
+<a name="1366"><span class="lineNum">    1366 </span><span class="lineCov">        714 :       ASSIGN_OR_RETURN(</span></a>
 <a name="1367"><span class="lineNum">    1367 </span>            :           function_binding,</a>
 <a name="1368"><span class="lineNum">    1368 </span>            :           static_cast&lt;FunctionGroup*&gt;(call_object_)-&gt;FindSignature(arguments_));</a>
 <a name="1369"><span class="lineNum">    1369 </span>            :     }</a>
-<a name="1370"><span class="lineNum">    1370 </span><span class="lineCov">        465 :     if (!function_binding) {</span></a>
+<a name="1370"><span class="lineNum">    1370 </span><span class="lineCov">        713 :     if (!function_binding) {</span></a>
 <a name="1371"><span class="lineNum">    1371 </span><span class="lineCov">         21 :       ASSIGN_OR_RETURN(function_binding,</span></a>
 <a name="1372"><span class="lineNum">    1372 </span>            :                        BindingFromType(call_object_-&gt;type_spec()));</a>
 <a name="1373"><span class="lineNum">    1373 </span>            :     }</a>
-<a name="1374"><span class="lineNum">    1374 </span><span class="lineCov">        463 :     return {std::move(function_binding)};</span></a>
+<a name="1374"><span class="lineNum">    1374 </span><span class="lineCov">        711 :     return {std::move(function_binding)};</span></a>
 <a name="1375"><span class="lineNum">    1375 </span>            :   }</a>
 <a name="1376"><span class="lineNum">    1376 </span><span class="lineCov">         24 :   absl::StatusOr&lt;std::unique_ptr&lt;FunctionBinding&gt;&gt; BindingFromType(</span></a>
 <a name="1377"><span class="lineNum">    1377 </span>            :       const TypeSpec* type_spec) {</a>
@@ -1496,18 +1496,18 @@
 <a name="1434"><span class="lineNum">    1434 </span>            :   bool is_method_call_ = false;</a>
 <a name="1435"><span class="lineNum">    1435 </span>            : };</a>
 <a name="1436"><span class="lineNum">    1436 </span>            : </a>
-<a name="1437"><span class="lineNum">    1437 </span><span class="lineCov">        514 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildFunctionCall(</span></a>
+<a name="1437"><span class="lineNum">    1437 </span><span class="lineCov">        964 : absl::StatusOr&lt;std::unique_ptr&lt;Expression&gt;&gt; Scope::BuildFunctionCall(</span></a>
 <a name="1438"><span class="lineNum">    1438 </span>            :     const pb::FunctionCall&amp; expression,</a>
 <a name="1439"><span class="lineNum">    1439 </span>            :     std::unique_ptr&lt;Expression&gt; left_expression, const CodeContext&amp; context) {</a>
 <a name="1440"><span class="lineNum">    1440 </span>            :   auto call_helper = std::make_unique&lt;FunctionCallHelper&gt;(</a>
-<a name="1441"><span class="lineNum">    1441 </span><span class="lineCov">       1028 :       this, expression, std::move(left_expression));</span></a>
+<a name="1441"><span class="lineNum">    1441 </span><span class="lineCov">       1928 :       this, expression, std::move(left_expression));</span></a>
 <a name="1442"><span class="lineNum">    1442 </span><span class="lineCov">         22 :   absl::Cleanup mark_failed = [this, &amp;call_helper]() {</span></a>
 <a name="1443"><span class="lineNum">    1443 </span><span class="lineCov">         22 :     failed_calls_.emplace_back(std::move(call_helper));</span></a>
-<a name="1444"><span class="lineNum">    1444 </span><span class="lineCov">       1028 :   };</span></a>
-<a name="1445"><span class="lineNum">    1445 </span><span class="lineCov">       1072 :   ASSIGN_OR_RETURN(auto call_expression, call_helper-&gt;PrepareCall(),</span></a>
+<a name="1444"><span class="lineNum">    1444 </span><span class="lineCov">       1928 :   };</span></a>
+<a name="1445"><span class="lineNum">    1445 </span><span class="lineCov">       1972 :   ASSIGN_OR_RETURN(auto call_expression, call_helper-&gt;PrepareCall(),</span></a>
 <a name="1446"><span class="lineNum">    1446 </span>            :                    _ &lt;&lt; context.ToErrorInfo(&quot;In function call&quot;));</a>
-<a name="1447"><span class="lineNum">    1447 </span><span class="lineCov">        492 :   std::move(mark_failed).Cancel();</span></a>
-<a name="1448"><span class="lineNum">    1448 </span><span class="lineCov">        492 :   return {std::move(call_expression)};</span></a>
+<a name="1447"><span class="lineNum">    1447 </span><span class="lineCov">        942 :   std::move(mark_failed).Cancel();</span></a>
+<a name="1448"><span class="lineNum">    1448 </span><span class="lineCov">        942 :   return {std::move(call_expression)};</span></a>
 <a name="1449"><span class="lineNum">    1449 </span>            : }</a>
 <a name="1450"><span class="lineNum">    1450 </span>            : </a>
 <a name="1451"><span class="lineNum">    1451 </span><span class="lineCov">         21 : absl::StatusOr&lt;std::unique_ptr&lt;FunctionBinding&gt;&gt; Scope::BindType(</span></a>
@@ -1517,17 +1517,34 @@
 <a name="1455"><span class="lineNum">    1455 </span><span class="lineCov">         21 :                                    &amp;failed_bindings_);</span></a>
 <a name="1456"><span class="lineNum">    1456 </span>            : }</a>
 <a name="1457"><span class="lineNum">    1457 </span>            : </a>
-<a name="1458"><span class="lineNum">    1458 </span><span class="lineCov">       1628 : absl::StatusOr&lt;const TypeSpec*&gt; FunctionCallArgument::ArgType(</span></a>
+<a name="1458"><span class="lineNum">    1458 </span><span class="lineCov">       3399 : absl::StatusOr&lt;const TypeSpec*&gt; FunctionCallArgument::ArgType(</span></a>
 <a name="1459"><span class="lineNum">    1459 </span>            :     absl::optional&lt;const TypeSpec*&gt; type_hint) const {</a>
-<a name="1460"><span class="lineNum">    1460 </span><span class="lineCov">       1628 :   if (value.has_value()) {</span></a>
-<a name="1461"><span class="lineNum">    1461 </span><span class="lineCov">       1593 :     return CHECK_NOTNULL(value.value())-&gt;type_spec(type_hint);</span></a>
+<a name="1460"><span class="lineNum">    1460 </span><span class="lineCov">       3399 :   if (value.has_value()) {</span></a>
+<a name="1461"><span class="lineNum">    1461 </span><span class="lineCov">       3364 :     return CHECK_NOTNULL(value.value())-&gt;type_spec(type_hint);</span></a>
 <a name="1462"><span class="lineNum">    1462 </span>            :   }</a>
 <a name="1463"><span class="lineNum">    1463 </span><span class="lineCov">         35 :   RET_CHECK(type_spec.has_value());</span></a>
 <a name="1464"><span class="lineNum">    1464 </span><span class="lineCov">         35 :   return CHECK_NOTNULL(type_spec.value());</span></a>
 <a name="1465"><span class="lineNum">    1465 </span>            : }</a>
 <a name="1466"><span class="lineNum">    1466 </span>            : </a>
-<a name="1467"><span class="lineNum">    1467 </span>            : }  // namespace analysis</a>
-<a name="1468"><span class="lineNum">    1468 </span>            : }  // namespace nudl</a>
+<a name="1467"><span class="lineNum">    1467 </span><span class="lineNoCov">          0 : void Scope::StoreExpression(std::unique_ptr&lt;Expression&gt; expression) {</span></a>
+<a name="1468"><span class="lineNum">    1468 </span><span class="lineNoCov">          0 :   stored_expressions_.emplace_back(std::move(expression));</span></a>
+<a name="1469"><span class="lineNum">    1469 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="1470"><span class="lineNum">    1470 </span>            : </a>
+<a name="1471"><span class="lineNum">    1471 </span><span class="lineNoCov">          0 : absl::StatusOr&lt;Expression*&gt; Scope::BuildDefaultValueExpression(</span></a>
+<a name="1472"><span class="lineNum">    1472 </span>            :     const TypeSpec* type_spec) {</a>
+<a name="1473"><span class="lineNum">    1473 </span><span class="lineNoCov">          0 :   ASSIGN_OR_RETURN(</span></a>
+<a name="1474"><span class="lineNum">    1474 </span>            :       auto expression_pb, type_spec-&gt;DefaultValueExpression(scope_name()),</a>
+<a name="1475"><span class="lineNum">    1475 </span>            :       _ &lt;&lt; &quot;Preparing default value for type: &quot; &lt;&lt; type_spec-&gt;full_name());</a>
+<a name="1476"><span class="lineNum">    1476 </span><span class="lineNoCov">          0 :   ASSIGN_OR_RETURN(auto expression, BuildExpression(expression_pb),</span></a>
+<a name="1477"><span class="lineNum">    1477 </span>            :                    _ &lt;&lt; &quot;Building default value expression for: &quot;</a>
+<a name="1478"><span class="lineNum">    1478 </span>            :                      &lt;&lt; expression_pb.ShortDebugString()</a>
+<a name="1479"><span class="lineNum">    1479 </span>            :                      &lt;&lt; &quot; in scope: &quot; &lt;&lt; scope_name().name());</a>
+<a name="1480"><span class="lineNum">    1480 </span><span class="lineNoCov">          0 :   stored_expressions_.emplace_back(std::move(expression));</span></a>
+<a name="1481"><span class="lineNum">    1481 </span><span class="lineNoCov">          0 :   return stored_expressions_.back().get();</span></a>
+<a name="1482"><span class="lineNum">    1482 </span>            : }</a>
+<a name="1483"><span class="lineNum">    1483 </span>            : </a>
+<a name="1484"><span class="lineNum">    1484 </span>            : }  // namespace analysis</a>
+<a name="1485"><span class="lineNum">    1485 </span>            : }  // namespace nudl</a>
 </pre>
       </td>
     </tr>
