@@ -26,8 +26,9 @@ namespace nudl {
 namespace conversion {
 
 namespace {
-std::string PythonSafeNameUnit(absl::string_view name,
-                               absl::optional<analysis::NamedObject*> object) {
+std::string PythonSafeNameUnit(
+    absl::string_view name,
+    const absl::optional<analysis::NamedObject*>& object) {
   const bool is_python_special = IsPythonSpecialName(name);
   const bool is_python_keyword = IsPythonKeyword(name);
   const bool is_nudl_name = absl::EndsWith(name, kPythonRenameEnding);
@@ -67,14 +68,12 @@ std::string PythonSafeName(absl::string_view name,
   std::reverse(comp.begin(), comp.end());
   std::vector<std::string> result;
   result.reserve(comp.size());
-  auto crt_object = object;
+  absl::optional<analysis::NamedObject*> crt_object = object;
   for (const auto& s : comp) {
     result.emplace_back(PythonSafeNameUnit(s, crt_object));
     do {
       if (crt_object.has_value()) {
         crt_object = crt_object.value()->parent_store();
-      } else {
-        crt_object = {};
       }
     } while (crt_object.has_value() &&
              analysis::FunctionGroup::IsFunctionGroup(*crt_object.value()));

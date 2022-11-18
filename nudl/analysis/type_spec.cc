@@ -354,11 +354,12 @@ pb::ExpressionTypeSpec TypeSpec::ToProto() const {
   return proto;
 }
 
-pb::TypeSpec TypeSpec::ToTypeSpecProto() const {
+pb::TypeSpec TypeSpec::ToTypeSpecProto(const ScopeName& call_scope_name) const {
   pb::TypeSpec proto;
   proto.mutable_identifier()->add_name(name());
   for (auto param : parameters_) {
-    *proto.add_argument()->mutable_type_spec() = param->ToTypeSpecProto();
+    *proto.add_argument()->mutable_type_spec() =
+        param->ToTypeSpecProto(call_scope_name);
   }
   return proto;
 }
@@ -681,9 +682,10 @@ bool TypeSpec::IsBasicType() const {
   return false;
 }
 
-absl::StatusOr<pb::Expression> TypeSpec::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeSpec::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   if (ancestor_) {
-    return ancestor_->DefaultValueExpression();
+    return ancestor_->DefaultValueExpression(call_scope_name);
   }
   return status::UnimplementedErrorBuilder()
          << "Cannot build default value expression for: " << full_name();

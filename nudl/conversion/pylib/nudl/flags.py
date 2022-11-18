@@ -3,7 +3,7 @@ import typing
 
 
 def define_int_flag(name: str, value: int, description: str) -> str:
-    absl.flags.DEFINE_int(name, value, description)
+    absl.flags.DEFINE_integer(name, value, description)
     return name
 
 

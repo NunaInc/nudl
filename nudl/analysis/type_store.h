@@ -56,6 +56,9 @@ class TypeStore {
 
   // Dumps the type names in the store.
   virtual std::string DebugNames() const = 0;
+
+  // Return the top global store.
+  virtual TypeStore* GlobalStore() = 0;
 };
 
 class ScopeTypeStore;
@@ -76,22 +79,32 @@ class GlobalTypeStore : public TypeStore {
   absl::Status AddAlias(const ScopeName& scope_name,
                         const ScopeName& alias_name);
   absl::optional<ScopeTypeStore*> FindStore(absl::string_view name) const;
+  TypeStore* GlobalStore() override;
+
   const TypeStore& base_store() const;
   TypeStore* mutable_base_store();
 
   std::string DebugNames() const override;
   const ScopeName& scope_name() const override;
 
+  using RegistrationCallback = std::function<absl::Status(TypeSpec*)>;
+  void AddRegistrationCallback(const ScopeName& scope_name,
+                               RegistrationCallback callback);
+  void RemoveRegistrationCallback(const ScopeName& scope_name);
+  absl::Status CallRegistrationCallback(const ScopeName& scope_name,
+                                        TypeSpec* type_spec) const;
+
  protected:
   std::unique_ptr<TypeStore> base_store_;
   std::vector<std::unique_ptr<ScopeTypeStore>> scopes_store_;
   absl::flat_hash_map<std::string, ScopeTypeStore*> scopes_;
+  absl::flat_hash_map<std::string, RegistrationCallback> callbacks_;
 };
 
 class ScopeTypeStore : public TypeStore {
  public:
   ScopeTypeStore(std::shared_ptr<ScopeName> scope_name,
-                 TypeStore* global_store);
+                 GlobalTypeStore* global_store);
 
   absl::StatusOr<const TypeSpec*> FindType(
       const ScopeName& lookup_scope, const pb::TypeSpec& type_spec) override;
@@ -100,6 +113,8 @@ class ScopeTypeStore : public TypeStore {
   absl::StatusOr<const TypeSpec*> DeclareType(
       const ScopeName& scope_name, absl::string_view name,
       std::unique_ptr<TypeSpec> type_spec) override;
+  TypeStore* GlobalStore() override;
+
   bool HasType(absl::string_view type_name) const;
   const ScopeName& scope_name() const override;
 
@@ -113,7 +128,7 @@ class ScopeTypeStore : public TypeStore {
   absl::StatusOr<const TypeSpec*> DeclareLocalAnyType(absl::string_view name);
 
   std::shared_ptr<ScopeName> scope_name_;
-  TypeStore* global_store_ = nullptr;
+  GlobalTypeStore* global_store_ = nullptr;
 
   absl::flat_hash_map<std::string, std::unique_ptr<TypeSpec>> types_;
   std::vector<std::unique_ptr<TypeSpec>> bound_types_;

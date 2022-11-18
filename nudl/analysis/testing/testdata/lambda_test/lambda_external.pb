@@ -9,7 +9,7 @@ expression {
     parameter {
       name: "names"
       type_spec {
-        name: "Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>"
+        name: "Array<HumanName>"
       }
     }
     result_type {
@@ -68,7 +68,7 @@ expression {
                       parameter {
                         name: "s"
                         type_spec {
-                          name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+                          name: "HumanName"
                         }
                       }
                       result_type {
@@ -116,7 +116,7 @@ expression {
                                     }
                                   }
                                   binding_type {
-                                    name: "Function<String(name: { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> })>"
+                                    name: "Function<String(name: HumanName)>"
                                   }
                                 }
                               }
@@ -131,7 +131,7 @@ expression {
                   }
                 }
                 binding_type {
-                  name: "Function<Generator<UInt>(l: Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>, f: Function<UInt(s: { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> })>)>"
+                  name: "Function<Generator<UInt>(l: Array<HumanName>, f: Function<UInt(s: HumanName)>)>"
                 }
               }
             }

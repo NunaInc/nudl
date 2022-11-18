@@ -159,6 +159,14 @@ class Scope : public BaseNameStore {
       const ScopedName& name, const TypeSpec* type_spec,
       const std::vector<FunctionCallArgument>& arguments);
 
+  // Stores expression belonging to this scope, but probably built
+  // in a different context (e.g. during conversion).
+  void StoreExpression(std::unique_ptr<Expression> expression);
+
+  // Builds an expression returning the default value for provided type.
+  absl::StatusOr<Expression*> BuildDefaultValueExpression(
+      const TypeSpec* type_spec);
+
   // As we use this a lot, and we really expect to have it available, we wrap
   // Any type finding in a no-fail but CHECK function.
   const TypeSpec* FindTypeAny();
@@ -245,6 +253,7 @@ class Scope : public BaseNameStore {
 
   std::vector<std::unique_ptr<NamedObject>> defined_names_;
   std::vector<std::unique_ptr<Expression>> expressions_;
+  std::vector<std::unique_ptr<Expression>> stored_expressions_;
   // This is more for obtaining better names in bindings.
   absl::flat_hash_map<std::string, size_t> binding_name_index_;
   // Various object that we keep around after failure, as they

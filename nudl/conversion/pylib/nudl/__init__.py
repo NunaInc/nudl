@@ -28,10 +28,10 @@ import time
 import types
 import typing
 
-from nudl import dataproc
-from nudl import dataset
-from nudl import dataset_spark
-from nudl import flags
+from nudl import dataproc  # type: ignore
+from nudl import dataset  # type: ignore
+from nudl import dataset_spark  # type: ignore
+from nudl import flags  # type: ignore
 
 UTC_TIMEZONE: datetime.tzinfo = pytz.utc
 NUDL_TIMEZONE: datetime.tzinfo = pytz.utc
@@ -39,11 +39,13 @@ NUDL_TIMEZONE: datetime.tzinfo = pytz.utc
 Numeric = typing.Union[int, float, decimal.Decimal]
 Date = datetime.date
 DateTime = datetime.datetime
+TimeInterval = datetime.timedelta
 Timestamp = float
 Decimal = decimal.Decimal
 
 _ZERO_DATETIME: DateTime = datetime.datetime.fromtimestamp(0.0, UTC_TIMEZONE)
 _ZERO_DATE: Date = _ZERO_DATETIME.date()
+_ZERO_TIMEINTERVAL: TimeInterval = datetime.timedelta()
 
 # With this it is confused:
 # typing.Union[str, int, float,
@@ -193,12 +195,20 @@ def timestamp_now() -> Timestamp:
     return time.time()
 
 
+def timestamp_empty() -> Timestamp:
+    return 0.0
+
+
 def timestamp_ms(utc_timestamp_ms: int) -> Timestamp:
     return 0.001 * utc_timestamp_ms
 
 
 def timestamp_sec(utc_timestamp_sec: float) -> Timestamp:
     return utc_timestamp_sec
+
+
+def date_empty() -> Date:
+    return DateTime.fromtimestamp(0).date()
 
 
 def date_today() -> Date:
@@ -227,6 +237,10 @@ def datetime_now() -> DateTime:
     return DateTime.fromtimestamp(time.time(), NUDL_TIMEZONE)
 
 
+def datetime_empty() -> DateTime:
+    return DateTime.fromtimestamp(0.0)
+
+
 def datetime_safe(year: int, month: int, day: int, hour: int, minute: int,
                   second: int) -> typing.Optional[DateTime]:
     try:
@@ -252,6 +266,14 @@ def datetime_from_isoformat(s: str) -> typing.Optional[DateTime]:
         return None
 
 
+def default_none() -> None:
+    return None
+
+
+def default_timestamp() -> Timestamp:
+    return 0.0
+
+
 def default_decimal() -> decimal.Decimal:
     return decimal.Decimal()
 
@@ -264,7 +286,20 @@ def default_datetime() -> DateTime:
     return _ZERO_DATETIME
 
 
+def defult_timeinterval() -> TimeInterval:
+    return _ZERO_TIMEINTERVAL
+
+
+def default_function() -> collections.abc.Callable:
+    return lambda: None
+
+
 def as_list(obj: _AnyIterable) -> _AnyList:
     if isinstance(obj, list):
         return obj
     return list(collect(obj))
+
+
+def as_map(obj: _AnyIterable, key: _AnyMapper,
+           value: _AnyMapper) -> typing.Dict:
+    return {key(elem): value(elem) for elem in obj}

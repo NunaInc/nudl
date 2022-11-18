@@ -1,16 +1,14 @@
 import examples.claim
 import dataset
-import aggregate
-
-import examples.dataproc
+import dataproc
 
 def generate(gendir: String, count: Int = 20000) => {
-  examples.dataproc.generate_parquet(examples.claim.Claim(), gendir, count)
+  dataproc.generate_parquet(examples.claim.Claim(), gendir, count)
 }
 
 def run_test(filename: String) => {
   dataset.read_parquet(examples.claim.Claim(), filename).aggregate(
     t => dataset.agg(t).count({ num = 1}))
 }
-init = examples.dataproc.spark_init_session("Demo")
+init = dataproc.spark_init_session("Demo")
 main = print(run_test(generate("/tmp/datatest")).collect())

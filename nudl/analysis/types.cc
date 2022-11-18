@@ -31,9 +31,11 @@
 #include "nudl/analysis/type_utils.h"
 #include "nudl/analysis/vars.h"
 #include "nudl/status/status.h"
-#include "nudl/testing/stacktrace.h"
 
 ABSL_DECLARE_FLAG(bool, nudl_short_analysis_proto);
+ABSL_FLAG(bool, nudl_non_null_for_nullable_value_default, false,
+          "If true we do not emit nulls as default values of "
+          "nullable type. Temporary, until we introduce inline macros");
 
 namespace nudl {
 namespace analysis {
@@ -108,7 +110,8 @@ TypeNull::TypeNull(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeNull::Clone() const {
   return CloneType<TypeNull>();
 }
-absl::StatusOr<pb::Expression> TypeNull::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeNull::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_literal()->set_null_value(pb::NullType::NULL_VALUE);
   return expression;
@@ -157,7 +160,8 @@ std::unique_ptr<TypeSpec> TypeInt::Clone() const {
 bool TypeInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
   return TypeUtils::IsIntType(type_spec);
 }
-absl::StatusOr<pb::Expression> TypeInt::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeInt::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_literal()->set_int_value(0);
   return expression;
@@ -210,7 +214,8 @@ std::unique_ptr<TypeSpec> TypeUInt::Clone() const {
 bool TypeUInt::IsConvertibleFrom(const TypeSpec& type_spec) const {
   return TypeUtils::IsUIntType(type_spec);
 }
-absl::StatusOr<pb::Expression> TypeUInt::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeUInt::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_literal()->set_uint_value(0u);
   return expression;
@@ -264,7 +269,8 @@ bool TypeFloat64::IsConvertibleFrom(const TypeSpec& type_spec) const {
   return (TypeUtils::IsFloatType(type_spec) ||
           TypeUtils::IsIntType(type_spec) || TypeUtils::IsUIntType(type_spec));
 }
-absl::StatusOr<pb::Expression> TypeFloat64::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeFloat64::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_literal()->set_double_value(0.0);
   return expression;
@@ -282,7 +288,8 @@ bool TypeFloat32::IsConvertibleFrom(const TypeSpec& type_spec) const {
   return (TypeUtils::IsFloatType(type_spec) ||
           TypeUtils::IsIntType(type_spec) || TypeUtils::IsUIntType(type_spec));
 }
-absl::StatusOr<pb::Expression> TypeFloat32::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeFloat32::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_literal()->set_float_value(0.0f);
   return expression;
@@ -296,7 +303,8 @@ TypeString::TypeString(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeString::Clone() const {
   return CloneType<TypeString>();
 }
-absl::StatusOr<pb::Expression> TypeString::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeString::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_literal()->set_str_value("");
   return expression;
@@ -310,7 +318,8 @@ TypeBytes::TypeBytes(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeBytes::Clone() const {
   return CloneType<TypeBytes>();
 }
-absl::StatusOr<pb::Expression> TypeBytes::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeBytes::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_literal()->set_bytes_value("");
   return expression;
@@ -324,7 +333,8 @@ TypeBool::TypeBool(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeBool::Clone() const {
   return CloneType<TypeBool>();
 }
-absl::StatusOr<pb::Expression> TypeBool::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeBool::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_literal()->set_bool_value("");
   return expression;
@@ -338,7 +348,8 @@ TypeTimestamp::TypeTimestamp(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeTimestamp::Clone() const {
   return CloneType<TypeTimestamp>();
 }
-absl::StatusOr<pb::Expression> TypeTimestamp::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeTimestamp::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_function_call()->mutable_identifier()->add_name(
       "default_timestamp");
@@ -353,7 +364,8 @@ TypeDate::TypeDate(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeDate::Clone() const {
   return CloneType<TypeDate>();
 }
-absl::StatusOr<pb::Expression> TypeDate::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeDate::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_function_call()->mutable_identifier()->add_name(
       "default_date");
@@ -368,7 +380,8 @@ TypeDateTime::TypeDateTime(TypeStore* type_store,
 std::unique_ptr<TypeSpec> TypeDateTime::Clone() const {
   return CloneType<TypeDateTime>();
 }
-absl::StatusOr<pb::Expression> TypeDateTime::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeDateTime::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_function_call()->mutable_identifier()->add_name(
       "default_datetime");
@@ -383,8 +396,8 @@ TypeTimeInterval::TypeTimeInterval(
 std::unique_ptr<TypeSpec> TypeTimeInterval::Clone() const {
   return CloneType<TypeTimeInterval>();
 }
-absl::StatusOr<pb::Expression> TypeTimeInterval::DefaultValueExpression()
-    const {
+absl::StatusOr<pb::Expression> TypeTimeInterval::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_literal()->mutable_time_range()->set_seconds(0);
   return expression;
@@ -404,7 +417,8 @@ std::unique_ptr<TypeSpec> TypeDecimal::Clone() const {
                                        precision_, scale_);
 }
 
-absl::StatusOr<pb::Expression> TypeDecimal::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeDecimal::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
   expression.mutable_function_call()->mutable_identifier()->add_name(
       "default_decimal");
@@ -430,7 +444,8 @@ pb::ExpressionTypeSpec TypeDecimal::ToProto() const {
   return proto;
 }
 
-pb::TypeSpec TypeDecimal::ToTypeSpecProto() const {
+pb::TypeSpec TypeDecimal::ToTypeSpecProto(
+    const ScopeName& call_scope_name) const {
   pb::TypeSpec proto;
   proto.mutable_identifier()->add_name(name());
   if (precision_ > 0) {
@@ -542,9 +557,15 @@ std::unique_ptr<TypeSpec> TypeArray::Clone() const {
   return std::make_unique<TypeArray>(type_store_, type_member_store_,
                                      parameters_.front());
 }
-absl::StatusOr<pb::Expression> TypeArray::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeArray::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
-  expression.set_empty_struct(pb::NullType::NULL_VALUE);
+  auto fun = expression.mutable_function_call();
+  fun->mutable_identifier()->add_name("Array");
+  ASSIGN_OR_RETURN(
+      *fun->add_argument()->mutable_value(),
+      parameters_.front()->DefaultValueExpression(call_scope_name));
+  // expression.set_empty_struct(pb::NullType::NULL_VALUE);
   return expression;
 }
 
@@ -569,9 +590,16 @@ const TypeSpec* TypeSet::IndexType() const {
 }
 
 const TypeSpec* TypeSet::IndexedType() const { return bool_type_; }
-absl::StatusOr<pb::Expression> TypeSet::DefaultValueExpression() const {
+
+absl::StatusOr<pb::Expression> TypeSet::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
-  expression.set_empty_struct(pb::NullType::NULL_VALUE);
+  auto fun = expression.mutable_function_call();
+  fun->mutable_identifier()->add_name("Set");
+  ASSIGN_OR_RETURN(
+      *fun->add_argument()->mutable_value(),
+      parameters_.front()->DefaultValueExpression(call_scope_name));
+  // expression.set_empty_struct(pb::NullType::NULL_VALUE);
   return expression;
 }
 
@@ -591,14 +619,31 @@ TypeStruct::TypeStruct(TypeStore* type_store,
   struct_member_store_->set_type_spec(this);
 }
 
-absl::StatusOr<pb::Expression> TypeStruct::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeStruct::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   if (is_abstract_struct_) {
     return absl::UnimplementedError(
         "No default value for abstract struct type");
   }
   pb::Expression expression;
-  expression.mutable_function_call()->mutable_identifier()->add_name(name());
+  *expression.mutable_function_call()->mutable_type_spec() =
+      ToTypeSpecProto(call_scope_name);
   return expression;
+}
+
+pb::TypeSpec TypeStruct::ToTypeSpecProto(
+    const ScopeName& call_scope_name) const {
+  pb::TypeSpec type_spec;
+  auto identifier = type_spec.mutable_identifier();
+  if (call_scope_name.name() != scope_name().name()) {
+    *identifier = scope_name().ToIdentifier();
+  }
+  if (local_name().empty()) {
+    identifier->add_name(name());
+  } else {
+    identifier->add_name(local_name());
+  }
+  return type_spec;
 }
 
 pb::ExpressionTypeSpec TypeStruct::ToProto() const {
@@ -622,20 +667,32 @@ std::string TypeStruct::TypeSignature() const {
       comp.emplace_back(absl::StrJoin(scope_name().module_names(), "_f_"));
     }
   }
-  comp.emplace_back(name());
+  if (local_name().empty()) {
+    comp.emplace_back(name());
+  } else {
+    comp.emplace_back(local_name());
+  }
   return absl::StrCat("S_", absl::StrJoin(comp, "_x_"));
 }
 
+std::string TypeStruct::full_name() const {
+  if (name() == kTypeNameStruct) {
+    return TypeSpec::full_name();
+  }
+  return name();
+}
+
 absl::StatusOr<std::unique_ptr<TypeStruct>> TypeStruct::CreateTypeStruct(
-    TypeStore* type_store, absl::string_view name, std::vector<Field> fields) {
+    TypeStore* base_store, TypeStore* registration_store,
+    absl::string_view name, std::vector<Field> fields) {
   ASSIGN_OR_RETURN(auto struct_spec,
-                   type_store->FindTypeByName(kTypeNameStruct),
+                   base_store->FindTypeByName(kTypeNameStruct),
                    _ << "Probably a setup error: base type is not registered");
   auto struct_member_store = std::make_shared<StructMemberStore>(
       struct_spec, struct_spec->type_member_store_ptr());
-  auto struct_type =
-      absl::make_unique<TypeStruct>(type_store, std::move(struct_member_store),
-                                    name, std::move(fields), false);
+  auto struct_type = absl::make_unique<TypeStruct>(
+      registration_store, std::move(struct_member_store), name,
+      std::move(fields), false);
   RETURN_IF_ERROR(
       struct_type->struct_member_store()->AddFields(struct_type->fields()))
       << "Adding fields to: " << struct_type->full_name();
@@ -643,13 +700,15 @@ absl::StatusOr<std::unique_ptr<TypeStruct>> TypeStruct::CreateTypeStruct(
 }
 
 absl::StatusOr<TypeStruct*> TypeStruct::AddTypeStruct(
-    const ScopeName& scope_name, TypeStore* type_store, absl::string_view name,
+    const ScopeName& scope_name, TypeStore* base_store,
+    TypeStore* registration_store, absl::string_view name,
     std::vector<Field> fields) {
   ASSIGN_OR_RETURN(auto struct_type,
-                   CreateTypeStruct(type_store, name, std::move(fields)));
+                   CreateTypeStruct(base_store, registration_store, name,
+                                    std::move(fields)));
   auto struct_type_ptr = struct_type.get();
   RETURN_IF_ERROR(
-      type_store->DeclareType(scope_name, name, std::move(struct_type))
+      registration_store->DeclareType(scope_name, "", std::move(struct_type))
           .status());
   return struct_type_ptr;
 }
@@ -828,9 +887,17 @@ std::unique_ptr<TypeSpec> TypeMap::Clone() const {
 
 const TypeSpec* TypeMap::ResultType() const { return result_type_.get(); }
 
-absl::StatusOr<pb::Expression> TypeMap::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeMap::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   pb::Expression expression;
-  expression.set_empty_struct(pb::NullType::NULL_VALUE);
+  auto fun = expression.mutable_function_call();
+  fun->mutable_identifier()->add_name("Map");
+  ASSIGN_OR_RETURN(
+      *fun->add_argument()->mutable_value(),
+      parameters_.front()->DefaultValueExpression(call_scope_name));
+  ASSIGN_OR_RETURN(*fun->add_argument()->mutable_value(),
+                   parameters_.back()->DefaultValueExpression(call_scope_name));
+  // expression.set_empty_struct(pb::NullType::NULL_VALUE);
   return expression;
 }
 
@@ -1159,9 +1226,10 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeFunction::Bind(
                                          result_type, original_bind)};
 }
 
-absl::StatusOr<pb::Expression> TypeFunction::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeFunction::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
   if (!result_) {
-    return TypeSpec::DefaultValueExpression();
+    return TypeSpec::DefaultValueExpression(call_scope_name);
   }
   pb::Expression expression;
   auto fun = expression.mutable_lambda_def();
@@ -1169,12 +1237,13 @@ absl::StatusOr<pb::Expression> TypeFunction::DefaultValueExpression() const {
     RET_CHECK(arg.type_spec != nullptr);
     auto fparam = fun->add_param();
     fparam->set_name(arg.name);
-    *fparam->mutable_type_spec() = arg.type_spec->ToTypeSpecProto();
+    *fparam->mutable_type_spec() =
+        arg.type_spec->ToTypeSpecProto(call_scope_name);
   }
-  *fun->mutable_result_type() = result_->ToTypeSpecProto();
+  *fun->mutable_result_type() = result_->ToTypeSpecProto(call_scope_name);
   ASSIGN_OR_RETURN(
       *fun->mutable_expression_block()->add_expression(),
-      result_->DefaultValueExpression(),
+      result_->DefaultValueExpression(call_scope_name),
       _ << "Producing default result expression for: " << full_name());
   return expression;
 }
@@ -1460,7 +1529,12 @@ std::unique_ptr<TypeSpec> TypeNullable::Clone() const {
       parameters_.empty() ? nullptr : parameters_.back());
 }
 
-absl::StatusOr<pb::Expression> TypeNullable::DefaultValueExpression() const {
+absl::StatusOr<pb::Expression> TypeNullable::DefaultValueExpression(
+    const ScopeName& call_scope_name) const {
+  if (!parameters_.empty() &&
+      absl::GetFlag(FLAGS_nudl_non_null_for_nullable_value_default)) {
+    return parameters_.back()->DefaultValueExpression(call_scope_name);
+  }
   pb::Expression expression;
   expression.mutable_literal()->set_null_value(pb::NullType::NULL_VALUE);
   return expression;
@@ -1532,6 +1606,33 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeDataset::Bind(
       type_store_, type_member_store_, original_bind_, name_, types.front());
   RETURN_IF_ERROR(new_dataset->UpdateBindingStore(bindings));
   return {std::move(new_dataset)};
+}
+
+namespace {
+std::vector<TypeStore*>* DatasetRegistrationStack() {
+  static const auto kStack = new std::vector<TypeStore*>();
+  return kStack;
+}
+}  // namespace
+
+// Note we operate single thread, so we are fine with this.
+
+void TypeDataset::PushRegistrationStore(TypeStore* type_store) {
+  DatasetRegistrationStack()->push_back(type_store);
+}
+
+void TypeDataset::PopRegistrationStore() {
+  auto store = DatasetRegistrationStack();
+  CHECK(!store->empty());
+  store->pop_back();
+}
+
+TypeStore* TypeDataset::GetRegistrationStore(TypeStore* default_type_store) {
+  auto store = DatasetRegistrationStack();
+  if (store->empty()) {
+    return default_type_store;
+  }
+  return store->back();
 }
 
 DatasetAggregate::DatasetAggregate(
@@ -1685,13 +1786,16 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> DatasetAggregate::Bind(
   }
   const std::string struct_name(
       absl::StrCat("_Aggregate_", base_type->name(), "_", NextTypeId()));
-  ASSIGN_OR_RETURN(auto struct_type,
-                   TypeStruct::CreateTypeStruct(type_store_, struct_name,
-                                                std::move(struct_fields)),
-                   _ << "Creating structure type for aggregation result");
+  auto registration_store = TypeDataset::GetRegistrationStore(type_store_);
+  ASSIGN_OR_RETURN(
+      auto struct_type,
+      TypeStruct::CreateTypeStruct(type_store_, registration_store, struct_name,
+                                   std::move(struct_fields)),
+      _ << "Creating structure type for aggregation result");
   ASSIGN_OR_RETURN(
       auto struct_type_ptr,
-      type_store_->DeclareType(scope_name(), "", std::move(struct_type)),
+      registration_store->DeclareType(registration_store->scope_name(), "",
+                                      std::move(struct_type)),
       _ << "Declaring aggregation result type");
   return std::make_unique<TypeDataset>(type_store_, type_member_store_, this,
                                        absl::StrCat("_Dataset", struct_name),
@@ -1733,22 +1837,46 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> DatasetJoin::Build(
 }
 
 namespace {
+
+bool IsProperJoinType(const TypeSpec* crt) {
+  if (!TypeUtils::IsTupleType(*crt) || crt->parameters().size() != 2 ||
+      !TypeUtils::IsFunctionType(*crt->parameters().back())) {
+    return false;
+  }
+  const TypeSpec* dataset = crt->parameters().front();
+  if (TypeUtils::IsDatasetType(*dataset)) {
+    return true;
+  }
+  if (TypeUtils::IsArrayType(*dataset) && dataset->ResultType() &&
+      TypeUtils::IsDatasetType(*dataset->ResultType())) {
+    return true;
+  }
+  return false;
+}
+
 struct JoinBuilder {
   explicit JoinBuilder(TypeStore* type_store) : type_store(type_store) {}
 
   absl::Status ProcessJoinComponent(const TypeSpec* crt,
                                     absl::string_view join_field) {
-    if (!TypeUtils::IsTupleType(*crt) || crt->parameters().size() != 2 ||
-        !TypeUtils::IsDatasetType(*crt->parameters().front()) ||
-        !TypeUtils::IsFunctionType(*crt->parameters().back())) {
+    if (!IsProperJoinType(crt)) {
       return status::InvalidArgumentErrorBuilder()
              << "Invalid tuple type argument for specification "
                 "of right side of the join. We expect a tuple with "
-                "a dataset and a key function. Got: "
+                "a dataset or array of datasets and a key function. Got: "
              << crt->full_name();
     }
     auto crt_tuple = static_cast<const TypeTuple*>(crt);
-    auto dset_type = static_cast<const TypeDataset*>(crt->parameters().front());
+    const TypeSpec* dtype = crt->parameters().front();
+    const TypeDataset* dset_type = nullptr;
+    bool is_composed_dataset = false;
+    if (TypeUtils::IsDatasetType(*dtype)) {
+      dset_type = static_cast<const TypeDataset*>(dtype);
+    } else {
+      RET_CHECK(TypeUtils::IsDatasetType(*dtype->ResultType()));
+      dset_type = static_cast<const TypeDataset*>(dtype->ResultType());
+      is_composed_dataset = true;
+    }
     if (dset_type->parameters().empty() ||
         !TypeUtils::IsStructType(*dset_type->parameters().front())) {
       return status::InvalidArgumentErrorBuilder()
@@ -1758,7 +1886,7 @@ struct JoinBuilder {
     return ProcessRight(
         crt_tuple->names().front(), join_field,
         static_cast<const TypeStruct*>(dset_type->parameters().front()),
-        crt->parameters().back());
+        crt->parameters().back(), is_composed_dataset);
   }
   absl::Status ProcessLeft(const TypeSpec* arg, const TypeSpec* key) {
     RET_CHECK(struct_fields.empty()) << "Multiple ProcessLeft calls.";
@@ -1788,7 +1916,7 @@ struct JoinBuilder {
 
   absl::Status ProcessRight(absl::string_view join_name,
                             absl::string_view join_field, const TypeStruct* arg,
-                            const TypeSpec* key) {
+                            const TypeSpec* key, bool is_composed_dataset) {
     RET_CHECK(left_type.has_value()) << "Need to call ProcessLeft first";
     RET_CHECK(key_type.has_value()) << "Need to call ProcessLeft first";
     if (!TypeUtils::IsFunctionType(*key) || !key->ResultType()) {
@@ -1804,7 +1932,14 @@ struct JoinBuilder {
              << key->ResultType()->full_name()
              << " expecting: " << key_type.value()->full_name();
     }
-    ASSIGN_OR_RETURN(std::string field_name, name_keeper.field_name(join_field),
+    if (is_composed_dataset && join_name != "right_multi_array") {
+      return status::InvalidArgumentErrorBuilder()
+             << "Invalid join name: " << join_name
+             << " for joining with "
+                "dataset array.";
+    }
+    ASSIGN_OR_RETURN(const std::string field_name,
+                     name_keeper.field_name(join_field),
                      _ << "For right join specification: " << key->full_name());
     std::unique_ptr<TypeSpec> join_type;
     if (join_name == "right") {
@@ -1812,7 +1947,7 @@ struct JoinBuilder {
           join_type,
           TypeUtils::EnsureType(type_store, kTypeNameNullable)->Bind({arg}),
           _ << "Building an array type for the multi right join field");
-    } else if (join_name == "right_multi") {
+    } else if (join_name == "right_multi" || join_name == "right_multi_array") {
       ASSIGN_OR_RETURN(
           join_type,
           TypeUtils::EnsureType(type_store, kTypeNameArray)->Bind({arg}),
@@ -1821,24 +1956,41 @@ struct JoinBuilder {
       return status::InvalidArgumentErrorBuilder()
              << "Invalid join name specification: " << join_name;
     }
-    struct_fields.emplace_back(
-        TypeStruct::Field{std::move(field_name), join_type.get()});
+    struct_fields.emplace_back(TypeStruct::Field{field_name, join_type.get()});
     allocated_types.emplace_back(std::move(join_type));
+    if (is_composed_dataset) {
+      ASSIGN_OR_RETURN(
+          std::string index_field_name,
+          name_keeper.field_name(absl::StrCat(field_name, "_index")),
+          _ << "Adding an index field name to array-based "
+               "join specification: "
+            << key->full_name());
+      ASSIGN_OR_RETURN(
+          auto join_index_type,
+          TypeUtils::EnsureType(type_store, kTypeNameArray)
+              ->Bind({TypeUtils::EnsureType(type_store, kTypeNameInt)}),
+          _ << "Building an array type for the multi right join index field");
+      struct_fields.emplace_back(TypeStruct::Field{std::move(index_field_name),
+                                                   join_index_type.get()});
+      allocated_types.emplace_back(std::move(join_index_type));
+    }
     return absl::OkStatus();
   }
-  absl::StatusOr<const TypeSpec*> BuildResult(const ScopeName& scope_name,
-                                              size_t type_id) {
+  absl::StatusOr<const TypeSpec*> BuildResult(size_t type_id) {
     if (!left_type.has_value()) {
       return status::InvalidArgumentErrorBuilder()
              << "No left structure to join with was specified";
     }
     const std::string struct_name(
         absl::StrCat("_Join_", left_type.value()->name(), "_", type_id));
-    ASSIGN_OR_RETURN(auto struct_type,
-                     TypeStruct::CreateTypeStruct(type_store, struct_name,
-                                                  std::move(struct_fields)),
-                     _ << "Creating structure type for join result");
-    return type_store->DeclareType(scope_name, "", std::move(struct_type));
+    auto registration_store = TypeDataset::GetRegistrationStore(type_store);
+    ASSIGN_OR_RETURN(
+        auto struct_type,
+        TypeStruct::CreateTypeStruct(type_store, registration_store,
+                                     struct_name, std::move(struct_fields)),
+        _ << "Creating structure type for join result");
+    return registration_store->DeclareType(registration_store->scope_name(), "",
+                                           std::move(struct_type));
   }
 
   TypeStore* const type_store;
@@ -1879,8 +2031,7 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> DatasetJoin::Bind(
         builder.ProcessJoinComponent(spec->parameters()[i], spec->names()[i]))
         << "Processing right join specification at index: " << i;
   }
-  ASSIGN_OR_RETURN(auto struct_type,
-                   builder.BuildResult(scope_name(), NextTypeId()),
+  ASSIGN_OR_RETURN(auto struct_type, builder.BuildResult(NextTypeId()),
                    _ << "Building join result type");
   return std::make_unique<TypeDataset>(
       type_store_, type_member_store_, this,

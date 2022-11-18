@@ -87,9 +87,6 @@ std::string GetDefaultValue(absl::string_view type_name) {
            R"(function_call { identifier { name: "default_timestamp" } })"},
           {"Decimal",
            R"(function_call { identifier { name: "default_decimal" } })"},
-          {"Array", R"(empty_struct: NULL_VALUE)"},
-          {"Set", R"(empty_struct: NULL_VALUE)"},
-          {"Map", R"(empty_struct: NULL_VALUE)"},
       });
   auto it = kDefaultValues->find(type_name);
   if (it == kDefaultValues->end()) {
@@ -167,7 +164,7 @@ TEST_F(TypesTest, BaseTypes) {
     } else {
       EXPECT_EQ(kUnBoundTypes.count(std::string(name)), 1) << "For: " << name;
     }
-    auto default_val = typespec->DefaultValueExpression();
+    auto default_val = typespec->DefaultValueExpression(ScopeName());
     auto expected_default = GetDefaultValue(name);
     if (default_val.ok()) {
       EXPECT_THAT(default_val.value(), EqualsProto(expected_default));
@@ -797,7 +794,7 @@ TEST_F(TypesTest, Decimal) {
                                               name: "Decimal"
                                               parameter_value: 10
                                               parameter_value: 3)pb"));
-  EXPECT_THAT(td->ToTypeSpecProto(), EqualsProto(R"pb(
+  EXPECT_THAT(td->ToTypeSpecProto(ScopeName()), EqualsProto(R"pb(
                 identifier { name: "Decimal" }
                 argument { int_value: 10 }
                 argument { int_value: 3 }
@@ -996,7 +993,7 @@ TEST_F(TypesTest, TupleJoinsSimple) {
 TEST_F(TypesTest, FunctionDefault) {
   ASSERT_OK_AND_ASSIGN(auto scope_name, ScopeName::Parse("foo.bar"));
   ASSERT_OK_AND_ASSIGN(auto f1, FindType("Function<Int, String, Bool>"));
-  ASSERT_OK_AND_ASSIGN(auto f1_default, f1->DefaultValueExpression());
+  ASSERT_OK_AND_ASSIGN(auto f1_default, f1->DefaultValueExpression(scope_name));
   EXPECT_THAT(
       f1_default, EqualsProto(R"pb(
         lambda_def {

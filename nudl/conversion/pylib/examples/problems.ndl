@@ -5,3 +5,10 @@ v1 = gg(1, 2)
 gg = (x, y) => x * y
 v2 = gg(1.1, 2.2)
 */
+
+schema Foo = {
+  a: Int;
+  b: String;
+}
+
+main = range(0, 10).map(n => Foo(a=n, b="foo")).map(p => print(p)).to_array()

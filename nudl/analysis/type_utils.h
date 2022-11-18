@@ -78,7 +78,7 @@ inline constexpr absl::string_view kTypeNameDatasetJoin = "DatasetJoin";
 
 class BaseTypesStore : public ScopeTypeStore {
  public:
-  explicit BaseTypesStore(TypeStore* global_store)
+  explicit BaseTypesStore(GlobalTypeStore* global_store)
       : ScopeTypeStore(absl::make_unique<ScopeName>(), global_store) {
     CreateBaseTypes();
   }
@@ -120,6 +120,7 @@ class TypeUtils {
   static bool IsFunctionType(const TypeSpec& type_spec);
   static bool IsStructType(const TypeSpec& type_spec);
   static bool IsDatasetType(const TypeSpec& type_spec);
+  static bool IsArrayType(const TypeSpec& type_spec);
 
   // If this type when passed as an arg to a function, cannot yield
   // us much information, and would mostly fail the function if

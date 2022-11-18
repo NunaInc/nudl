@@ -29,6 +29,7 @@
 #include "absl/strings/str_split.h"
 #include "nudl/status/status.h"
 #include "nudl/testing/stacktrace.h"
+#include "re2/re2.h"
 
 namespace nudl {
 namespace conversion {
@@ -353,7 +354,7 @@ absl::optional<std::pair<std::string, std::string>> PythonTypeName(
           {pb::TypeId::FLOAT32_ID, {"float", ""}},
           {pb::TypeId::FLOAT64_ID, {"float", ""}},
           {pb::TypeId::DATE_ID, {"datetime.date", "datetime"}},
-          {pb::TypeId::DATETIME_ID, {"'datetime.datetime'", "datetime"}},
+          {pb::TypeId::DATETIME_ID, {"datetime.datetime", "datetime"}},
           {pb::TypeId::TIMEINTERVAL_ID, {"datetime.timedelta", "datetime"}},
           {pb::TypeId::TIMESTAMP_ID, {"float", ""}},
           {pb::TypeId::DECIMAL_ID, {"decimal.Decimal", "decimal"}},
@@ -396,7 +397,8 @@ bool IsExternalType(const analysis::TypeSpec* type_spec,
 }  // namespace
 
 std::string PythonConverter::GetStructTypeName(
-    const analysis::TypeSpec* type_spec, PythonConvertState* state) const {
+    const analysis::TypeSpec* type_spec, bool force_name,
+    PythonConvertState* state) const {
   std::string module_name;
   std::string prefix;
   if (IsExternalType(type_spec, state)) {
@@ -404,8 +406,12 @@ std::string PythonConverter::GetStructTypeName(
     // defined in external modules may be binded (in those modules)
     // with types defined in places from where they are called.
     // One more reason to place the bindings in the module they are used !!
-    return "typing.Any";
-    /*
+    if (!bindings_on_use_ ||
+        !force_name
+        // for now filter out typedef struct stuff.
+        || !type_spec->local_name().empty()) {
+      return "typing.Any";
+    }
     if (!type_spec->scope_name().module_names().empty()) {
       state->add_import(absl::StrCat(
           "import ", PythonSafeName(type_spec->scope_name().module_name(),
@@ -413,21 +419,23 @@ std::string PythonConverter::GetStructTypeName(
     }
     prefix = PythonSafeName(scope_name(type_spec->scope_name(), true),
                             type_spec->definition_scope());
-    */
   }
+  const std::string name = type_spec->local_name().empty()
+                               ? type_spec->name()
+                               : type_spec->local_name();
   return absl::StrCat(
-      prefix, PythonSafeName(type_spec->name(),
-                             const_cast<analysis::TypeSpec*>(type_spec)));
+      prefix, PythonSafeName(name, const_cast<analysis::TypeSpec*>(type_spec)));
 }
 
 absl::Status PythonConverter::AddTypeName(const analysis::TypeSpec* type_spec,
+                                          bool force_struct_name,
                                           PythonConvertState* state) const {
   if (type_spec->type_id() == pb::TypeId::STRUCT_ID) {
     if (!IsExternalType(type_spec, state)) {
       RETURN_IF_ERROR(ConvertStructType(
           static_cast<const analysis::TypeStruct*>(type_spec), state));
     }
-    state->out() << GetStructTypeName(type_spec, state);
+    state->out() << GetStructTypeName(type_spec, true, state);
     return absl::OkStatus();
   }
   auto pytype_spec = PythonTypeName(type_spec->type_id());
@@ -452,13 +460,16 @@ absl::Status PythonConverter::AddTypeName(const analysis::TypeSpec* type_spec,
       if (i) {
         state->out() << ", ";
       }
-      RETURN_IF_ERROR(AddTypeName(type_spec->parameters()[i], state));
+      RETURN_IF_ERROR(
+          AddTypeName(type_spec->parameters()[i], force_struct_name, state));
     }
     state->out() << "]";
     state->out() << ", ";
-    RETURN_IF_ERROR(AddTypeName(type_spec->parameters().back(), state));
+    RETURN_IF_ERROR(
+        AddTypeName(type_spec->parameters().back(), force_struct_name, state));
   } else if (type_spec->type_id() == pb::TypeId::NULLABLE_ID) {
-    RETURN_IF_ERROR(AddTypeName(type_spec->parameters().back(), state));
+    RETURN_IF_ERROR(
+        AddTypeName(type_spec->parameters().back(), force_struct_name, state));
   } else if (type_spec->type_id() == pb::TypeId::TUPLE_ID &&
              static_cast<const analysis::TypeTuple*>(type_spec)->is_named()) {
     auto tuple_type = static_cast<const analysis::TypeTuple*>(type_spec);
@@ -470,7 +481,8 @@ absl::Status PythonConverter::AddTypeName(const analysis::TypeSpec* type_spec,
       if (is_named) {
         state->out() << "typing.Tuple[str, ";
       }
-      RETURN_IF_ERROR(AddTypeName(type_spec->parameters()[i], state));
+      RETURN_IF_ERROR(
+          AddTypeName(type_spec->parameters()[i], force_struct_name, state));
       if (is_named) {
         state->out() << "]";
       }
@@ -480,7 +492,8 @@ absl::Status PythonConverter::AddTypeName(const analysis::TypeSpec* type_spec,
       if (i) {
         state->out() << ", ";
       }
-      RETURN_IF_ERROR(AddTypeName(type_spec->parameters()[i], state));
+      RETURN_IF_ERROR(
+          AddTypeName(type_spec->parameters()[i], force_struct_name, state));
     }
   }
   state->out() << "]";
@@ -497,7 +510,8 @@ absl::Status PythonConverter::ConvertAssignment(
                                   expression.named_object());
   if (expression.has_type_spec()) {
     bstate->out() << " : ";
-    RETURN_IF_ERROR(AddTypeName(expression.var()->converted_type(), bstate));
+    RETURN_IF_ERROR(
+        AddTypeName(expression.var()->converted_type(), false, bstate));
   }
   bstate->out() << " = ";
   RETURN_IF_ERROR(
@@ -954,8 +968,27 @@ struct NativeConvert {
   NativeConvert(analysis::Function* fun, PythonConvertState* state)
       : fun(fun), state(state) {}
 
+  absl::flat_hash_set<std::string> FindMacros() const {
+    re2::StringPiece input(code);
+    absl::flat_hash_set<std::string> macros;
+    std::string token;
+    while (RE2::Consume(&input, R"(.*\${{(\w+)}})", &token)) {
+      macros.insert(token);
+    }
+    return macros;
+  }
+  void PrepareMacros(
+      const absl::flat_hash_map<std::string, std::unique_ptr<ConvertState>>&
+          expansions) {
+    for (const auto& it : expansions) {
+      auto bstate = static_cast<PythonConvertState*>(it.second.get());
+      state->AddImports(*bstate);
+      arguments.emplace(absl::StrCat("${{", it.first, "}}"), bstate->out_str());
+    }
+  }
+
   absl::StatusOr<std::string> Replace() {
-    RETURN_IF_ERROR(Prepare());
+    PrepareStructConstructor();
     std::string replaced =
         absl::StrReplaceAll(absl::StripAsciiWhitespace(code), arguments);
     for (const auto& s : skipped) {
@@ -981,11 +1014,10 @@ struct NativeConvert {
     arguments.emplace(arg_escaped(arg_name), std::move(value));
   }
 
- private:
   absl::Status Prepare() {
     RET_CHECK(fun->is_native());
-    if (PrepareStructConstructor()) {
-      return absl::OkStatus();
+    if (SetStructConstructor()) {
+      return absl::OkStatus();  // will be prepared later
     }
     auto py_inline_it = fun->native_impl().find("pyinline");
     if (py_inline_it == fun->native_impl().end()) {
@@ -1000,45 +1032,62 @@ struct NativeConvert {
     code = py_inline_it->second;
     return absl::OkStatus();
   }
-  bool PrepareStructConstructor() {
-    bool is_copy = false;
+
+ private:
+  enum StructConstructor { None, Copy, Build };
+  bool SetStructConstructor() {
     auto it = fun->native_impl().find(analysis::kStructObjectConstructor);
     if (it == fun->native_impl().end()) {
       it = fun->native_impl().find(analysis::kStructCopyConstructor);
       if (it == fun->native_impl().end()) {
         return false;
       }
-      is_copy = true;
-    }
-    const std::string args_str =
-        absl::StrJoin(arguments_ordered, ", ",
-                      [this, is_copy](std::string* out, const std::string& s) {
-                        if (is_copy) {
-                          absl::StrAppend(out, arg_escaped(s));
-                        } else {
-                          absl::StrAppend(out, s, "=", arg_escaped(s));
-                        }
-                      });
-    if (is_copy) {
-      state->add_import("import copy");
-      code = absl::StrCat("copy.deepcopy(", args_str, ")");
+      struct_construct = StructConstructor::Copy;
     } else {
-      std::string name;
-      if (state->module() != fun->module_scope()) {
-        name = PythonSafeName(
-            absl::StrCat(scope_name(fun->module_scope()->scope_name(), true),
-                         it->second),
-            fun);
-      } else {
-        name = PythonSafeName(it->second, fun);
-      }
-      code = absl::StrCat(name, "(", args_str, ")");
+      struct_construct = StructConstructor::Build;
+      constructor_name = it->second;
     }
     return true;
+  }
+  void PrepareStructConstructor() {
+    switch (struct_construct) {
+      case StructConstructor::None:
+        return;
+      case StructConstructor::Copy: {
+        const std::string args_str =
+            absl::StrJoin(arguments_ordered, ", ",
+                          [this](std::string* out, const std::string& s) {
+                            absl::StrAppend(out, arg_escaped(s));
+                          });
+        state->add_import("import copy");
+        code = absl::StrCat("copy.deepcopy(", args_str, ")");
+        break;
+      }
+      case StructConstructor::Build: {
+        const std::string args_str =
+            absl::StrJoin(arguments_ordered, ", ",
+                          [this](std::string* out, const std::string& s) {
+                            absl::StrAppend(out, s, "=", arg_escaped(s));
+                          });
+        std::string name;
+        if (state->module() != fun->module_scope()) {
+          name = PythonSafeName(
+              absl::StrCat(scope_name(fun->module_scope()->scope_name(), true),
+                           constructor_name),
+              fun);
+        } else {
+          name = PythonSafeName(constructor_name, fun);
+        }
+        code = absl::StrCat(name, "(", args_str, ")");
+        break;
+      }
+    }
   }
 
   analysis::Function* const fun;
   PythonConvertState* const state;
+  StructConstructor struct_construct = StructConstructor::None;
+  std::string constructor_name;
   std::string code;
   absl::flat_hash_map<std::string, std::string> arguments;
   absl::flat_hash_set<std::string> skipped;
@@ -1076,6 +1125,13 @@ absl::Status PythonConverter::ConvertNativeFunctionCallExpression(
     const analysis::FunctionCallExpression& expression, analysis::Function* fun,
     PythonConvertState* state) const {
   NativeConvert convert(fun, state);
+  RETURN_IF_ERROR(convert.Prepare());
+  ASSIGN_OR_RETURN(
+      auto macros,
+      ProcessMacros(convert.FindMacros(), expression.scope(),
+                    expression.function_binding(), fun, state),
+      _ << "Processing macros in function call of: " << fun->full_name());
+  convert.PrepareMacros(macros);
   RET_CHECK(expression.function_binding()->call_expressions.size() ==
             expression.function_binding()->names.size());
   for (size_t i = 0; i < expression.function_binding()->names.size(); ++i) {
@@ -1174,7 +1230,9 @@ absl::Status PythonConverter::ConvertFunctionCallExpression(
         analysis::TypeSpec::TypeBindingSignature(binding->type_arguments));
     bstate->out() << "." << signature;
   }
-
+  const bool is_constructor_call =
+      (binding->fun.has_value() &&
+       binding->fun.value()->kind() == pb::ObjectKind::OBJ_CONSTRUCTOR);
   // TODO(catalin): this in practice is a bit more complicated, but
   //  we do something simple.
   RET_CHECK(binding->call_expressions.size() == binding->names.size());
@@ -1184,7 +1242,8 @@ absl::Status PythonConverter::ConvertFunctionCallExpression(
   bool has_arguments = false;
   for (size_t i = 0; i < binding->names.size(); ++i) {
     auto expr = binding->call_expressions[i];
-    if (!expr.has_value()) {
+    if (!expr.has_value() ||
+        (is_constructor_call && binding->is_default_value[i])) {
       continue;
     }
     if (has_arguments) {
@@ -1253,6 +1312,65 @@ absl::Status PythonConverter::ConvertFunctionDefinition(
   return ConvertFunction(expression.def_function(), false, state).status();
 }
 
+std::string PythonConverter::DefaultFieldFactory(
+    const analysis::TypeSpec* type_spec, PythonConvertState* state) const {
+  static const auto* const kFactory =
+      new absl::flat_hash_map<size_t, std::string>({
+          {pb::TypeId::ANY_ID, "nudl.default_none"},
+          {pb::TypeId::NULL_ID, "nudl.default_none"},
+          {pb::TypeId::NUMERIC_ID, "int"},
+          {pb::TypeId::INT_ID, "int"},
+          {pb::TypeId::INT8_ID, "int"},
+          {pb::TypeId::INT16_ID, "int"},
+          {pb::TypeId::INT32_ID, "int"},
+          {pb::TypeId::UINT_ID, "int"},
+          {pb::TypeId::UINT8_ID, "int"},
+          {pb::TypeId::UINT16_ID, "int"},
+          {pb::TypeId::UINT32_ID, "int"},
+          {pb::TypeId::STRING_ID, "str"},
+          {pb::TypeId::BYTES_ID, "bytes"},
+          {pb::TypeId::BOOL_ID, "bool"},
+          {pb::TypeId::FLOAT32_ID, "float"},
+          {pb::TypeId::FLOAT64_ID, "float"},
+          {pb::TypeId::DATE_ID, "nudl.default_date"},
+          {pb::TypeId::DATETIME_ID, "nudl.default_datetime"},
+          {pb::TypeId::TIMEINTERVAL_ID, "nudl.default_timeinterval"},
+          {pb::TypeId::TIMESTAMP_ID, "nudl.default_timestamp"},
+          {pb::TypeId::DECIMAL_ID, "nudl.default_decimal"},
+          {pb::TypeId::ITERABLE_ID, "list"},
+          {pb::TypeId::ARRAY_ID, "list"},
+          {pb::TypeId::TUPLE_ID, "tuple"},
+          {pb::TypeId::SET_ID, "set"},
+          {pb::TypeId::MAP_ID, "dict"},
+          {pb::TypeId::FUNCTION_ID, "nudl.default_function"},
+          {pb::TypeId::NULLABLE_ID, "nudl.default_none"},
+          {pb::TypeId::DATASET_ID, "nudl.default_none"},
+          {pb::TypeId::TYPE_ID, "nudl.default_none"},
+          {pb::TypeId::MODULE_ID, "nudl.default_none"},
+          {pb::TypeId::INTEGRAL_ID, "int"},
+          {pb::TypeId::CONTAINER_ID, "list"},
+          {pb::TypeId::GENERATOR_ID, "list"},
+      });
+  const size_t type_id = type_spec->type_id();
+  if (type_id == pb::TypeId::STRUCT_ID) {
+    std::string name = GetStructTypeName(type_spec, true, state);
+    if (name == "typing.Any") {
+      return "nudl.default_none";
+    }
+    return name;
+  } else if (type_id == pb::TypeId::UNION_ID) {
+    if (type_spec->parameters().empty()) {
+      return "nudl.default_none";
+    }
+    return DefaultFieldFactory(type_spec->parameters().front(), state);
+  }
+  auto it = kFactory->find(type_id);
+  if (it != kFactory->end()) {
+    return it->second;
+  }
+  return "nudl.default_none";
+}
+
 absl::Status PythonConverter::ConvertStructType(
     const analysis::TypeStruct* ts, PythonConvertState* state) const {
   auto superstate = state->top_superstate();
@@ -1262,10 +1380,11 @@ absl::Status PythonConverter::ConvertStructType(
   PythonConvertState local_state(superstate);
   auto& out = local_state.out();
   local_state.add_import("import dataclasses");
+  const std::string name =
+      ts->local_name().empty() ? ts->name() : ts->local_name();
   out << std::endl
       << "@dataclasses.dataclass" << std::endl
-      << "class "
-      << PythonSafeName(ts->name(), const_cast<analysis::TypeStruct*>(ts))
+      << "class " << PythonSafeName(name, const_cast<analysis::TypeStruct*>(ts))
       << ":" << std::endl;
   local_state.inc_indent();
   for (const auto& field : ts->fields()) {
@@ -1274,11 +1393,11 @@ absl::Status PythonConverter::ConvertStructType(
                      _ << "Finding field object: " << field.name);
     out << local_state.indent() << PythonSafeName(field.name, field_obj)
         << ": ";
-    RETURN_IF_ERROR(AddTypeName(field.type_spec, &local_state))
-        << "In type of field: " << field.name << " in " << ts->name();
-    // TODO(catalin) - Need the default values + constructor & stuff when
-    //    they come
-    out << std::endl;
+    RETURN_IF_ERROR(AddTypeName(field.type_spec, true, &local_state))
+        << "In type of field: " << field.name << " in " << name;
+    out << " = dataclasses.field(default_factory="
+        << DefaultFieldFactory(field.type_spec, &local_state) << ")"
+        << std::endl;  //  # type: ignore ?
   }
   local_state.dec_indent();
   out << std::endl;
@@ -1298,11 +1417,16 @@ absl::Status PythonConverter::ConvertTypeDefinition(
     const analysis::TypeDefinitionExpression& expression,
     ConvertState* state) const {
   auto bstate = static_cast<PythonConvertState*>(state);
+  if (analysis::TypeUtils::IsStructType(*expression.defined_type_spec())) {
+    return ConvertStructType(static_cast<const analysis::TypeStruct*>(
+                                 expression.defined_type_spec()),
+                             bstate);
+  }
   bstate->clear_inline();
   bstate->out() << PythonSafeName(expression.type_name(),
                                   expression.named_object())
                 << " = ";
-  RETURN_IF_ERROR(AddTypeName(expression.defined_type_spec(), bstate))
+  RETURN_IF_ERROR(AddTypeName(expression.defined_type_spec(), true, bstate))
       << "In typedef of " << expression.type_name();
   bstate->out() << std::endl;
   return absl::OkStatus();
@@ -1342,7 +1466,7 @@ absl::Status PythonConverter::ConvertFunctionGroup(
   for (const auto& it : bindings_map) {
     auto fun = it.second;
     local_state.out() << local_state.indent() << it.first << ": ";
-    RETURN_IF_ERROR(AddTypeName(fun->type_spec(), &local_state))
+    RETURN_IF_ERROR(AddTypeName(fun->type_spec(), false, &local_state))
         << "Adding function group type for function: " << fun->full_name();
     local_state.out() << " = " << PythonSafeName(fun->call_name(), fun)
                       << std::endl;
@@ -1391,7 +1515,7 @@ absl::StatusOr<bool> PythonConverter::ConvertFunction(
     analysis::Function* fun, bool is_on_use, ConvertState* state) const {
   const bool is_lambda = fun->kind() == pb::ObjectKind::OBJ_LAMBDA;
   auto bstate = static_cast<PythonConvertState*>(state);
-  if (!fun->is_native() && fun->expressions().empty()) {  // && !is_lambda) {
+  if (!fun->is_native() && fun->expressions().empty()) {
     if (bindings_on_use_) {
       RET_CHECK(!is_on_use) << stacktrace::ToString();
       return true;
@@ -1430,7 +1554,7 @@ absl::StatusOr<bool> PythonConverter::ConvertFunction(
     out << local_state.indent() << PythonSafeName(arg->name(), arg.get());
     if (!is_pure_native) {
       out << ": ";
-      RETURN_IF_ERROR(AddTypeName(arg->converted_type(), &local_state))
+      RETURN_IF_ERROR(AddTypeName(arg->converted_type(), false, &local_state))
           << "In typedef of argument: " << arg->name() << " of "
           << fun->call_name();
     }
@@ -1443,7 +1567,7 @@ absl::StatusOr<bool> PythonConverter::ConvertFunction(
   out << ")";
   if (!is_pure_native) {
     out << " -> ";
-    RETURN_IF_ERROR(AddTypeName(fun->result_type(), &local_state))
+    RETURN_IF_ERROR(AddTypeName(fun->result_type(), false, &local_state))
         << "In typedef of result type of " << fun->call_name();
   }
   out << ":" << std::endl;
@@ -1453,6 +1577,13 @@ absl::StatusOr<bool> PythonConverter::ConvertFunction(
     for (const auto& arg : fun->arguments()) {
       convert.add_arg(arg->name(), PythonSafeName(arg->name(), arg.get()));
     }
+    RETURN_IF_ERROR(convert.Prepare());
+    ASSIGN_OR_RETURN(auto macros,
+                     ProcessMacros(convert.FindMacros(), bstate->module(),
+                                   nullptr, fun, state),
+                     _ << "Processing macros in function definition of: "
+                       << fun->full_name());
+    convert.PrepareMacros(macros);
     ASSIGN_OR_RETURN(std::string replaced, convert.Replace());
     local_state.inc_indent();
     out << local_state.indent() << "return " << replaced;
@@ -1506,6 +1637,53 @@ absl::StatusOr<std::string> PythonConverter::LocalFunctionName(
           absl::StrJoin(absl::StrSplit(fun->module_scope()->name(), "."), "__"),
           "__", fun->call_name()),
       fun);
+}
+
+// TODO(catalin): this functionality can sit at the converter level.
+absl::StatusOr<absl::flat_hash_map<std::string, std::unique_ptr<ConvertState>>>
+PythonConverter::ProcessMacros(const absl::flat_hash_set<std::string>& macros,
+                               analysis::Scope* scope,
+                               analysis::FunctionBinding* binding,
+                               analysis::Function* fun,
+                               ConvertState* state) const {
+  auto result_type =
+      (binding ? binding->type_spec->ResultType() : fun->result_type());
+  if (!result_type) {
+    return status::InvalidArgumentErrorBuilder()
+           << "Function: " << fun->function_name()
+           << " has not a result type defined.";
+  }
+  absl::flat_hash_map<std::string, std::unique_ptr<ConvertState>> result;
+  auto bstate = static_cast<PythonConvertState*>(state);
+  for (const auto& macro : macros) {
+    auto sub_state = std::make_unique<PythonConvertState>(bstate, true);
+    if (macro == "result_type") {
+      RETURN_IF_ERROR(AddTypeName(result_type, true, sub_state.get()))
+          << "Converting type name per macro: " << macro;
+    } else if (macro == "result_seed" || macro == "dataset_seed") {
+      auto res_type = result_type;
+      if (macro == "dataset_seed") {
+        RET_CHECK(analysis::TypeUtils::IsDatasetType(*result_type) &&
+                  result_type->ResultType())
+            << "Invalid type for macro " << macro
+            << " - found: " << result_type->full_name();
+        res_type = result_type->ResultType();
+      }
+      ASSIGN_OR_RETURN(auto default_value,
+                       bstate->module()->BuildDefaultValueExpression(res_type),
+                       _ << "Processing conversion macro: " << macro
+                         << " for result type: " << res_type->full_name());
+      RETURN_IF_ERROR(ConvertExpression(*default_value, sub_state.get()));
+      RETURN_IF_ERROR(sub_state->CheckInline(*default_value))
+          << "Converting default expression per macro: " << macro;
+    } else {
+      return status::UnimplementedErrorBuilder()
+             << "Unknown macro: " << macro
+             << " in function: " << fun->function_name();
+    }
+    result.emplace(macro, std::move(sub_state));
+  }
+  return {std::move(result)};
 }
 
 }  // namespace conversion

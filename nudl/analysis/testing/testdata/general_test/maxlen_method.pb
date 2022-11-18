@@ -104,7 +104,7 @@ expression {
     parameter {
       name: "name"
       type_spec {
-        name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+        name: "HumanName"
       }
     }
     result_type {

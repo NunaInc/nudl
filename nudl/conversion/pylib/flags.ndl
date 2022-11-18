@@ -17,19 +17,19 @@
 // Some basic flags to be used w/ nudl.
 // Runtime errors may happen if not used correctly.
 
-def define(value: Int, name: String, description: String): String =>
+def define_int(name: String, value: Int, description: String): String =>
 [[pyimport]]import nudl.flags[[end]]
 [[pyinline]]nudl.flags.define_int_flag(${name}, ${value}, ${description})[[end]]
 
-def define(value: String, name: String, description: String): String =>
+def define_string(name: String, value: String, description: String): String =>
 [[pyimport]]import nudl.flags[[end]]
 [[pyinline]]nudl.flags.define_str_flag(${name}, ${value}, ${description})[[end]]
 
-def define(value: Bool, name: String, description: String): String =>
+def define_bool(name: String, value: Bool, description: String): String =>
 [[pyimport]]import nudl.flags[[end]]
 [[pyinline]]nudl.flags.define_bool_flag(${name}, ${value}, ${description})[[end]]
 
-def define(value: Array<String>, name: String, description: String): String =>
+def define_list(name: String, value: Array<String>, description: String): String =>
 [[pyimport]]import nudl.flags[[end]]
 [[pyinline]]nudl.flags.define_list_flag(${name}, ${value}, ${description})[[end]]
 

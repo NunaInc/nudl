@@ -138,8 +138,10 @@ absl::Status ConvertTool::LoadModule(absl::string_view module_name) {
   return absl::OkStatus();
 }
 
-absl::Status ConvertTool::WriteOutput(absl::string_view output_path,
-                                      absl::string_view py_path) {
+absl::Status ConvertTool::WriteOutput(
+    absl::string_view output_path, absl::string_view py_path,
+    bool direct_output,
+    const absl::flat_hash_map<std::string, std::string>& output_dirs) {
   if (output_path.empty()) {
     std::cout << "Skipping file output.";
     return absl::OkStatus();
@@ -147,14 +149,23 @@ absl::Status ConvertTool::WriteOutput(absl::string_view output_path,
   std_filesystem::path dest_path(output_path);
   std_filesystem::create_directories(dest_path);
   absl::Status error;
-  IterateModules([this, &error, &dest_path](analysis::Module* module) {
+  IterateModules([this, direct_output, &error, &dest_path,
+                  &output_dirs](analysis::Module* module) {
     auto convert_result = converter_->ConvertModule(module);
     if (!convert_result.ok()) {
       status::UpdateOrAnnotate(error, convert_result.status());
       return;
     }
-    const std_filesystem::path file_path(PythonFileName(dest_path, module));
-    PythonPreparePath(file_path, dest_path);
+    std_filesystem::path file_path(PythonFileName(dest_path, module));
+    if (output_dirs.contains(module->name())) {
+      auto it = output_dirs.find(module->name());
+      file_path = dest_path / it->second / file_path.filename();
+      PythonPreparePath(file_path, dest_path);
+    } else if (direct_output) {
+      file_path = dest_path / file_path.filename();
+    } else {
+      PythonPreparePath(file_path, dest_path);
+    }
     status::UpdateOrAnnotate(error,
                              WriteFile(file_path, convert_result.value()));
     std::cout << "Written: " << file_path.native() << " with "
@@ -265,6 +276,7 @@ absl::Status RunConvertTool(const ConvertToolOptions& options) {
     RETURN_IF_ERROR(tool.LoadModule(options.input_module))
         << "Loading module: " << options.input_module;
   }
+  absl::flat_hash_map<std::string, std::string> output_dirs;
   for (const auto& input_file : options.input_paths) {
     if (input_file == options.builtin_path) {
       tool.AddBuiltinModule();
@@ -272,8 +284,12 @@ absl::Status RunConvertTool(const ConvertToolOptions& options) {
     }
     std::string ifile = input_file;
     for (const auto& bd : base_dirs) {
-      if (absl::StartsWith(ifile, bd)) {
-        ifile = absl::StripPrefix(input_file, bd);
+      if (bd.empty() || bd == ".") {
+        continue;
+      }
+      auto pos = ifile.find(bd);
+      if (pos != std::string::npos) {
+        ifile = absl::StripPrefix(input_file.substr(pos), bd);
         break;
       }
     }
@@ -281,6 +297,11 @@ absl::Status RunConvertTool(const ConvertToolOptions& options) {
         absl::StrSplit(absl::StripSuffix(absl::StripPrefix(ifile, "/"), ".ndl"),
                        '/'),
         ".");
+    std::vector<std::string> components = absl::StrSplit(module_name, ".");
+    if (components.size() > 1) {
+      components.pop_back();
+      output_dirs.emplace(module_name, absl::StrJoin(components, "/"));
+    }
     std::cout << "Loading: `" << module_name << "` from: `" << input_file << "`"
               << std::endl;
     RETURN_IF_ERROR(tool.LoadModule(module_name))
@@ -289,7 +310,8 @@ absl::Status RunConvertTool(const ConvertToolOptions& options) {
   if (options.output_dir.empty()) {
     RETURN_IF_ERROR(tool.WriteConversionToStdout());
   } else {
-    RETURN_IF_ERROR(tool.WriteOutput(options.output_dir, options.py_path));
+    RETURN_IF_ERROR(tool.WriteOutput(options.output_dir, options.py_path,
+                                     options.direct_output, output_dirs));
   }
   tool.WriteTimingInfoToStdout();
   return absl::OkStatus();

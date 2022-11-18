@@ -22,7 +22,7 @@ jobs:
           lcov --version
       - uses: bazelbuild/setup-bazelisk@v1
       - name: Run coverage
-        run: bazel coverage --combined_report=lcov -- //... -//nudl/conversion/pylib/...
+        run: bazel coverage --combined_report=lcov //...
       - name: Generate coverage report
         run: genhtml --output genhtml "$(bazel info output_path)/_coverage/_coverage_report.dat"
       - name: Publish genhtml

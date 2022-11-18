@@ -23,6 +23,7 @@
 #include "absl/strings/str_join.h"
 #include "nudl/analysis/types.h"
 #include "nudl/status/status.h"
+#include "nudl/testing/stacktrace.h"
 
 ABSL_FLAG(bool, nudl_accept_abstract_function_objects, false,
           "If we allow creation of concrete objects that point to "
@@ -46,8 +47,18 @@ const TypeSpec* TypeUtils::EnsureType(TypeStore* type_store,
     return spec;
   }
   auto result = type_store->FindTypeByName(name);
-  CHECK_OK(result.status());
-  return result.value();
+  if (result.ok()) {
+    return result.value();
+  }
+  if (!type_store->GlobalStore()) {
+    CHECK_OK(result.status());
+  }
+  auto result_global = type_store->GlobalStore()->FindTypeByName(name);
+  if (result_global.ok()) {
+    return result_global.value();
+  }
+  CHECK_OK(result_global.status()) << "Also: " << result.status();
+  return nullptr;
 }
 
 absl::string_view TypeUtils::BaseTypeName(pb::TypeId type_id) {
@@ -153,6 +164,10 @@ bool TypeUtils::IsStructType(const TypeSpec& type_spec) {
 
 bool TypeUtils::IsDatasetType(const TypeSpec& type_spec) {
   return type_spec.type_id() == pb::TypeId::DATASET_ID;
+}
+
+bool TypeUtils::IsArrayType(const TypeSpec& type_spec) {
+  return type_spec.type_id() == pb::TypeId::ARRAY_ID;
 }
 
 std::unique_ptr<TypeSpec> TypeUtils::IntIndexType(TypeStore* type_store) {

@@ -20,6 +20,8 @@
 #include <vector>
 
 #include "absl/flags/flag.h"
+#include "absl/strings/ascii.h"
+#include "absl/strings/str_split.h"
 
 ABSL_FLAG(std::string, builtin_path, "",
           "File containing the builtin module content.");
@@ -46,9 +48,27 @@ ABSL_FLAG(bool, write_only_input, false,
 ABSL_FLAG(bool, bindings_on_use, false,
           "Convert specific function bindings only in the places where "
           "they are used");
+ABSL_FLAG(bool, direct_output, false,
+          "If true, we output the files to --output_dir without "
+          "maintaining directory structure.");
 ABSL_FLAG(std::string, lang, "python", "Language to convert to");
 
 namespace nudl {
+
+// These are required as per bazel build, the $(locations ...)
+// generates a space separated list, and flags wants comma..
+std::vector<std::string> RepeatedFlagParse(
+    const std::vector<std::string>& elements) {
+  std::vector<std::string> result;
+  for (const auto& elem : elements) {
+    for (absl::string_view s : absl::StrSplit(elem, ' ')) {
+      if (!s.empty()) {
+        result.emplace_back(std::string(absl::StripAsciiWhitespace(s)));
+      }
+    }
+  }
+  return result;
+}
 
 ConvertToolOptions ConvertOptionsFromFlags() {
   auto lang_result = ConvertLangFromName(absl::GetFlag(FLAGS_lang));
@@ -56,16 +76,17 @@ ConvertToolOptions ConvertOptionsFromFlags() {
                           << " - invalid value for --lang";
   return ConvertToolOptions{
       absl::GetFlag(FLAGS_builtin_path),
-      absl::GetFlag(FLAGS_search_paths),
+      RepeatedFlagParse(absl::GetFlag(FLAGS_search_paths)),
       absl::GetFlag(FLAGS_input),
-      absl::GetFlag(FLAGS_input_paths),
-      absl::GetFlag(FLAGS_imports),
+      RepeatedFlagParse(absl::GetFlag(FLAGS_input_paths)),
+      RepeatedFlagParse(absl::GetFlag(FLAGS_imports)),
       absl::GetFlag(FLAGS_py_path),
       absl::GetFlag(FLAGS_output_dir),
       absl::GetFlag(FLAGS_run_yapf),
       absl::GetFlag(FLAGS_debug_modules),
       absl::GetFlag(FLAGS_write_only_input),
       absl::GetFlag(FLAGS_bindings_on_use),
+      absl::GetFlag(FLAGS_direct_output),
       lang_result.value(),
   };
 }

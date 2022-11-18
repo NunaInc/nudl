@@ -19,6 +19,8 @@
 #include <fstream>
 #include <utility>
 
+#include "absl/cleanup/cleanup.h"
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
@@ -293,6 +295,8 @@ Module::Module(std_filesystem::path file_path)
           std::make_unique<TypeModule>(type_store_, kBuildtinModuleName, this)),
       pragma_handler_(this) {
   module_type_->set_definition_scope(this);
+  type_store_->AddRegistrationCallback(
+      *scope_name_, absl::bind_front(&Module::RegisterTypeCallback, this));
 }
 
 Module::Module(ModuleStore* module_store)
@@ -301,6 +305,8 @@ Module::Module(ModuleStore* module_store)
       module_type_(std::make_unique<TypeModule>(type_store_, "__top__", this)),
       pragma_handler_(this) {
   module_type_->set_definition_scope(this);
+  type_store_->AddRegistrationCallback(
+      *scope_name_, absl::bind_front(&Module::RegisterTypeCallback, this));
 }
 
 Module::Module(std::shared_ptr<ScopeName> scope_name, absl::string_view name,
@@ -312,7 +318,11 @@ Module::Module(std::shared_ptr<ScopeName> scope_name, absl::string_view name,
       module_type_(std::make_unique<TypeModule>(type_store_, name, this)),
       pragma_handler_(this) {
   module_type_->set_definition_scope(this);
+  type_store_->AddRegistrationCallback(
+      *scope_name_, absl::bind_front(&Module::RegisterTypeCallback, this));
 }
+
+Module::~Module() { type_store_->RemoveRegistrationCallback(*scope_name_); }
 
 const std_filesystem::path& Module::file_path() const { return file_path_; }
 
@@ -331,6 +341,15 @@ absl::optional<Function*> Module::main_function() const {
 absl::Status Module::Import(const pb::Module& module,
                             std::vector<std::string>* import_chain) {
   absl::Status status;
+  auto my_store = type_store_->FindStore(scope_name().name());
+  if (my_store.has_value()) {
+    TypeDataset::PushRegistrationStore(my_store.value());
+  }
+  absl::Cleanup pop_store = [&my_store]() {
+    if (my_store.has_value()) {
+      TypeDataset::PopRegistrationStore();
+    }
+  };
   for (const auto& element : module.element()) {
     CodeContext context = CodeContext::FromProto(element);
     if (element.has_import_stmt()) {
@@ -387,6 +406,76 @@ absl::Status Module::ProcessImport(const pb::ImportStatement& element,
   return absl::OkStatus();
 }
 
+absl::Status Module::RegisterTypeCallback(TypeSpec* type_spec) {
+  if (!TypeUtils::IsStructType(*type_spec)) {
+    return absl::OkStatus();
+  }
+  CodeContext context;
+  RETURN_IF_ERROR(RegisterStructureConstructors(
+      static_cast<TypeStruct*>(type_spec), context))
+      << " Registering automatic structure constructors for: "
+      << type_spec->full_name() << " in module: " << scope_name().name();
+  return absl::OkStatus();
+}
+
+absl::Status Module::RegisterStructureConstructors(TypeStruct* type_spec,
+                                                   const CodeContext& context) {
+  if (registered_struct_types_.contains(type_spec)) {
+    return absl::OkStatus();
+  }
+
+  registered_struct_types_.insert(type_spec);
+  type_spec->set_definition_scope(this);
+  std::string name = type_spec->local_name().empty() ? type_spec->name()
+                                                     : type_spec->local_name();
+  pb::FunctionDefinition object_constructor;
+  object_constructor.set_name(absl::StrCat("_init_object_", name));
+  object_constructor.set_fun_type(pb::FunctionType::FUN_CONSTRUCTOR);
+  RET_CHECK(type_spec->parameters().size() == type_spec->fields().size());
+  for (size_t i = 0; i < type_spec->parameters().size(); ++i) {
+    const auto param = type_spec->parameters()[i];
+    const auto& field = type_spec->fields()[i];
+    auto fparam = object_constructor.add_param();
+    fparam->set_name(field.name);
+    *fparam->mutable_type_spec() =
+        field.type_spec->ToTypeSpecProto(scope_name());
+    ASSIGN_OR_RETURN(
+        *fparam->mutable_default_value(),
+        param->DefaultValueExpression(scope_name()),
+        _ << "Preparing default value for structure field: " << field.name
+          << ", while building default constructor for: " << name);
+  }
+  object_constructor.mutable_result_type()->mutable_identifier()->add_name(
+      name);
+  auto snippet = object_constructor.add_snippet();
+  snippet->set_name(std::string(kStructObjectConstructor));
+  snippet->set_body(name);
+  RETURN_IF_ERROR(ProcessFunctionDef(object_constructor, context))
+      << "Registering structure type default object constructor";
+
+  pb::FunctionDefinition copy_constructor;
+  copy_constructor.set_name(absl::StrCat("_init_copy_", name));
+  copy_constructor.set_fun_type(pb::FunctionType::FUN_CONSTRUCTOR);
+  auto fparam = copy_constructor.add_param();
+  fparam->set_name("obj");
+  fparam->mutable_type_spec()->mutable_identifier()->add_name(name);
+  copy_constructor.mutable_result_type()->mutable_identifier()->add_name(name);
+  snippet = copy_constructor.add_snippet();
+  snippet->set_name(std::string(kStructCopyConstructor));
+  snippet->set_body(name);
+  RETURN_IF_ERROR(ProcessFunctionDef(copy_constructor, context))
+      << "Registering structure type copy object constructor";
+  return absl::OkStatus();
+}
+
+TypeStore* Module::registration_store() const {
+  auto my_store = type_store_->FindStore(scope_name().name());
+  if (my_store.has_value()) {
+    return my_store.value();
+  }
+  return type_store_;
+}
+
 absl::Status Module::ProcessSchema(const pb::SchemaDefinition& element,
                                    const CodeContext& context) {
   ASSIGN_OR_RETURN(auto name, NameUtil::ValidatedName(element.name()),
@@ -400,63 +489,16 @@ absl::Status Module::ProcessSchema(const pb::SchemaDefinition& element,
                      _ << context.ToErrorInfo("Cannot find field type"));
     fields.emplace_back(std::move(field));
   }
-  ASSIGN_OR_RETURN(TypeStruct * type_spec,
-                   TypeStruct::AddTypeStruct(scope_name(), type_store_, name,
-                                             std::move(fields)),
-                   _ << context.ToErrorInfo("Creating structure type"));
-  type_spec->set_definition_scope(this);
+  ASSIGN_OR_RETURN(
+      TypeStruct * type_spec,
+      TypeStruct::AddTypeStruct(scope_name(), type_store_, registration_store(),
+                                name, std::move(fields)),
+      _ << context.ToErrorInfo("Creating structure type"));
   expressions_.emplace_back(
       std::make_unique<SchemaDefinitionExpression>(this, type_spec));
 
-  // Prepare the constructors:
-  pb::FunctionDefinition object_constructor;
-  object_constructor.set_name(absl::StrCat("_init_object_", type_spec->name()));
-  object_constructor.set_fun_type(pb::FunctionType::FUN_CONSTRUCTOR);
-  RET_CHECK(type_spec->parameters().size() == type_spec->fields().size());
-  for (size_t i = 0; i < type_spec->parameters().size(); ++i) {
-    const auto param = type_spec->parameters()[i];
-    const auto& field = type_spec->fields()[i];
-    auto fparam = object_constructor.add_param();
-    fparam->set_name(field.name);
-    *fparam->mutable_type_spec() = element.field(i).type_spec();
-    if (param->type_id() == pb::TypeId::STRUCT_ID) {
-      // Special casing for this - we may have a modularized type name,
-      // not known by the field itself.
-      *fparam->mutable_default_value()
-           ->mutable_function_call()
-           ->mutable_identifier() = element.field(i).type_spec().identifier();
-    } else {
-      ASSIGN_OR_RETURN(
-          *fparam->mutable_default_value(), param->DefaultValueExpression(),
-          _ << "Preparing default value for structure field: " << field.name
-            << ", while building default constructor for: "
-            << type_spec->name());
-    }
-  }
-  object_constructor.mutable_result_type()->mutable_identifier()->add_name(
-      type_spec->name());
-  auto snippet = object_constructor.add_snippet();
-  snippet->set_name(std::string(kStructObjectConstructor));
-  snippet->set_body(type_spec->name());
-  RETURN_IF_ERROR(ProcessFunctionDef(object_constructor, context))
-      << "Registering structure type default object constructor"
+  RETURN_IF_ERROR(RegisterStructureConstructors(type_spec, context))
       << context.ToErrorInfo("In init constructor auto-definition");
-
-  pb::FunctionDefinition copy_constructor;
-  copy_constructor.set_name(absl::StrCat("_init_copy_", type_spec->name()));
-  copy_constructor.set_fun_type(pb::FunctionType::FUN_CONSTRUCTOR);
-  auto fparam = copy_constructor.add_param();
-  fparam->set_name("obj");
-  fparam->mutable_type_spec()->mutable_identifier()->add_name(
-      type_spec->name());
-  copy_constructor.mutable_result_type()->mutable_identifier()->add_name(
-      type_spec->name());
-  snippet = copy_constructor.add_snippet();
-  snippet->set_name(std::string(kStructCopyConstructor));
-  snippet->set_body(type_spec->name());
-  RETURN_IF_ERROR(ProcessFunctionDef(copy_constructor, context))
-      << "Registering structure type copy object constructor"
-      << context.ToErrorInfo("In copy constructor auto-definition");
 
   return absl::OkStatus();
 }
@@ -506,11 +548,12 @@ absl::Status Module::ProcessTypeDef(const pb::TypeDefinition& element,
                      << context.ToErrorInfo("In type definition"));
   auto new_type = type_spec->Clone();
   new_type->set_definition_scope(this);
-  ASSIGN_OR_RETURN(
-      auto declared_type,
-      type_store_->DeclareType(scope_name(), type_name, std::move(new_type)),
-      _ << "Declaring type: " << type_spec->full_name() << " as " << type_name
-        << " in " << full_name() << context.ToErrorInfo("In type definition"));
+  ASSIGN_OR_RETURN(auto declared_type,
+                   registration_store()->DeclareType(scope_name(), type_name,
+                                                     std::move(new_type)),
+                   _ << "Declaring type: " << type_spec->full_name() << " as "
+                     << type_name << " in " << full_name()
+                     << context.ToErrorInfo("In type definition"));
   auto expression = std::make_unique<TypeDefinitionExpression>(this, type_name,
                                                                declared_type);
   ASSIGN_OR_RETURN(auto negotiated_type, expression->type_spec(),
