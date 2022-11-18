@@ -35,7 +35,7 @@ load("@rules_python//python:pip.bzl", "pip_parse")
 pip_parse(
     name = "pip_deps",
     python_interpreter_target = interpreter,
-    requirements_lock = "//:requirements_lock.txt",
+    requirements_lock = "@nuna_nudl//:requirements_lock.txt",
 )
 
 load("@pip_deps//:requirements.bzl", "install_deps")

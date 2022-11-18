@@ -156,7 +156,7 @@ class TypeSpec : public NamedObject {
 
   // Converts this type to a proto representation.
   virtual pb::ExpressionTypeSpec ToProto() const;
-  virtual pb::TypeSpec ToTypeSpecProto() const;
+  virtual pb::TypeSpec ToTypeSpecProto(const ScopeName& scope_name) const;
 
   // NamedObject interface:
   pb::ObjectKind kind() const override;
@@ -236,7 +236,8 @@ class TypeSpec : public NamedObject {
       absl::optional<size_t> minimum_parameters = {}) const;
 
   // Builds an expression that returns the default value for this type.
-  virtual absl::StatusOr<pb::Expression> DefaultValueExpression() const;
+  virtual absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const;
 
   // Gets / Sets the place where the object is defined.
   // Can set only once !

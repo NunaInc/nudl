@@ -7,9 +7,6 @@ expression {
   }
 }
 expression {
-  kind: EXPR_SCHEMA_DEF
-}
-expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
@@ -43,12 +40,12 @@ expression {
     parameter {
       name: "qux"
       type_spec {
-        name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+        name: "HumanName"
       }
       default_value {
         kind: EXPR_FUNCTION_CALL
         type_spec {
-          name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+          name: "HumanName"
         }
         call_spec {
           call_name {
@@ -85,23 +82,65 @@ expression {
           argument {
             name: "prefix"
             value {
-              kind: EXPR_EMPTY_STRUCT
+              kind: EXPR_FUNCTION_CALL
+              type_spec {
+                name: "Array<String>"
+              }
+              call_spec {
+                call_name {
+                  full_name: "array__i0"
+                }
+                is_method: true
+                argument {
+                  name: "t"
+                  value {
+                    kind: EXPR_LITERAL
+                    literal {
+                      str_value: ""
+                    }
+                  }
+                }
+                binding_type {
+                  name: "Function<Array<String>(t: String)>"
+                }
+              }
             }
           }
           argument {
             name: "suffix"
             value {
-              kind: EXPR_EMPTY_STRUCT
+              kind: EXPR_FUNCTION_CALL
+              type_spec {
+                name: "Array<String>"
+              }
+              call_spec {
+                call_name {
+                  full_name: "array__i0"
+                }
+                is_method: true
+                argument {
+                  name: "t"
+                  value {
+                    kind: EXPR_LITERAL
+                    literal {
+                      str_value: ""
+                    }
+                  }
+                }
+                binding_type {
+                  name: "Function<Array<String>(t: String)>"
+                }
+              }
             }
           }
           binding_type {
-            name: "Function<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }(use: Null, family: Null, given: Null, prefix: Array<String>, suffix: Array<String>)>"
+            name: "Function<HumanName(use: Null, family: Null, given: Null, prefix: Array<String>, suffix: Array<String>)>"
           }
         }
       }
     }
     result_type {
-      name: "{ Foo : Foo<String, Nullable<Int>, { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }> }"
+      name: "Foo"
     }
     function_name: "_init_object_Foo"
     qualified_name {
@@ -123,11 +162,11 @@ expression {
     parameter {
       name: "obj"
       type_spec {
-        name: "{ Foo : Foo<String, Nullable<Int>, { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }> }"
+        name: "Foo"
       }
     }
     result_type {
-      name: "{ Foo : Foo<String, Nullable<Int>, { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }> }"
+      name: "Foo"
     }
     function_name: "_init_copy_Foo"
     qualified_name {
@@ -140,6 +179,9 @@ expression {
   }
 }
 expression {
+  kind: EXPR_SCHEMA_DEF
+}
+expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
@@ -149,7 +191,7 @@ expression {
     parameter {
       name: "name"
       type_spec {
-        name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+        name: "HumanName"
       }
     }
     result_type {
@@ -200,7 +242,7 @@ expression {
     parameter {
       name: "x"
       type_spec {
-        name: "{ Foo : Foo<String, Nullable<Int>, { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }> }"
+        name: "Foo"
       }
     }
     result_type {
@@ -251,7 +293,7 @@ expression {
     parameter {
       name: "x"
       type_spec {
-        name: "{ Foo : Foo<String, Nullable<Int>, { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }> }"
+        name: "Foo"
       }
     }
     result_type {

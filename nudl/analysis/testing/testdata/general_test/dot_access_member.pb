@@ -15,11 +15,11 @@ expression {
     parameter {
       name: "names"
       type_spec {
-        name: "Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>"
+        name: "Array<HumanName>"
       }
     }
     result_type {
-      name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+      name: "HumanName"
     }
     function_name: "f"
     qualified_name {
@@ -30,7 +30,7 @@ expression {
       child {
         kind: EXPR_FUNCTION_CALL
         type_spec {
-          name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+          name: "HumanName"
         }
         call_spec {
           left_expression {
@@ -44,7 +44,7 @@ expression {
             value {
               kind: EXPR_FUNCTION_CALL
               type_spec {
-                name: "Nullable<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>"
+                name: "Nullable<HumanName>"
               }
               call_spec {
                 call_name {
@@ -61,13 +61,13 @@ expression {
                   }
                 }
                 binding_type {
-                  name: "Function<Nullable<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>(l: Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>)>"
+                  name: "Function<Nullable<HumanName>(l: Array<HumanName>)>"
                 }
               }
             }
           }
           binding_type {
-            name: "Function<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }(x: Nullable<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>)>"
+            name: "Function<HumanName(x: Nullable<HumanName>)>"
           }
         }
       }
@@ -84,7 +84,7 @@ expression {
     parameter {
       name: "names"
       type_spec {
-        name: "Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>"
+        name: "Array<HumanName>"
       }
     }
     result_type {
@@ -113,7 +113,7 @@ expression {
               child {
                 kind: EXPR_FUNCTION_CALL
                 type_spec {
-                  name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+                  name: "HumanName"
                 }
                 call_spec {
                   left_expression {
@@ -132,7 +132,7 @@ expression {
                     }
                   }
                   binding_type {
-                    name: "Function<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }(names: Array<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }>)>"
+                    name: "Function<HumanName(names: Array<HumanName>)>"
                   }
                 }
               }

@@ -18,11 +18,25 @@ package(default_visibility = ["//visibility:public"])
 
 load("@rules_python//python:defs.bzl", "py_library")
 load("@nuna_nudl//bazel:ndl.bzl", "nudl_py_binary", "nudl_py_library")
+load("@nuna_nudl//bazel/pyright:pyright.bzl", "pyright_test")
 
 filegroup(
     name = "nudl_builtins_ndl",
     srcs = ["nudl_builtins.ndl"],
 )
+
+nudl_deps = [
+    "@pip_deps_absl_py//:pkg",
+    "@pip_deps_dataclass_csv//:pkg",
+    "@pip_deps_faker//:pkg",
+    "@pip_deps_numpy//:pkg",
+    "@pip_deps_nuna_sql_tools//:pkg",
+    "@pip_deps_pandas//:pkg",
+    "@pip_deps_pyarrow//:pkg",
+    "@pip_deps_pyspark//:pkg",
+    "@pip_deps_pytz//:pkg",
+    "@pip_deps_smart_open//:pkg",
+]
 
 py_library(
     name = "nudl",
@@ -35,19 +49,19 @@ py_library(
     ],
     imports = ["."],
     visibility = ["//visibility:public"],
-    deps = [
-        "@pip_deps_absl_py//:pkg",
-        "@pip_deps_dataclass_csv//:pkg",
-        "@pip_deps_faker//:pkg",
-        "@pip_deps_numpy//:pkg",
-        "@pip_deps_nuna_sql_tools//:pkg",
-        "@pip_deps_pandas//:pkg",
-        "@pip_deps_pyarrow//:pkg",
-        "@pip_deps_pyspark//:pkg",
-        "@pip_deps_pytz//:pkg",
-        "@pip_deps_smart_open//:pkg",
-    ],
+    deps = nudl_deps,
 )
+
+pyright_test(
+    name = "nudl_pyright_test",
+    srcs = [":nudl"],
+    deps = nudl_deps,
+    imports = ["."],
+    extra_pyright_args = """{
+      "pythonVersion": "3.9"
+    }""",
+)
+
 
 py_test(
     name = "nudl_import_test",
@@ -60,22 +74,15 @@ py_test(
 nudl_py_library(
     name = "nudl_base",
     srcs = [
+        "dataproc.ndl",
         "dataset.ndl",
-        "flags.ndl",
         "dataset_spark.ndl",
+        "flags.ndl",
         "nudl_builtins.ndl",
         "nudl_datetime.ndl",
     ],
     imports = ["nudl/conversion/pylib/"],
     visibility = ["//visibility:public"],
-)
-
-nudl_py_library(
-    name = "examples_dataproc",
-    srcs = ["examples/dataproc.ndl"],
-    imports = ["nudl/conversion/pylib/"],
-    visibility = ["//visibility:private"],
-    deps = [":nudl_base"],
 )
 
 nudl_py_library(
@@ -97,7 +104,6 @@ nudl_py_binary(
     ],
     imports = ["nudl/conversion/pylib/"],
     deps = [
-        ":examples_dataproc",
         ":examples_structures",
         ":nudl_base",
     ],
@@ -110,7 +116,6 @@ nudl_py_binary(
     ],
     imports = ["nudl/conversion/pylib/"],
     deps = [
-        ":examples_dataproc",
         ":examples_structures",
         ":nudl_base",
     ],

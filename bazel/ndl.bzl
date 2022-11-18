@@ -35,14 +35,14 @@ def _nudl_py_target(
         name = name + "_py_src",
         srcs = srcs + nudl_deps,
         outs = outs,
-        cmd = "$(execpath //nudl/conversion:convert) " +
+        cmd = "$(execpath @nuna_nudl//nudl/conversion:convert) " +
               " --builtin_path=$(locations " + builtins + ")" +
-              " --search_paths=.," + ",".join(search_paths) +
-              " --input_paths=" + ",".join(input_paths) +
-              " --imports=" + ",".join(imports) +
+              " \"--search_paths=.," + ",".join(search_paths) + "\"" +
+              " \"--input_paths=" + ",".join(input_paths) + "\"" +
+              " \"--imports=" + ",".join(imports) + "\"" +
               " --output_dir=$(RULEDIR) " +
-              " --lang=python --bindings_on_use --write_only_input",
-        tools = ["//nudl/conversion:convert"],
+              " --direct_output --lang=python --bindings_on_use --write_only_input",
+        tools = ["@nuna_nudl//nudl/conversion:convert"],
     )
     full_py_deps = deps + py_deps + [
         "@nuna_nudl//nudl/conversion/pylib:nudl",

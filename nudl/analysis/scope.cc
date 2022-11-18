@@ -1464,5 +1464,22 @@ absl::StatusOr<const TypeSpec*> FunctionCallArgument::ArgType(
   return CHECK_NOTNULL(type_spec.value());
 }
 
+void Scope::StoreExpression(std::unique_ptr<Expression> expression) {
+  stored_expressions_.emplace_back(std::move(expression));
+}
+
+absl::StatusOr<Expression*> Scope::BuildDefaultValueExpression(
+    const TypeSpec* type_spec) {
+  ASSIGN_OR_RETURN(
+      auto expression_pb, type_spec->DefaultValueExpression(scope_name()),
+      _ << "Preparing default value for type: " << type_spec->full_name());
+  ASSIGN_OR_RETURN(auto expression, BuildExpression(expression_pb),
+                   _ << "Building default value expression for: "
+                     << expression_pb.ShortDebugString()
+                     << " in scope: " << scope_name().name());
+  stored_expressions_.emplace_back(std::move(expression));
+  return stored_expressions_.back().get();
+}
+
 }  // namespace analysis
 }  // namespace nudl

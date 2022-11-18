@@ -39,6 +39,8 @@ const TypeStore& GlobalTypeStore::base_store() const { return *base_store_; }
 
 TypeStore* GlobalTypeStore::mutable_base_store() { return base_store_.get(); }
 
+TypeStore* GlobalTypeStore::GlobalStore() { return this; }
+
 absl::optional<ScopeTypeStore*> GlobalTypeStore::FindStore(
     absl::string_view name) const {
   const auto it = scopes_.find(name);
@@ -137,18 +139,38 @@ absl::StatusOr<const TypeSpec*> GlobalTypeStore::DeclareType(
   return it->second->DeclareType(scope_name, name, std::move(type_spec));
 }
 
+absl::Status GlobalTypeStore::CallRegistrationCallback(
+    const ScopeName& scope_name, TypeSpec* type_spec) const {
+  auto callback_it = callbacks_.find(scope_name.name());
+  if (callback_it != callbacks_.end()) {
+    RETURN_IF_ERROR(callback_it->second(type_spec));
+  }
+  return absl::OkStatus();
+}
+
 const ScopeName& GlobalTypeStore::scope_name() const {
   static const auto kEmptyScope = new ScopeName();
   return *kEmptyScope;
 }
 
+void GlobalTypeStore::AddRegistrationCallback(const ScopeName& scope_name,
+                                              RegistrationCallback callback) {
+  callbacks_[scope_name.name()] = std::move(callback);
+}
+
+void GlobalTypeStore::RemoveRegistrationCallback(const ScopeName& scope_name) {
+  callbacks_.erase(scope_name.name());
+}
+
 ScopeTypeStore::ScopeTypeStore(std::shared_ptr<ScopeName> scope_name,
-                               TypeStore* global_store)
+                               GlobalTypeStore* global_store)
     : TypeStore(),
       scope_name_(std::move(scope_name)),
-      global_store_(global_store) {}
+      global_store_(CHECK_NOTNULL(global_store)) {}
 
 const ScopeName& ScopeTypeStore::scope_name() const { return *scope_name_; }
+
+TypeStore* ScopeTypeStore::GlobalStore() { return global_store_; }
 
 bool ScopeTypeStore::HasType(absl::string_view type_name) const {
   return types_.contains(type_name);
@@ -284,8 +306,13 @@ absl::StatusOr<const TypeSpec*> ScopeTypeStore::DeclareType(
            << " in scope: `" << scope_name_->name() << "`";
   }
   type_spec->set_scope_name(*scope_name_);
-  return types_.emplace(std::string(name), std::move(type_spec))
-      .first->second.get();
+  TypeSpec* added_type = types_.emplace(std::string(name), std::move(type_spec))
+                             .first->second.get();
+  if (global_store_) {
+    RETURN_IF_ERROR(
+        global_store_->CallRegistrationCallback(*scope_name_, added_type));
+  }
+  return added_type;
 }
 
 }  // namespace analysis

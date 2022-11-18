@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "nudl/analysis/analysis.h"
 #include "nudl/conversion/converter.h"
@@ -114,14 +115,25 @@ class PythonConverter : public Converter {
       const analysis::FunctionCallExpression& expression,
       analysis::Function* fun, PythonConvertState* state) const;
   std::string GetStructTypeName(const analysis::TypeSpec* type_spec,
+                                bool force_name,
                                 PythonConvertState* state) const;
   absl::Status AddTypeName(const analysis::TypeSpec* type_spec,
+                           bool force_struct_name,
                            PythonConvertState* state) const;
+  std::string DefaultFieldFactory(const analysis::TypeSpec* type_spec,
+                                  PythonConvertState* state) const;
+
   absl::StatusOr<std::string> LocalFunctionName(analysis::Function* fun,
                                                 bool is_on_use,
                                                 ConvertState* state) const;
   absl::Status ConvertMainFunction(analysis::Function* fun,
                                    PythonConvertState* state) const;
+
+  absl::StatusOr<
+      absl::flat_hash_map<std::string, std::unique_ptr<ConvertState>>>
+  ProcessMacros(const absl::flat_hash_set<std::string>& macros,
+                analysis::Scope* scope, analysis::FunctionBinding* binding,
+                analysis::Function* fun, ConvertState* state) const;
 
   // If we define function bindings where they are used, as opposed
   // to where they are defined.

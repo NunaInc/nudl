@@ -139,6 +139,8 @@ class ModuleStore {
   absl::flat_hash_map<std::string, std::string> module_code_;
 };
 
+class TypeStruct;
+
 class Module : public Scope {
  public:
   static absl::StatusOr<Module*> ParseAndImport(
@@ -175,6 +177,8 @@ class Module : public Scope {
   std::string DebugString() const override;
   pb::ModuleSpec ToProto() const;
 
+  ~Module() override;
+
  protected:
   explicit Module(std_filesystem::path file_path);
   explicit Module(ModuleStore* module_store);
@@ -197,6 +201,10 @@ class Module : public Scope {
                              const CodeContext& context);
   absl::Status ProcessTypeDef(const pb::TypeDefinition& element,
                               const CodeContext& context);
+  absl::Status RegisterTypeCallback(TypeSpec* type_spec);
+  absl::Status RegisterStructureConstructors(TypeStruct* type_spec,
+                                             const CodeContext& context);
+  TypeStore* registration_store() const;
 
   std_filesystem::path file_path_;
   const std::string module_name_;
@@ -205,6 +213,7 @@ class Module : public Scope {
   absl::optional<Function*> main_function_;
   bool is_init_module_ = false;
   PragmaHandler pragma_handler_;
+  absl::flat_hash_set<const TypeSpec*> registered_struct_types_;
   absl::Duration parse_duration_;
   absl::Duration analysis_duration_;
   friend class Environment;

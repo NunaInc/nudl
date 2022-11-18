@@ -28,6 +28,7 @@ namespace std_filesystem = std::experimental::filesystem;
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "nudl/analysis/analysis.h"
@@ -50,8 +51,10 @@ class ConvertTool {
   absl::Status Prepare();
   void AddBuiltinModule();
   absl::Status LoadModule(absl::string_view module_name);
-  absl::Status WriteOutput(absl::string_view output_path,
-                           absl::string_view py_path);
+  absl::Status WriteOutput(
+      absl::string_view output_path, absl::string_view py_path,
+      bool direct_output,
+      const absl::flat_hash_map<std::string, std::string>& output_dirs);
   absl::Status WriteConversionToStdout();
   void WriteTimingInfoToStdout();
 
@@ -101,6 +104,9 @@ struct ConvertToolOptions {
   // Convert specific function bindings only in the places where
   // they are used.
   bool bindings_on_use = false;
+  // If true, we output the files to --output_dir without
+  // maintaining directory structure.
+  bool direct_output = false;
   // Language to convert to:
   ConvertLang lang = ConvertLang::PYTHON;
 };

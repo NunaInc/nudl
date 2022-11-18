@@ -15,9 +15,9 @@
 //
 // This exemplifies a simple join:
 //
+import dataproc
 import dataset
 import dataset_spark
-import examples.dataproc
 import flags
 
 schema Left = {
@@ -38,7 +38,7 @@ GENERATORS_RE : Tuple = [
 
 
 def generate_parquet(gendir: String, count: Int = 2000) => {
-  examples.dataproc.generate_parquet(
+  dataproc.generate_parquet(
     Tuple([Left(), Right()]), gendir, count, GENERATORS_RE)
 }
 
@@ -47,12 +47,14 @@ def process(engine: dataset.Engine, filenames: Array<String>) => {
   right = engine.read_parquet(Right(), _ensured(filenames[1]));
   src = left.join_left(
     l => l.l_id,
-    {right = right.join_by(r => r.l_id),
-     right_multi = right.join_multi_by(r => r.l_id % 500 + 1)})
+//    {right = right.join_by(r => r.l_id),
+//     right_multi = right.join_multi_by(r => r.l_id % 500 + 1)})
+    {right_multi = [right, right].join_multi_by(r => r.l_id % 500 + 1)})
+  .map(p => { print(p); p })
 }
 
-demo_dir = flags.define(
-  "/tmp/jointest", "demo_dir",
+demo_dir = flags.define_string(
+  "demo_dir", "/tmp/jointest",
   "Use this directory for storing temporary data")
 
 def main_function main() => {

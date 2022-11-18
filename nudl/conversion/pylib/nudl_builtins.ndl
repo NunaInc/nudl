@@ -146,11 +146,23 @@ def __add__(x: {T: Union<Date, DateTime>}, y: TimeInterval) : T =>
 [[skip_conversion]][[end]]
 [[pyinline]]${x} + ${y}[[end]]
 
+def __add__(x: TimeInterval, y: TimeInterval) : TimeInterval =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} + ${y}[[end]]
+
 def __sub__(x: {T: Numeric}, y: T) : T =>
 [[skip_conversion]][[end]]
 [[pyinline]]${x} - ${y}[[end]]
 
 def __sub__(x: {T: Union<Date, DateTime>}, y: T) : TimeInterval =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} - ${y}[[end]]
+
+def __sub__(x: {T: Union<Date, DateTime>}, y: TimeInterval) : T =>
+[[skip_conversion]][[end]]
+[[pyinline]]${x} - ${y}[[end]]
+
+def __sub__(x: TimeInterval, y: TimeInterval) : TimeInterval =>
 [[skip_conversion]][[end]]
 [[pyinline]]${x} - ${y}[[end]]
 
@@ -249,9 +261,7 @@ def method len(l: {X: Union<Container<{Y}>, String, Bytes>}) : UInt =>
 [[pyinline]]len(${l})[[end]]
 
 def method empty(l: Container<{X: Any}>) : Bool =>
-[[pyinline]]
-bool({l})
-[[end]]
+[[pyinline]]not bool(${l})[[end]]
 
 def method empty(
   l: Generator<{X: Any}>) : Bool =>
@@ -262,10 +272,23 @@ import itertools
 not bool(list(itertools.islice(${l}, 1)))
 [[end]]
 
+def method empty(l: Union<Bytes, String>) : Bool =>
+[[pyinline]]not bool(${l})[[end]]
+
+def method contains(l: Container<{X: Any}>, key: X) : Bool =>
+[[pyinline]]${key} in ${l}[[end]]
+
 def method to_array(l: Iterable<{X: Any}>) : Array<X> =>
-[[pyinline]]
-nudl.as_list(${l})
-[[end]]
+[[pyinline]]nudl.as_list(${l})[[end]]
+
+def method to_map(l: Iterable<{X: Any}>,
+                  key: Function<X, {K: Any}>,
+                  value: Function<X, {V: Any}>) : Map<K, V> =>
+[[pyinline]]nudl.as_map(${l}, ${key}, ${value})[[end]]
+
+def method to_set(l: Iterable<{X: Any}>) : Set<X> =>
+[[pyinline]]set(nudl.as_list(${l}))[[end]]
+
 
 def method map(
   l: Iterable<{X : Any}>,
@@ -278,6 +301,31 @@ def method filter(
   f: Function<X, Bool>) : Generator<X> =>
 [[skip_conversion]][[end]]
 [[pyinline]]filter(${f}, ${l})[[end]]
+
+//
+// We need to define individual zip functions for this to
+// let the proper types flow through the definition.
+def zip2(
+  l1: Iterable<{T1 : Any}>,
+  l2: Iterable<{T2 : Any}>) : Generator<Tuple<T1, T2>> =>
+[[skip_conversion]][[end]]
+[[pyinline]]zip(${l1}, ${l2})[[end]]
+
+def zip3(
+  l1: Iterable<{T1 : Any}>,
+  l2: Iterable<{T2 : Any}>,
+  l3: Iterable<{T3 : Any}>) : Generator<Tuple<T1, T2, T3>> =>
+[[skip_conversion]][[end]]
+[[pyinline]]zip(${l1}, ${l2}, ${l3})[[end]]
+
+def zip4(
+  l1: Iterable<{T1 : Any}>,
+  l2: Iterable<{T2 : Any}>,
+  l3: Iterable<{T3 : Any}>,
+  l4: Iterable<{T4 : Any}>) : Generator<Tuple<T1, T2, T3, T4>> =>
+[[skip_conversion]][[end]]
+[[pyinline]]zip(${l1}, ${l2}, ${l3})[[end]]
+
 
 def method aggregate_to_array(
   l: Iterable<{X : Any}>,
@@ -394,7 +442,7 @@ def constructor bool() : Bool =>
 
 def constructor array(t: {T}) : Array<T> =>
 [[skip_conversion]][[end]]
-[[pyinline]][][[end]]
+[[pyinline]]list()[[end]]
 
 def constructor set(t: {T}) : Set<T> =>
 [[skip_conversion]][[end]]
@@ -402,7 +450,8 @@ def constructor set(t: {T}) : Set<T> =>
 
 def constructor dict(k: {K}, v: {V}) : Map<K, V> =>
 [[skip_conversion]][[end]]
-[[pyinline]]{}[[end]]
+[[pyinline]]dict()[[end]]
+
 
 def constructor nullable(t: {T}) : Nullable<T> =>
 [[skip_conversion]][[end]]
@@ -480,6 +529,11 @@ nudl.default_decimal()
 
 def constructor timestamp() : Timestamp =>
 [[pyinline]]
+nudl.timestamp_empty()
+[[end]]
+
+def timestamp_now() : Timestamp =>
+[[pyinline]]
 nudl.timestamp_now()
 [[end]]
 
@@ -494,6 +548,11 @@ nudl.timestamp_sec(${utc_timestamp_sec})
 [[end]]
 
 def constructor date() : Date =>
+[[pyinline]]
+nudl.date_empty()
+[[end]]
+
+def date_now() : Date =>
 [[pyinline]]
 nudl.date_today()
 [[end]]
@@ -513,9 +572,28 @@ def constructor date(s: String) : Nullable<Date> =>
 nudl.date_from_isoformat(${s})
 [[end]]
 
+def ensure(x: Nullable<Date>, val: Date = Date()) : Date  =>
+  is_null(x) ? (val, _ensured(x))
+
+def constructor date_ensured(year: Int, month: Int, day: Int) : Date =>
+    ensure(Nullable<Date>(year, month, day))
+
+def constructor date_ensured(s: String) : Date =>
+    ensure(Nullable<Date>(s))
+
 def constructor datetime() : DateTime =>
 [[pyinline]]
+nudl.datetime_empty()
+[[end]]
+
+def datetime_now() : DateTime =>
+[[pyinline]]
 nudl.datetime_now()
+[[end]]
+
+def constructor datetime(ts: Timestamp) : DateTime =>
+[[pyinline]]
+nudl.datetime_from_timestamp(${ts})
 [[end]]
 
 def constructor datetime(year: Int, month: Int, day: Int,
@@ -524,15 +602,21 @@ def constructor datetime(year: Int, month: Int, day: Int,
 nudl.datetime_safe(${year}, ${month}, ${day}, ${hour}, ${minute}, ${second})
 [[end]]
 
-def constructor datetime(ts: Timestamp) : DateTime =>
-[[pyinline]]
-nudl.datetime_from_timestamp(${ts})
-[[end]]
-
 def constructor datetime(s: String) : Nullable<DateTime> =>
 [[pyinline]]
 nudl.datetime_from_isoformat(${s})
 [[end]]
+
+def ensure(x: Nullable<DateTime>, val: DateTime = DateTime()) : DateTime  =>
+  is_null(x) ? (val, _ensured(x))
+
+def constructor datetime_ensured(year: Int, month: Int, day: Int,
+  hour: Int = 0, minute: Int = 0, second: Int = 0) : DateTime =>
+  ensure(Nullable<DateTime>(year, month, day, hour, minute, second))
+
+def constructor datetime(s: String) : DateTime =>
+  ensure(Nullable<DateTime>(s))
+
 
 // String constructors
 
@@ -544,6 +628,9 @@ def method concat(x: Iterable<String>, joiner: String) : String =>
 [[pyinline]]
 ${joiner}.join(nudl.collect(${x}))
 [[end]]
+
+def method strip(s: String) : String =>
+[[pyinline]]${s}.strip()[[end]]
 
 def tuple_join(a: {X: Tuple}, b: {Y: Tuple}) : TupleJoin<X, Y> =>
   // for now - may need to add proper nudl.tuple_join(..)
@@ -559,3 +646,6 @@ def method to_string(x: Any) : String =>
 def method print(x: Any) : Null =>
 [[skip_conversion]][[end]]
 [[pyinline]]print(${x})[[end]]
+
+def range(start: Int, stop: Int, step: Int = 1) : Generator<Int> =>
+[[pyinline]]range(${start}, ${stop}, ${step})[[end]]

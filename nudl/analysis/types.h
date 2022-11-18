@@ -85,7 +85,8 @@ class TypeNull : public StoredTypeSpec {
   TypeNull(TypeStore* type_store,
            std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
   // Binding on null returns a new null or nullable
   absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
       const std::vector<TypeBindingArg>& bindings) const override;
@@ -111,7 +112,8 @@ class TypeInt : public StoredTypeSpec {
           std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeInt8 : public StoredTypeSpec {
@@ -144,7 +146,8 @@ class TypeUInt : public StoredTypeSpec {
            std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeUInt8 : public StoredTypeSpec {
@@ -177,7 +180,8 @@ class TypeFloat64 : public StoredTypeSpec {
               std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeFloat32 : public StoredTypeSpec {
@@ -186,7 +190,8 @@ class TypeFloat32 : public StoredTypeSpec {
               std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeString : public StoredTypeSpec {
@@ -194,7 +199,8 @@ class TypeString : public StoredTypeSpec {
   TypeString(TypeStore* type_store,
              std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeBytes : public StoredTypeSpec {
@@ -202,7 +208,8 @@ class TypeBytes : public StoredTypeSpec {
   TypeBytes(TypeStore* type_store,
             std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeBool : public StoredTypeSpec {
@@ -210,7 +217,8 @@ class TypeBool : public StoredTypeSpec {
   TypeBool(TypeStore* type_store,
            std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeTimestamp : public StoredTypeSpec {
@@ -218,7 +226,8 @@ class TypeTimestamp : public StoredTypeSpec {
   TypeTimestamp(TypeStore* type_store,
                 std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeDate : public StoredTypeSpec {
@@ -226,7 +235,8 @@ class TypeDate : public StoredTypeSpec {
   TypeDate(TypeStore* type_store,
            std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeDateTime : public StoredTypeSpec {
@@ -234,7 +244,8 @@ class TypeDateTime : public StoredTypeSpec {
   TypeDateTime(TypeStore* type_store,
                std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeTimeInterval : public StoredTypeSpec {
@@ -242,7 +253,8 @@ class TypeTimeInterval : public StoredTypeSpec {
   TypeTimeInterval(TypeStore* type_store,
                    std::shared_ptr<TypeMemberStore> type_member_store);
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 };
 
 class TypeDecimal : public StoredTypeSpec {
@@ -253,10 +265,11 @@ class TypeDecimal : public StoredTypeSpec {
   std::unique_ptr<TypeSpec> Clone() const override;
   std::string full_name() const override;
   pb::ExpressionTypeSpec ToProto() const override;
-  pb::TypeSpec ToTypeSpecProto() const override;
+  pb::TypeSpec ToTypeSpecProto(const ScopeName& call_scope_name) const override;
   absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
       const std::vector<TypeBindingArg>& bindings) const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
   static constexpr int kMaxPrecision = 78;
 
  protected:
@@ -297,7 +310,8 @@ class TypeArray : public StoredTypeSpec {
   const TypeSpec* IndexType() const override;
   const TypeSpec* IndexedType() const override;
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 
  private:
   mutable std::unique_ptr<TypeSpec> index_type_;
@@ -312,7 +326,8 @@ class TypeSet : public StoredTypeSpec {
   const TypeSpec* IndexType() const override;
   const TypeSpec* IndexedType() const override;
   std::unique_ptr<TypeSpec> Clone() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 
  private:
   const TypeSpec* const bool_type_;
@@ -375,19 +390,21 @@ class TypeStruct : public StoredTypeSpec {
   };
   // Creates a structured type with specified name and fields.
   static absl::StatusOr<std::unique_ptr<TypeStruct>> CreateTypeStruct(
-      TypeStore* type_store, absl::string_view name, std::vector<Field> fields);
+      TypeStore* base_store, TypeStore* registration_store,
+      absl::string_view name, std::vector<Field> fields);
   // Main way to create a type struct and add it to a store.
   // Used CreateTypeStruct, then sets the scope and adds it to store.
-  static absl::StatusOr<TypeStruct*> AddTypeStruct(const ScopeName& scope_name,
-                                                   TypeStore* type_store,
-                                                   absl::string_view name,
-                                                   std::vector<Field> fields);
+  static absl::StatusOr<TypeStruct*> AddTypeStruct(
+      const ScopeName& scope_name, TypeStore* base_store,
+      TypeStore* registration_store, absl::string_view name,
+      std::vector<Field> fields);
 
   explicit TypeStruct(TypeStore* type_store,
                       std::shared_ptr<StructMemberStore> type_member_store,
                       absl::string_view name = kTypeNameStruct,
                       std::vector<Field> fields = {},
                       bool is_abstract_struct = true);
+  std::string full_name() const override;
   bool IsBound() const override;
   std::unique_ptr<TypeSpec> Clone() const override;
   bool IsAncestorOf(const TypeSpec& type_spec) const override;
@@ -396,7 +413,9 @@ class TypeStruct : public StoredTypeSpec {
   absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
       const std::vector<TypeBindingArg>& bindings) const override;
   pb::ExpressionTypeSpec ToProto() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
+  pb::TypeSpec ToTypeSpecProto(const ScopeName& call_scope_name) const override;
   std::string TypeSignature() const override;
 
   const std::vector<Field>& fields() const;
@@ -442,7 +461,8 @@ class TypeMap : public StoredTypeSpec {
   absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
       const std::vector<TypeBindingArg>& bindings) const override;
   const TypeSpec* IndexType() const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 
  protected:
   std::unique_ptr<TypeTuple> result_type_;
@@ -487,7 +507,8 @@ class TypeFunction : public StoredTypeSpec {
   absl::StatusOr<std::unique_ptr<TypeSpec>> BindWithComponents(
       const std::vector<Argument>& arguments, const TypeSpec* result_type,
       absl::optional<size_t> first_default_index) const;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
 
   const absl::flat_hash_set<Function*>& function_instances() const;
   void add_function_instance(Function* instance);
@@ -523,7 +544,8 @@ class TypeNullable : public StoredTypeSpec {
       const std::vector<TypeBindingArg>& bindings) const override;
   bool IsAncestorOf(const TypeSpec& type_spec) const override;
   bool IsConvertibleFrom(const TypeSpec& type_spec) const override;
-  absl::StatusOr<pb::Expression> DefaultValueExpression() const override;
+  absl::StatusOr<pb::Expression> DefaultValueExpression(
+      const ScopeName& call_scope_name) const override;
   std::string TypeSignature() const override;
 };
 
@@ -537,6 +559,15 @@ class TypeDataset : public StoredTypeSpec {
   const TypeSpec* ResultType() const override;
   absl::StatusOr<std::unique_ptr<TypeSpec>> Bind(
       const std::vector<TypeBindingArg>& bindings) const override;
+
+  // This is to set in which new dataset structure types produced
+  // by Aggregates / Joins should be registered.
+  // We want to add them to the current module, but is no proper way
+  // to pass that through the binding process where they are created,
+  // so we need a static setting:
+  static void PushRegistrationStore(TypeStore* type_store);
+  static void PopRegistrationStore();
+  static TypeStore* GetRegistrationStore(TypeStore* default_type_store);
 };
 
 class DatasetAggregate : public TypeDataset {

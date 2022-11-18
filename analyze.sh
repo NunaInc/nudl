@@ -34,7 +34,7 @@ __EOF__
 
 py_path="$(pwd)/nudl/conversion/pylib"
 search_paths="${py_path}"
-builtin_path="${search_paths}/builtins.ndl"
+builtin_path="${search_paths}/nudl_builtins.ndl"
 output_dir=
 module_name=
 run_yapf=
@@ -44,7 +44,6 @@ lang=python
 run_pyright=
 run_module=
 bindings_on_use=
-write_bzl=
 
 while [[ $# -gt 0 ]]; do
       case ${1} in
@@ -96,10 +95,6 @@ while [[ $# -gt 0 ]]; do
               bindings_on_use=--bindings_on_use
               shift
               ;;
-          -wb|--write_bzl)
-              write_bzl="${2}"
-              shift; shift
-              ;;
           --)
               shift
               break
@@ -118,7 +113,6 @@ done
     "--input=${module_name}" \
     "--py_path=${py_path}" \
     "--output_dir=${output_dir}" \
-    "--write_bzl=${write_bzl}" \
     "--run_yapf=${run_yapf}" \
     ${abstracts} ${write_only_input} ${bindings_on_use} $@ || exit 1
 

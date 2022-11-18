@@ -9,11 +9,11 @@ expression {
     parameter {
       name: "name"
       type_spec {
-        name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+        name: "HumanName"
       }
     }
     result_type {
-      name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+      name: "HumanName"
     }
     function_name: "f"
     qualified_name {
@@ -40,7 +40,7 @@ expression {
     parameter {
       name: "name"
       type_spec {
-        name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+        name: "HumanName"
       }
     }
     result_type {
@@ -57,7 +57,7 @@ expression {
         child {
           kind: EXPR_FUNCTION_CALL
           type_spec {
-            name: "{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }"
+            name: "HumanName"
           }
           call_spec {
             left_expression {
@@ -76,7 +76,7 @@ expression {
               }
             }
             binding_type {
-              name: "Function<{ HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> }(name: { HumanName : HumanName<Nullable<String>, Nullable<String>, Nullable<String>, Array<String>, Array<String>> })>"
+              name: "Function<HumanName(name: HumanName)>"
             }
           }
         }

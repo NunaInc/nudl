@@ -1,8 +1,5 @@
 name: "deep_call"
 expression {
-  kind: EXPR_SCHEMA_DEF
-}
-expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
@@ -22,7 +19,7 @@ expression {
       }
     }
     result_type {
-      name: "{ Bar : Bar<String> }"
+      name: "Bar"
     }
     function_name: "_init_object_Bar"
     qualified_name {
@@ -44,11 +41,11 @@ expression {
     parameter {
       name: "obj"
       type_spec {
-        name: "{ Bar : Bar<String> }"
+        name: "Bar"
       }
     }
     result_type {
-      name: "{ Bar : Bar<String> }"
+      name: "Bar"
     }
     function_name: "_init_copy_Bar"
     qualified_name {
@@ -73,12 +70,12 @@ expression {
     parameter {
       name: "name"
       type_spec {
-        name: "{ Bar : Bar<String> }"
+        name: "Bar"
       }
       default_value {
         kind: EXPR_FUNCTION_CALL
         type_spec {
-          name: "{ Bar : Bar<String> }"
+          name: "Bar"
         }
         call_spec {
           call_name {
@@ -95,13 +92,13 @@ expression {
             }
           }
           binding_type {
-            name: "Function<{ Bar : Bar<String> }(subname: String*)>"
+            name: "Function<Bar(subname: String*)>"
           }
         }
       }
     }
     result_type {
-      name: "{ Foo : Foo<{ Bar : Bar<String> }> }"
+      name: "Foo"
     }
     function_name: "_init_object_Foo"
     qualified_name {
@@ -123,11 +120,11 @@ expression {
     parameter {
       name: "obj"
       type_spec {
-        name: "{ Foo : Foo<{ Bar : Bar<String> }> }"
+        name: "Foo"
       }
     }
     result_type {
-      name: "{ Foo : Foo<{ Bar : Bar<String> }> }"
+      name: "Foo"
     }
     function_name: "_init_copy_Foo"
     qualified_name {
@@ -140,6 +137,9 @@ expression {
   }
 }
 expression {
+  kind: EXPR_SCHEMA_DEF
+}
+expression {
   kind: EXPR_FUNCTION_DEF
   function_spec {
     scope_name {
@@ -149,11 +149,11 @@ expression {
     parameter {
       name: "x"
       type_spec {
-        name: "{ Foo : Foo<{ Bar : Bar<String> }> }"
+        name: "Foo"
       }
     }
     result_type {
-      name: "{ Foo : Foo<{ Bar : Bar<String> }> }"
+      name: "Foo"
     }
     function_name: "f"
     qualified_name {
@@ -180,7 +180,7 @@ expression {
     parameter {
       name: "x"
       type_spec {
-        name: "{ Foo : Foo<{ Bar : Bar<String> }> }"
+        name: "Foo"
       }
     }
     result_type {
@@ -211,7 +211,7 @@ expression {
                 child {
                   kind: EXPR_FUNCTION_CALL
                   type_spec {
-                    name: "{ Foo : Foo<{ Bar : Bar<String> }> }"
+                    name: "Foo"
                   }
                   call_spec {
                     left_expression {
@@ -230,7 +230,7 @@ expression {
                       }
                     }
                     binding_type {
-                      name: "Function<{ Foo : Foo<{ Bar : Bar<String> }> }(x: { Foo : Foo<{ Bar : Bar<String> }> })>"
+                      name: "Function<Foo(x: Foo)>"
                     }
                   }
                 }

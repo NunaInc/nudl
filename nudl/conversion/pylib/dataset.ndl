@@ -15,7 +15,15 @@
 //
 
 // A virtual type for underlying engines.
+// TODO(catalin): neet to support native types.
 typedef Engine = Struct<String>
+
+// Creates an empty dataset with specified structure.
+def method empty_dataset(
+  engine: Engine, seed: {T: Struct}) : Dataset<T> =>
+[[skip_conversion]][[end]]
+[[pyinline]]${engine}.empty_dataset(${seed})[[end]]
+
 
 // Reads a CSV file specification and creates a dataset with
 // a specified schema determined by T.
@@ -23,6 +31,7 @@ typedef Engine = Struct<String>
 def method read_csv(
   engine: Engine, seed: {T: Struct},
   file_spec: String) : Dataset<T> =>
+[[skip_conversion]][[end]]
 [[pyinline]]${engine}.read_csv(${seed}, ${file_spec})[[end]]
 
 // Reads a Parquet file specification and creates a
@@ -31,13 +40,15 @@ def method read_csv(
 def method read_parquet(
   engine: Engine, seed: {T: Struct},
   file_spec: String) : Dataset<T> =>
+[[skip_conversion]][[end]]
 [[pyinline]]${engine}.read_parquet(${seed}, ${file_spec})[[end]]
 
 // Applies the provided function on all members of src dataset,
 // obtaining a dataset from the results.
 def method map(src: Dataset<{T: Any}>,
                f: Function<T, {Y: Struct}>) : Dataset<Y> =>
-[[pyinline]]${src}.dataset_map(${f})[[end]]
+[[skip_conversion]][[end]]
+[[pyinline]]${src}.dataset_map(${{dataset_seed}}, ${f})[[end]]
 
 // Applies the provided function that returns an array, then
 // flattens it into the output. E.g. if you return this
@@ -45,12 +56,20 @@ def method map(src: Dataset<{T: Any}>,
 // 1,2,3,4,5,6 as output.
 def method flat_map(src: Dataset<{T: Any}>,
                     f: Function<T, Array<{Y: Struct}>>) : Dataset<Y> =>
-[[pyinline]]${src}.dataset_flat_map(${f})[[end]]
+[[skip_conversion]][[end]]
+[[pyinline]]${src}.dataset_flat_map(${{dataset_seed}}, ${f})[[end]]
 
 // Filters the input dataset by the provided predicate `f`.
 def method filter(src: Dataset<{T: Any}>,
                   f: Function<T, Bool>) : Dataset<T> =>
+[[skip_conversion]][[end]]
 [[pyinline]]${src}.dataset_filter(${f})[[end]]
+
+// Limits the input dataset to a number of elements.
+def method limit(src: Dataset<{T: Any}>,
+                 size: Int) : Dataset<T> =>
+[[skip_conversion]][[end]]
+[[pyinline]]${src}.dataset_limit(${size})[[end]]
 
 // Specification for a join. We do only left joins.
 //
@@ -79,7 +98,8 @@ def method join_left(
   left_key: {F: Function<T, {K}>},
   right_spec: {Spec: Tuple}
 ) : DatasetJoin<T, F, Spec> =>
-[[pyinline]]${left_src}.dataset_join_left(${left_key}, ${right_spec})[[end]]
+[[skip_conversion]][[end]]
+[[pyinline]]${left_src}.dataset_join_left(${{dataset_seed}}, ${left_key}, ${right_spec})[[end]]
 
 def method join_by(
   right_src: {R: Dataset<{T: Struct}>},
@@ -90,6 +110,11 @@ def method join_multi_by(
   right_src: {R: Dataset<{T: Struct}>},
   right_key: {F: Function<T, {K}>}
 ) : Tuple<R, F> => {right_multi = right_src, key = right_key}
+
+def method join_multi_by(
+  right_src: {R: Array<Dataset<{T: Struct}>>},
+  right_key: {F: Function<T, {K}>}
+) : Tuple<R, F> => {right_multi_array = right_src, key = right_key}
 
 
 //
@@ -106,7 +131,8 @@ def method join_multi_by(
 def method aggregate(src: Dataset<{T}>,
   builder: Function<T, Tuple<T, {Spec: Tuple}>>)
     : DatasetAggregate<Spec> =>
-[[pyinline]]${src}.dataset_aggregate(${builder})[[end]]
+[[skip_conversion]][[end]]
+[[pyinline]]${src}.dataset_aggregate(${{dataset_seed}}, ${builder})[[end]]
 
 // Root for an aggregation.
 // For detail specification of aggregates check aggregate.ndl

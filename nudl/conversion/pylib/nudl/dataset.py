@@ -37,24 +37,29 @@ class Dataset:
     def dataset_filter(self, f: collections.abc.Callable[[typing.Any], bool]):
         return self.engine.dataset_filter(self, f)
 
-    def dataset_map(self, f: collections.abc.Callable[[typing.Any],
-                                                      typing.Any]):
-        return self.engine.dataset_map(self, f)
+    def dataset_map(self, result_seed: typing.Any,
+                    f: collections.abc.Callable[[typing.Any], typing.Any]):
+        return self.engine.dataset_map(self, result_seed, f)
 
-    def dataset_flat_map(self,
+    def dataset_flat_map(self, result_seed: typing.Any,
                          f: collections.abc.Callable[[typing.Any],
                                                      typing.List[typing.Any]]):
-        return self.engine.dataset_flat_map(self, f)
+        return self.engine.dataset_flat_map(self, result_seed, f)
 
-    def dataset_aggregate(self,
+    def dataset_aggregate(self, result_seed: typing.Any,
                           builder: collections.abc.Callable[[typing.Any],
                                                             typing.Tuple]):
-        return self.engine.dataset_aggregate(self, builder)
+        return self.engine.dataset_aggregate(self, result_seed, builder)
 
-    def dataset_join_left(self, left_key: collections.abc.Callable[[typing.Any],
-                                                                   typing.Any],
+    def dataset_join_left(self, result_seed: typing.Any,
+                          left_key: collections.abc.Callable[[typing.Any],
+                                                             typing.Any],
                           right_spec: typing.Tuple):
-        return self.engine.dataset_join_left(self, left_key, right_spec)
+        return self.engine.dataset_join_left(self, result_seed, left_key,
+                                             right_spec)
+
+    def dataset_limit(self, size: int):
+        return self.engine.dataset_limit(self, size)
 
     def dataset_collect(self) -> typing.List[typing.Any]:
         return self.engine.dataset_collect(self)
@@ -67,6 +72,9 @@ class DatasetEngine:
     def __init__(self, name):
         self.name = name
 
+    def empty_dataset(self, seed: typing.Any) -> Dataset:
+        return Dataset(self, seed)
+
     def read_csv(self, seed: typing.Any, file_spec: str) -> Dataset:
         raise NotImplementedError(f"`read_csv` not implemented for {self.name}")
 
@@ -78,29 +86,33 @@ class DatasetEngine:
         raise NotImplementedError(
             f"`dataset_filter` not implemented for {self.name}")
 
-    def dataset_map(self, src: Dataset,
+    def dataset_map(self, src: Dataset, result_seed: typing.Any,
                     f: collections.abc.Callable[[typing.Any], typing.Any]):
         raise NotImplementedError(
             f"`dataset_map` not implemented for {self.name}")
 
-    def dataset_flat_map(self, src: Dataset,
+    def dataset_flat_map(self, src: Dataset, result_seed: typing.Any,
                          f: collections.abc.Callable[[typing.Any],
                                                      typing.List[typing.Any]]):
         raise NotImplementedError(
             f"`dataset_flat_map` not implemented for {self.name}")
 
-    def dataset_aggregate(self, src: Dataset,
+    def dataset_aggregate(self, src: Dataset, result_seed: typing.Any,
                           builder: collections.abc.Callable[[typing.Any],
                                                             typing.Tuple]):
         raise NotImplementedError(
             f"`dataset_aggregate` not implemented for {self.name}")
 
-    def dataset_join_left(self, src: Dataset,
+    def dataset_join_left(self, src: Dataset, result_seed: typing.Any,
                           left_key: collections.abc.Callable[[typing.Any],
                                                              typing.Any],
                           right_spec: typing.Tuple):
         raise NotImplementedError(
             f"`dataset_join_left` not implemented for {self.name}")
+
+    def dataset_limit(self, src: Dataset, size: int):
+        raise NotImplementedError(
+            f"`dataset_limit` not implemented for {self.name}")
 
     def dataset_collect(self, src: Dataset) -> typing.List[typing.Any]:
         raise NotImplementedError(

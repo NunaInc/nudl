@@ -15,7 +15,7 @@
 //
 
 import examples.claim
-import examples.dataproc
+import dataproc
 import dataset
 import dataset_spark
 import flags
@@ -47,11 +47,11 @@ def assignMember(
 // Just generates some random test data in a csv file under gendir
 // Returns the generated file name.
 def generate_csv(gendir: String, count: Int = 20000) => {
-  examples.dataproc.generate_csv(examples.claim.Claim(), gendir, count,
+  dataproc.generate_csv(examples.claim.Claim(), gendir, count,
     GENERATORS_RE)
 }
 def generate_parquet(gendir: String, count: Int = 20000) => {
-  examples.dataproc.generate_parquet(examples.claim.Claim(), gendir, count,
+  dataproc.generate_parquet(examples.claim.Claim(), gendir, count,
     GENERATORS_RE)
 }
 
@@ -59,7 +59,7 @@ def generate_parquet(gendir: String, count: Int = 20000) => {
 def analyze_array(filename: String) => {
   print("Analyzing: " + filename)
   // Read the CSV with provided schema:
-  examples.dataproc.read_csv(examples.claim.Claim(), filename)
+  dataproc.read_csv(examples.claim.Claim(), filename)
     // groups the claims by member id:
     .aggregate_to_array(c => c.person_id_syn, c => c)
     // performs assignMember for each member claims, and prints the result:
@@ -88,11 +88,11 @@ def analyze_dataset(engine: dataset.Engine, filename: String) => {
             assigned = assignMember(c.person_id_syn, c.claims, 2u)));
 }
 
-demo_dir = flags.define(
-  "/tmp/demodata", "demo_dir",
+demo_dir = flags.define_string(
+  "demo_dir", "/tmp/demodata",
   "Use this directory for storing temporary data");
-use_dataset = flags.define(
-  true, "use_dataset",
+use_dataset = flags.define_bool(
+  "use_dataset", true,
   "Use the dataset based implementation for demo, else use arrays");
 
 def main_function main() => {

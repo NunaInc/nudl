@@ -53,6 +53,8 @@ absl::optional<const TypeSpec*> Expression::stored_type_spec() const {
   return type_spec_;
 }
 
+Scope* Expression::scope() const { return scope_; }
+
 absl::StatusOr<const TypeSpec*> Expression::type_spec(
     absl::optional<const TypeSpec*> type_hint) {
   if (!type_spec_.has_value() ||

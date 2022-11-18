@@ -53,6 +53,8 @@ struct FunctionBinding {
   std::vector<absl::optional<Expression*>> call_expressions;
   // Specific bindings done for each arguments, in case they are functions.
   std::vector<absl::optional<FunctionBinding*>> call_sub_bindings;
+  // If the corresponding expression comes from a default value.
+  std::vector<bool> is_default_value;
   // The names of the arguments. Has the same size as type_arguments.
   std::vector<std::string> names;
 

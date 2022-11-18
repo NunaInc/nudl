@@ -975,6 +975,7 @@ FunctionBinding::FunctionBinding(Function* fun)
   type_arguments.reserve(num_args + 1);
   call_expressions.reserve(num_args);
   call_sub_bindings.reserve(num_args);
+  is_default_value.reserve(num_args);
   names.reserve(num_args);
 }
 
@@ -986,6 +987,7 @@ FunctionBinding::FunctionBinding(const TypeFunction* fun_type,
   type_arguments.reserve(fun_type->parameters().size());
   call_expressions.reserve(num_args);
   call_sub_bindings.reserve(num_args);
+  is_default_value.reserve(num_args);
   names.reserve(num_args);
 }
 
@@ -994,6 +996,7 @@ void FunctionBinding::CheckCounts() const {
   CHECK_EQ(num_args, call_expressions.size());
   CHECK_EQ(num_args, call_sub_bindings.size());
   CHECK_EQ(num_args, names.size());
+  CHECK_EQ(num_args, is_default_value.size());
 }
 
 absl::StatusOr<std::unique_ptr<FunctionBinding>> FunctionBinding::Bind(
@@ -1145,6 +1148,7 @@ absl::Status FunctionBinding::BindDefaultValue(absl::string_view arg_name,
     type_arguments.emplace_back(TypeBindingArg{arg_type});
     call_expressions.emplace_back(absl::optional<Expression*>{});
   }
+  is_default_value.push_back(true);
   call_sub_bindings.emplace_back(std::optional<FunctionBinding*>{});
   names.emplace_back(std::string(arg_name));
   CheckCounts();
@@ -1396,6 +1400,7 @@ absl::Status FunctionBinding::BindArgument(absl::string_view arg_name,
       << rebuilt_type->full_name();
   type_arguments.emplace_back(TypeBindingArg{rebuilt_type});
   call_expressions.emplace_back(call_arg.value);
+  is_default_value.push_back(false);
   call_sub_bindings.emplace_back(sub_binding);
   names.emplace_back(arg_name);
   return absl::OkStatus();
