@@ -30,6 +30,9 @@ def _nudl_py_target(
     nudl_deps = []
     nudl_deps.extend([dep + "_ndl_src" for dep in deps])
     nudl_deps.append(builtins)
+    if target_type == "binary":
+        main = main.removesuffix(".py") + "_main.py"
+        outs.append(main)
 
     native.genrule(
         name = name + "_py_src",

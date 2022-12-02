@@ -30,7 +30,9 @@ import typing
 
 from nudl import dataproc  # type: ignore
 from nudl import dataset  # type: ignore
+from nudl import dataset_beam  # type: ignore
 from nudl import dataset_spark  # type: ignore
+from nudl import dataset_pandas  # type: ignore
 from nudl import flags  # type: ignore
 
 UTC_TIMEZONE: datetime.tzinfo = pytz.utc

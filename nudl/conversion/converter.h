@@ -22,6 +22,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -41,19 +42,28 @@ class ConvertState {
   analysis::Module* module_;
 };
 
+struct ConversionResult {
+  struct ConvertedFile {
+    std::string file_name;
+    std::string content;
+  };
+  std::vector<ConvertedFile> files;
+};
+
 class Converter {
  public:
   Converter();
   virtual ~Converter();
 
-  absl::StatusOr<std::string> ConvertModule(analysis::Module* module) const;
+  absl::StatusOr<ConversionResult> ConvertModule(
+      analysis::Module* module) const;
 
  protected:
   virtual absl::StatusOr<std::unique_ptr<ConvertState>> BeginModule(
       analysis::Module* module) const = 0;
   virtual absl::Status ProcessModule(analysis::Module* module,
                                      ConvertState* state) const = 0;
-  virtual absl::StatusOr<std::string> FinishModule(
+  virtual absl::StatusOr<ConversionResult> FinishModule(
       analysis::Module* module, std::unique_ptr<ConvertState> state) const = 0;
 
   virtual absl::Status ConvertExpression(const analysis::Expression& expression,

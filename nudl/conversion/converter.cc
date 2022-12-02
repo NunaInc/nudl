@@ -36,7 +36,7 @@ Converter::Converter() {}
 
 Converter::~Converter() {}
 
-absl::StatusOr<std::string> Converter::ConvertModule(
+absl::StatusOr<ConversionResult> Converter::ConvertModule(
     analysis::Module* module) const {
   ASSIGN_OR_RETURN(auto state, BeginModule(module));
   RETURN_IF_ERROR(ProcessModule(module, state.get()));

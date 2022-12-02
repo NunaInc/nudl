@@ -116,13 +116,13 @@ void AnalysisTest::CheckCode(absl::string_view test_name,
                        conversion::PseudoConverter().ConvertModule(module));
   ASSERT_OK_AND_ASSIGN(auto pythoncode,
                        conversion::PythonConverter().ConvertModule(module));
-  EXPECT_FALSE(pseudocode.empty());
-  EXPECT_FALSE(pythoncode.empty());
+  EXPECT_FALSE(pseudocode.files.empty());
+  EXPECT_FALSE(pythoncode.files.empty());
   if (!absl::GetFlag(FLAGS_nudl_accept_abstract_function_objects)) {
     ASSERT_OK_AND_ASSIGN(
         auto pythoncode_bind_only,
         conversion::PythonConverter(true).ConvertModule(module));
-    EXPECT_FALSE(pythoncode_bind_only.empty());
+    EXPECT_FALSE(pythoncode_bind_only.files.empty());
   }
   EXPECT_FALSE(module->DebugString().empty());
   const absl::Time regenerated_time = absl::Now();
@@ -143,6 +143,15 @@ void AnalysisTest::PrepareCode(absl::string_view test_name,
   WritePreparedCode(module, proto, test_name, module_name, code, skip_write);
 }
 
+namespace {
+std::string ConversionString(const conversion::ConversionResult& result) {
+  if (result.files.empty()) {
+    return "";
+  }
+  return result.files.front().content;
+}
+}  // namespace
+
 void AnalysisTest::WritePreparedCode(Module* module,
                                      const pb::ModuleSpec& proto,
                                      absl::string_view test_name,
@@ -153,24 +162,24 @@ void AnalysisTest::WritePreparedCode(Module* module,
                        conversion::PseudoConverter().ConvertModule(module));
   ASSERT_OK_AND_ASSIGN(auto pythoncode,
                        conversion::PythonConverter().ConvertModule(module));
-  std::string pythoncode_bind_only;
+  conversion::ConversionResult pythoncode_bind_only;
   if (!absl::GetFlag(FLAGS_nudl_accept_abstract_function_objects)) {
     ASSERT_OK_AND_ASSIGN(
         pythoncode_bind_only,
         conversion::PythonConverter(true).ConvertModule(module));
-    EXPECT_FALSE(pythoncode_bind_only.empty());
+    EXPECT_FALSE(pythoncode_bind_only.files.empty());
   }
   std::cout << "  CheckCode(" << std::endl
             << "    R\"(" << code << ")\", R\"(" << std::endl
             << proto.DebugString() << ")\");" << std::endl
             << "Pseudocode:" << std::endl
-            << pseudocode << std::endl
+            << ConversionString(pseudocode) << std::endl
             << "---" << std::endl
             << "Pythoncode:" << std::endl
-            << pythoncode << std::endl
+            << ConversionString(pythoncode) << std::endl
             << "---" << std::endl
             << "Python code binds with use:" << std::endl
-            << pythoncode_bind_only << std::endl
+            << ConversionString(pythoncode_bind_only) << std::endl
             << "---" << std::endl
             << "Original:" << std::endl
             << code << std::endl

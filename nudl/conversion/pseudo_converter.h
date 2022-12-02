@@ -39,7 +39,7 @@ class PseudoConverter : public Converter {
       analysis::Module* module) const override;
   absl::Status ProcessModule(analysis::Module* module,
                              ConvertState* state) const override;
-  absl::StatusOr<std::string> FinishModule(
+  absl::StatusOr<ConversionResult> FinishModule(
       analysis::Module* module,
       std::unique_ptr<ConvertState> state) const override;
 
