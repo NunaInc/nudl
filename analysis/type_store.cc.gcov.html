@@ -31,13 +31,13 @@
             <td class="headerValue">_coverage_report.dat</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">167</td>
-            <td class="headerCovTableEntry">176</td>
-            <td class="headerCovTableEntryHi">94.9 %</td>
+            <td class="headerCovTableEntry">180</td>
+            <td class="headerCovTableEntry">191</td>
+            <td class="headerCovTableEntryHi">94.2 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-11-18 13:48:09</td>
+            <td class="headerValue">2022-12-02 13:29:28</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">24</td>
@@ -121,7 +121,7 @@
 <a name="59"><span class="lineNum">      59 </span>            :   }</a>
 <a name="60"><span class="lineNum">      60 </span><span class="lineCov">          1 :   absl::StrAppend(&amp;s, &quot;Base store:\n&quot;, base_store_-&gt;DebugNames());</span></a>
 <a name="61"><span class="lineNum">      61 </span><span class="lineCov">          1 :   return s;</span></a>
-<a name="62"><span class="lineNum">      62 </span>            : }</a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="63"><span class="lineNum">      63 </span>            : </a>
 <a name="64"><span class="lineNum">      64 </span><span class="lineCov">      33866 : absl::StatusOr&lt;const TypeSpec*&gt; GlobalTypeStore::FindType(</span></a>
 <a name="65"><span class="lineNum">      65 </span>            :     const ScopeName&amp; lookup_scope, const pb::TypeSpec&amp; type_spec) {</a>
@@ -133,7 +133,7 @@
 <a name="71"><span class="lineNum">      71 </span>            :     }</a>
 <a name="72"><span class="lineNum">      72 </span><span class="lineCov">       2450 :     return store.value()-&gt;FindType(lookup_scope, type_spec);</span></a>
 <a name="73"><span class="lineNum">      73 </span>            :   }</a>
-<a name="74"><span class="lineNum">      74 </span><span class="lineCov">      62830 :   ASSIGN_OR_RETURN(auto type_name,</span></a>
+<a name="74"><span class="lineNum">      74 </span><span class="lineCov">      31415 :   ASSIGN_OR_RETURN(auto type_name,</span></a>
 <a name="75"><span class="lineNum">      75 </span>            :                    ScopedName::FromIdentifier(type_spec.identifier()),</a>
 <a name="76"><span class="lineNum">      76 </span>            :                    _ &lt;&lt; &quot;Obtaining type specification&quot;);</a>
 <a name="77"><span class="lineNum">      77 </span><span class="lineCov">     100261 :   for (size_t i = lookup_scope.size() + 1; i &gt; 0; --i) {</span></a>
@@ -145,14 +145,14 @@
 <a name="83"><span class="lineNum">      83 </span><span class="lineCov">       3301 :         return store.value()-&gt;FindType(lookup_scope, type_spec);</span></a>
 <a name="84"><span class="lineNum">      84 </span>            :       }</a>
 <a name="85"><span class="lineNum">      85 </span>            :     }</a>
-<a name="86"><span class="lineNum">      86 </span>            :   }</a>
+<a name="86"><span class="lineNum">      86 </span><span class="lineCov">      72147 :   }</span></a>
 <a name="87"><span class="lineNum">      87 </span><span class="lineCov">      28114 :   if (type_name.scope_name().empty()) {</span></a>
 <a name="88"><span class="lineNum">      88 </span><span class="lineCov">      28104 :     return base_store_-&gt;FindType(lookup_scope, type_spec);</span></a>
 <a name="89"><span class="lineNum">      89 </span>            :   }</a>
 <a name="90"><span class="lineNum">      90 </span><span class="lineCov">         20 :   return status::NotFoundErrorBuilder()</span></a>
 <a name="91"><span class="lineNum">      91 </span><span class="lineCov">         20 :          &lt;&lt; &quot;Cannot find type named `&quot; &lt;&lt; type_name.full_name() &lt;&lt; &quot;`, &quot;</span></a>
 <a name="92"><span class="lineNum">      92 </span><span class="lineCov">         10 :          &lt;&lt; &quot;`, from module: `&quot; &lt;&lt; lookup_scope.name() &lt;&lt; &quot;`&quot;;</span></a>
-<a name="93"><span class="lineNum">      93 </span>            : }</a>
+<a name="93"><span class="lineNum">      93 </span><span class="lineCov">      31415 : }</span></a>
 <a name="94"><span class="lineNum">      94 </span>            : </a>
 <a name="95"><span class="lineNum">      95 </span><span class="lineCov">        651 : absl::StatusOr&lt;const TypeSpec*&gt; GlobalTypeStore::FindTypeByName(</span></a>
 <a name="96"><span class="lineNum">      96 </span>            :     absl::string_view name) const {</a>
@@ -164,12 +164,12 @@
 <a name="102"><span class="lineNum">     102 </span><span class="lineCov">          4 :     return status::AlreadyExistsErrorBuilder()</span></a>
 <a name="103"><span class="lineNum">     103 </span><span class="lineCov">          2 :            &lt;&lt; &quot;Cannot overwrite module &quot; &lt;&lt; scope_name-&gt;name();</span></a>
 <a name="104"><span class="lineNum">     104 </span>            :   }</a>
-<a name="105"><span class="lineNum">     105 </span><span class="lineCov">      14384 :   std::string key(scope_name-&gt;name());</span></a>
-<a name="106"><span class="lineNum">     106 </span>            :   scopes_store_.emplace_back(</a>
-<a name="107"><span class="lineNum">     107 </span><span class="lineCov">       7192 :       std::make_unique&lt;ScopeTypeStore&gt;(std::move(scope_name), this));</span></a>
+<a name="105"><span class="lineNum">     105 </span><span class="lineCov">       7192 :   std::string key(scope_name-&gt;name());</span></a>
+<a name="106"><span class="lineNum">     106 </span><span class="lineCov">       7192 :   scopes_store_.emplace_back(</span></a>
+<a name="107"><span class="lineNum">     107 </span><span class="lineCov">      14384 :       std::make_unique&lt;ScopeTypeStore&gt;(std::move(scope_name), this));</span></a>
 <a name="108"><span class="lineNum">     108 </span><span class="lineCov">       7192 :   scopes_.emplace(std::move(key), scopes_store_.back().get());</span></a>
 <a name="109"><span class="lineNum">     109 </span><span class="lineCov">       7192 :   return absl::OkStatus();</span></a>
-<a name="110"><span class="lineNum">     110 </span>            : }</a>
+<a name="110"><span class="lineNum">     110 </span><span class="lineCov">       7192 : }</span></a>
 <a name="111"><span class="lineNum">     111 </span>            : </a>
 <a name="112"><span class="lineNum">     112 </span><span class="lineCov">          4 : absl::Status GlobalTypeStore::AddAlias(const ScopeName&amp; scope_name,</span></a>
 <a name="113"><span class="lineNum">     113 </span>            :                                        const ScopeName&amp; alias_name) {</a>
@@ -193,11 +193,11 @@
 <a name="131"><span class="lineNum">     131 </span><span class="lineCov">         32 :   auto it = scopes_.find(scope_name.name());</span></a>
 <a name="132"><span class="lineNum">     132 </span><span class="lineCov">         32 :   if (it == scopes_.end()) {</span></a>
 <a name="133"><span class="lineNum">     133 </span><span class="lineCov">         32 :     std::string key(scope_name.name());</span></a>
-<a name="134"><span class="lineNum">     134 </span><span class="lineCov">         64 :     scopes_store_.emplace_back(std::make_unique&lt;ScopeTypeStore&gt;(</span></a>
-<a name="135"><span class="lineNum">     135 </span><span class="lineCov">         96 :         absl::make_unique&lt;ScopeName&gt;(scope_name), this));</span></a>
+<a name="134"><span class="lineNum">     134 </span><span class="lineCov">         32 :     scopes_store_.emplace_back(std::make_unique&lt;ScopeTypeStore&gt;(</span></a>
+<a name="135"><span class="lineNum">     135 </span><span class="lineCov">         64 :         absl::make_unique&lt;ScopeName&gt;(scope_name), this));</span></a>
 <a name="136"><span class="lineNum">     136 </span><span class="lineCov">         32 :     std::tie(it, std::ignore) =</span></a>
 <a name="137"><span class="lineNum">     137 </span><span class="lineCov">         64 :         scopes_.emplace(scope_name.name(), scopes_store_.back().get());</span></a>
-<a name="138"><span class="lineNum">     138 </span>            :   }</a>
+<a name="138"><span class="lineNum">     138 </span><span class="lineCov">         32 :   }</span></a>
 <a name="139"><span class="lineNum">     139 </span><span class="lineCov">         32 :   return it-&gt;second-&gt;DeclareType(scope_name, name, std::move(type_spec));</span></a>
 <a name="140"><span class="lineNum">     140 </span>            : }</a>
 <a name="141"><span class="lineNum">     141 </span>            : </a>
@@ -206,7 +206,7 @@
 <a name="144"><span class="lineNum">     144 </span><span class="lineCov">       4862 :   auto callback_it = callbacks_.find(scope_name.name());</span></a>
 <a name="145"><span class="lineNum">     145 </span><span class="lineCov">       4862 :   if (callback_it != callbacks_.end()) {</span></a>
 <a name="146"><span class="lineNum">     146 </span><span class="lineCov">        134 :     RETURN_IF_ERROR(callback_it-&gt;second(type_spec));</span></a>
-<a name="147"><span class="lineNum">     147 </span>            :   }</a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">        134 :   }</span></a>
 <a name="148"><span class="lineNum">     148 </span><span class="lineCov">       4862 :   return absl::OkStatus();</span></a>
 <a name="149"><span class="lineNum">     149 </span>            : }</a>
 <a name="150"><span class="lineNum">     150 </span>            : </a>
@@ -228,7 +228,7 @@
 <a name="166"><span class="lineNum">     166 </span><span class="lineCov">       7284 :                                GlobalTypeStore* global_store)</span></a>
 <a name="167"><span class="lineNum">     167 </span>            :     : TypeStore(),</a>
 <a name="168"><span class="lineNum">     168 </span><span class="lineCov">       7284 :       scope_name_(std::move(scope_name)),</span></a>
-<a name="169"><span class="lineNum">     169 </span><span class="lineCov">       7284 :       global_store_(CHECK_NOTNULL(global_store)) {}</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">      14568 :       global_store_(CHECK_NOTNULL(global_store)) {}</span></a>
 <a name="170"><span class="lineNum">     170 </span>            : </a>
 <a name="171"><span class="lineNum">     171 </span><span class="lineCov">         48 : const ScopeName&amp; ScopeTypeStore::scope_name() const { return *scope_name_; }</span></a>
 <a name="172"><span class="lineNum">     172 </span>            : </a>
@@ -244,14 +244,14 @@
 <a name="182"><span class="lineNum">     182 </span><span class="lineCov">        115 :     absl::StrAppend(&amp;s, &quot;Type: &quot;, it.first, &quot;: &quot;, it.second-&gt;full_name(), &quot;\n&quot;);</span></a>
 <a name="183"><span class="lineNum">     183 </span>            :   }</a>
 <a name="184"><span class="lineNum">     184 </span><span class="lineCov">          6 :   return s;</span></a>
-<a name="185"><span class="lineNum">     185 </span>            : }</a>
+<a name="185"><span class="lineNum">     185 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="186"><span class="lineNum">     186 </span>            : </a>
 <a name="187"><span class="lineNum">     187 </span><span class="lineCov">      33856 : absl::StatusOr&lt;const TypeSpec*&gt; ScopeTypeStore::FindType(</span></a>
 <a name="188"><span class="lineNum">     188 </span>            :     const ScopeName&amp; lookup_scope, const pb::TypeSpec&amp; type_spec) {</a>
 <a name="189"><span class="lineNum">     189 </span><span class="lineCov">      33856 :   if (type_spec.is_local_type()) {</span></a>
 <a name="190"><span class="lineNum">     190 </span><span class="lineCov">       2450 :     return FindTypeLocal(lookup_scope, type_spec);</span></a>
 <a name="191"><span class="lineNum">     191 </span>            :   }</a>
-<a name="192"><span class="lineNum">     192 </span><span class="lineCov">      62812 :   ASSIGN_OR_RETURN(const std::string type_name,</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">      31406 :   ASSIGN_OR_RETURN(const std::string type_name,</span></a>
 <a name="193"><span class="lineNum">     193 </span>            :                    NameUtil::GetObjectName(type_spec.identifier()),</a>
 <a name="194"><span class="lineNum">     194 </span>            :                    _ &lt;&lt; &quot;Obtaining type name.&quot;);</a>
 <a name="195"><span class="lineNum">     195 </span><span class="lineCov">      31406 :   auto type_it = types_.find(type_name);</span></a>
@@ -264,25 +264,25 @@
 <a name="202"><span class="lineNum">     202 </span><span class="lineCov">      31117 :   if (type_spec.argument().empty()) {</span></a>
 <a name="203"><span class="lineNum">     203 </span><span class="lineCov">      26949 :     return spec;</span></a>
 <a name="204"><span class="lineNum">     204 </span>            :   }</a>
-<a name="205"><span class="lineNum">     205 </span><span class="lineCov">       8336 :   std::vector&lt;TypeBindingArg&gt; bind_arguments;</span></a>
+<a name="205"><span class="lineNum">     205 </span><span class="lineCov">       4168 :   std::vector&lt;TypeBindingArg&gt; bind_arguments;</span></a>
 <a name="206"><span class="lineNum">     206 </span><span class="lineCov">      10278 :   for (auto argument : type_spec.argument()) {</span></a>
 <a name="207"><span class="lineNum">     207 </span><span class="lineCov">       6110 :     if (argument.has_int_value()) {</span></a>
-<a name="208"><span class="lineNum">     208 </span>            :       bind_arguments.emplace_back(</a>
-<a name="209"><span class="lineNum">     209 </span><span class="lineCov">          4 :           TypeBindingArg(static_cast&lt;int&gt;(argument.int_value())));</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">          4 :       bind_arguments.emplace_back(</span></a>
+<a name="209"><span class="lineNum">     209 </span><span class="lineCov">          8 :           TypeBindingArg(static_cast&lt;int&gt;(argument.int_value())));</span></a>
 <a name="210"><span class="lineNum">     210 </span><span class="lineCov">       6106 :     } else if (argument.has_type_spec()) {</span></a>
 <a name="211"><span class="lineNum">     211 </span><span class="lineCov">       6106 :       ASSIGN_OR_RETURN(</span></a>
 <a name="212"><span class="lineNum">     212 </span>            :           auto subtype,</a>
 <a name="213"><span class="lineNum">     213 </span>            :           global_store_-&gt;FindType(lookup_scope, argument.type_spec()),</a>
 <a name="214"><span class="lineNum">     214 </span>            :           _ &lt;&lt; &quot;Finding subtype `&quot; &lt;&lt; grammar::ToDsl(argument.type_spec()));</a>
 <a name="215"><span class="lineNum">     215 </span><span class="lineCov">       6106 :       bind_arguments.emplace_back(TypeBindingArg(std::move(subtype)));</span></a>
-<a name="216"><span class="lineNum">     216 </span>            :     }</a>
-<a name="217"><span class="lineNum">     217 </span>            :   }</a>
-<a name="218"><span class="lineNum">     218 </span><span class="lineCov">       8348 :   ASSIGN_OR_RETURN(auto bound_type, spec-&gt;Build(bind_arguments),</span></a>
+<a name="216"><span class="lineNum">     216 </span><span class="lineCov">       6106 :     }</span></a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">       6110 :   }</span></a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">       4180 :   ASSIGN_OR_RETURN(auto bound_type, spec-&gt;Build(bind_arguments),</span></a>
 <a name="219"><span class="lineNum">     219 </span>            :                    _ &lt;&lt; &quot;Binding type: &quot; &lt;&lt; spec-&gt;name());</a>
 <a name="220"><span class="lineNum">     220 </span><span class="lineCov">       4162 :   bound_type-&gt;set_scope_name(lookup_scope);</span></a>
 <a name="221"><span class="lineNum">     221 </span><span class="lineCov">       4162 :   bound_types_.emplace_back(std::move(bound_type));</span></a>
-<a name="222"><span class="lineNum">     222 </span><span class="lineCov">       8324 :   return bound_types_.back().get();</span></a>
-<a name="223"><span class="lineNum">     223 </span>            : }</a>
+<a name="222"><span class="lineNum">     222 </span><span class="lineCov">       4162 :   return bound_types_.back().get();</span></a>
+<a name="223"><span class="lineNum">     223 </span><span class="lineCov">      31406 : }</span></a>
 <a name="224"><span class="lineNum">     224 </span>            : </a>
 <a name="225"><span class="lineNum">     225 </span><span class="lineCov">       2450 : absl::StatusOr&lt;const TypeSpec*&gt; ScopeTypeStore::FindTypeLocal(</span></a>
 <a name="226"><span class="lineNum">     226 </span>            :     const ScopeName&amp; lookup_scope, const pb::TypeSpec&amp; type_spec) {</a>
@@ -290,7 +290,7 @@
 <a name="228"><span class="lineNum">     228 </span><span class="lineCov">       2450 :   RET_CHECK(lookup_scope.name() == scope_name_-&gt;name())</span></a>
 <a name="229"><span class="lineNum">     229 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot;Declaring local type in a wrong scope: &quot; &lt;&lt; lookup_scope.name()</span></a>
 <a name="230"><span class="lineNum">     230 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot; vs. &quot; &lt;&lt; scope_name_-&gt;name();</span></a>
-<a name="231"><span class="lineNum">     231 </span><span class="lineCov">       4900 :   ASSIGN_OR_RETURN(const std::string module_name,</span></a>
+<a name="231"><span class="lineNum">     231 </span><span class="lineCov">       2450 :   ASSIGN_OR_RETURN(const std::string module_name,</span></a>
 <a name="232"><span class="lineNum">     232 </span>            :                    NameUtil::GetModuleName(type_spec.identifier()),</a>
 <a name="233"><span class="lineNum">     233 </span>            :                    _ &lt;&lt; &quot;Obtaining module name.&quot;);</a>
 <a name="234"><span class="lineNum">     234 </span><span class="lineCov">       2450 :   if (!module_name.empty()) {</span></a>
@@ -299,7 +299,7 @@
 <a name="237"><span class="lineNum">     237 </span><span class="lineNoCov">          0 :               &quot;for local type: &quot;</span></a>
 <a name="238"><span class="lineNum">     238 </span><span class="lineNoCov">          0 :            &lt;&lt; grammar::ToDsl(type_spec);</span></a>
 <a name="239"><span class="lineNum">     239 </span>            :   }</a>
-<a name="240"><span class="lineNum">     240 </span><span class="lineCov">       4900 :   ASSIGN_OR_RETURN(const std::string type_name,</span></a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineCov">       2450 :   ASSIGN_OR_RETURN(const std::string type_name,</span></a>
 <a name="241"><span class="lineNum">     241 </span>            :                    NameUtil::GetObjectName(type_spec.identifier()),</a>
 <a name="242"><span class="lineNum">     242 </span>            :                    _ &lt;&lt; &quot;Obtaining type name.&quot;);</a>
 <a name="243"><span class="lineNum">     243 </span><span class="lineCov">       2450 :   const TypeSpec* spec = nullptr;</span></a>
@@ -325,23 +325,23 @@
 <a name="263"><span class="lineNum">     263 </span><span class="lineCov">          1 :            &lt;&lt; &quot;Cannot redefine local type: &quot; &lt;&lt; type_name;</span></a>
 <a name="264"><span class="lineNum">     264 </span>            :   }</a>
 <a name="265"><span class="lineNum">     265 </span><span class="lineCov">       2120 :   const pb::TypeSpec&amp; arg_type_spec = type_spec.argument(0).type_spec();</span></a>
-<a name="266"><span class="lineNum">     266 </span><span class="lineCov">       4240 :   ASSIGN_OR_RETURN(auto subtype,</span></a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineCov">       2120 :   ASSIGN_OR_RETURN(auto subtype,</span></a>
 <a name="267"><span class="lineNum">     267 </span>            :                    global_store_-&gt;FindType(lookup_scope, arg_type_spec),</a>
 <a name="268"><span class="lineNum">     268 </span>            :                    _ &lt;&lt; &quot;Finding subtype `&quot; &lt;&lt; grammar::ToDsl(arg_type_spec)</a>
 <a name="269"><span class="lineNum">     269 </span>            :                      &lt;&lt; &quot; for registering local type: &quot; &lt;&lt; type_name);</a>
 <a name="270"><span class="lineNum">     270 </span><span class="lineCov">       4240 :   return DeclareType(lookup_scope, type_name, subtype-&gt;Clone());</span></a>
-<a name="271"><span class="lineNum">     271 </span>            : }</a>
+<a name="271"><span class="lineNum">     271 </span><span class="lineCov">       2450 : }</span></a>
 <a name="272"><span class="lineNum">     272 </span>            : </a>
 <a name="273"><span class="lineNum">     273 </span><span class="lineCov">        324 : absl::StatusOr&lt;const TypeSpec*&gt; ScopeTypeStore::DeclareLocalAnyType(</span></a>
 <a name="274"><span class="lineNum">     274 </span>            :     absl::string_view name) {</a>
-<a name="275"><span class="lineNum">     275 </span><span class="lineCov">        648 :   pb::TypeSpec any_spec;</span></a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineCov">        324 :   pb::TypeSpec any_spec;</span></a>
 <a name="276"><span class="lineNum">     276 </span><span class="lineCov">        324 :   any_spec.mutable_identifier()-&gt;add_name(std::string(kTypeNameAny));</span></a>
-<a name="277"><span class="lineNum">     277 </span><span class="lineCov">        648 :   ASSIGN_OR_RETURN(auto subtype, global_store_-&gt;FindType(ScopeName(), any_spec),</span></a>
+<a name="277"><span class="lineNum">     277 </span><span class="lineCov">        324 :   ASSIGN_OR_RETURN(auto subtype, global_store_-&gt;FindType(ScopeName(), any_spec),</span></a>
 <a name="278"><span class="lineNum">     278 </span>            :                    _ &lt;&lt; &quot;Cannot find type Any for named local type &quot;</a>
 <a name="279"><span class="lineNum">     279 </span>            :                         &quot;registration of: &quot;</a>
 <a name="280"><span class="lineNum">     280 </span>            :                      &lt;&lt; name);</a>
 <a name="281"><span class="lineNum">     281 </span><span class="lineCov">        648 :   return DeclareType(*scope_name_, name, subtype-&gt;Clone());</span></a>
-<a name="282"><span class="lineNum">     282 </span>            : }</a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineCov">        324 : }</span></a>
 <a name="283"><span class="lineNum">     283 </span>            : </a>
 <a name="284"><span class="lineNum">     284 </span><span class="lineCov">      49877 : absl::StatusOr&lt;const TypeSpec*&gt; ScopeTypeStore::FindTypeByName(</span></a>
 <a name="285"><span class="lineNum">     285 </span>            :     absl::string_view name) const {</a>
@@ -373,7 +373,7 @@
 <a name="311"><span class="lineNum">     311 </span><span class="lineCov">       4862 :   if (global_store_) {</span></a>
 <a name="312"><span class="lineNum">     312 </span><span class="lineCov">       4862 :     RETURN_IF_ERROR(</span></a>
 <a name="313"><span class="lineNum">     313 </span>            :         global_store_-&gt;CallRegistrationCallback(*scope_name_, added_type));</a>
-<a name="314"><span class="lineNum">     314 </span>            :   }</a>
+<a name="314"><span class="lineNum">     314 </span><span class="lineCov">       4862 :   }</span></a>
 <a name="315"><span class="lineNum">     315 </span><span class="lineCov">       4862 :   return added_type;</span></a>
 <a name="316"><span class="lineNum">     316 </span>            : }</a>
 <a name="317"><span class="lineNum">     317 </span>            : </a>

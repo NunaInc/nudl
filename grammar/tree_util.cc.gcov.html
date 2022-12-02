@@ -31,13 +31,13 @@
             <td class="headerValue">_coverage_report.dat</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">266</td>
-            <td class="headerCovTableEntry">309</td>
-            <td class="headerCovTableEntryMed">86.1 %</td>
+            <td class="headerCovTableEntry">280</td>
+            <td class="headerCovTableEntry">333</td>
+            <td class="headerCovTableEntryMed">84.1 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-11-18 13:48:09</td>
+            <td class="headerValue">2022-12-02 13:29:28</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">30</td>
@@ -135,13 +135,13 @@
 <a name="73"><span class="lineNum">      73 </span>            :   }</a>
 <a name="74"><span class="lineNum">      74 </span>            :   std::string s =</a>
 <a name="75"><span class="lineNum">      75 </span><span class="lineCov">         28 :       absl::StrCat(TreeUtil::TreeTypeString(*pt, parser), &quot; &quot;,</span></a>
-<a name="76"><span class="lineNum">      76 </span><span class="lineCov">         84 :                    antlr4::tree::Trees::getNodeText(pt, parser.getRuleNames()));</span></a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">         56 :                    antlr4::tree::Trees::getNodeText(pt, parser.getRuleNames()));</span></a>
 <a name="77"><span class="lineNum">      77 </span><span class="lineCov">         28 :   if (pt-&gt;children.empty()) {</span></a>
 <a name="78"><span class="lineNum">      78 </span><span class="lineCov">          4 :     return s;</span></a>
 <a name="79"><span class="lineNum">      79 </span>            :   }</a>
-<a name="80"><span class="lineNum">      80 </span><span class="lineCov">         48 :   const std::string sub_indent(absl::StrCat(indent, &quot;  |   &quot;));</span></a>
-<a name="81"><span class="lineNum">      81 </span><span class="lineCov">         48 :   const std::string sub_first_indent(absl::StrCat(indent, &quot;  +-- &quot;));</span></a>
-<a name="82"><span class="lineNum">      82 </span><span class="lineCov">         48 :   std::string buf;</span></a>
+<a name="80"><span class="lineNum">      80 </span><span class="lineCov">         24 :   const std::string sub_indent(absl::StrCat(indent, &quot;  |   &quot;));</span></a>
+<a name="81"><span class="lineNum">      81 </span><span class="lineCov">         24 :   const std::string sub_first_indent(absl::StrCat(indent, &quot;  +-- &quot;));</span></a>
+<a name="82"><span class="lineNum">      82 </span><span class="lineCov">         24 :   std::string buf;</span></a>
 <a name="83"><span class="lineNum">      83 </span><span class="lineCov">         24 :   if (first_indent.empty()) {</span></a>
 <a name="84"><span class="lineNum">      84 </span><span class="lineCov">          1 :     absl::StrAppend(&amp;buf, indent, &quot;+-- &quot;, s, &quot;\n&quot;);</span></a>
 <a name="85"><span class="lineNum">      85 </span>            :   } else {</a>
@@ -165,15 +165,15 @@
 <a name="103"><span class="lineNum">     103 </span>            :     }</a>
 <a name="104"><span class="lineNum">     104 </span><span class="lineCov">         25 :     const std::string crt_indent(i + 1 &lt; pt-&gt;children.size()</span></a>
 <a name="105"><span class="lineNum">     105 </span>            :                                      ? sub_indent</a>
-<a name="106"><span class="lineNum">     106 </span><span class="lineCov">         50 :                                      : absl::StrCat(indent, &quot;    &quot;));</span></a>
+<a name="106"><span class="lineNum">     106 </span><span class="lineCov">         25 :                                      : absl::StrCat(indent, &quot;    &quot;));</span></a>
 <a name="107"><span class="lineNum">     107 </span><span class="lineCov">         25 :     absl::StrAppend(&amp;buf,</span></a>
 <a name="108"><span class="lineNum">     108 </span><span class="lineCov">         50 :                     ToStringImpl(child, parser, crt_indent, sub_first_indent));</span></a>
 <a name="109"><span class="lineNum">     109 </span><span class="lineCov">         25 :     if (child-&gt;children.empty()) {</span></a>
 <a name="110"><span class="lineNum">     110 </span><span class="lineCov">          2 :       absl::StrAppend(&amp;buf, &quot;\n&quot;);</span></a>
 <a name="111"><span class="lineNum">     111 </span>            :     }</a>
-<a name="112"><span class="lineNum">     112 </span>            :   }</a>
+<a name="112"><span class="lineNum">     112 </span><span class="lineCov">         25 :   }</span></a>
 <a name="113"><span class="lineNum">     113 </span><span class="lineCov">         22 :   return buf;</span></a>
-<a name="114"><span class="lineNum">     114 </span>            : }</a>
+<a name="114"><span class="lineNum">     114 </span><span class="lineCov">         28 : }</span></a>
 <a name="115"><span class="lineNum">     115 </span>            : </a>
 <a name="116"><span class="lineNum">     116 </span><span class="lineCov">          1 : std::string TreeUtil::ToString(antlr4::tree::ParseTree* pt,</span></a>
 <a name="117"><span class="lineNum">     117 </span>            :                                const antlr4::Parser&amp; parser) {</a>
@@ -186,16 +186,16 @@
 <a name="124"><span class="lineNum">     124 </span>            :                                        const std::vector&lt;std::string&gt;&amp; children,</a>
 <a name="125"><span class="lineNum">     125 </span>            :                                        absl::string_view indent,</a>
 <a name="126"><span class="lineNum">     126 </span>            :                                        size_t max_len) {</a>
-<a name="127"><span class="lineNum">     127 </span><span class="lineCov">        466 :   std::string child_indent(absl::StrCat(indent, kIndent));</span></a>
+<a name="127"><span class="lineNum">     127 </span><span class="lineCov">        233 :   std::string child_indent(absl::StrCat(indent, kIndent));</span></a>
 <a name="128"><span class="lineNum">     128 </span><span class="lineCov">        233 :   std::vector&lt;std::string&gt; lines;</span></a>
 <a name="129"><span class="lineNum">     129 </span><span class="lineCov">        233 :   lines.emplace_back(absl::StrCat(node, &quot;(&quot;));</span></a>
 <a name="130"><span class="lineNum">     130 </span><span class="lineCov">        233 :   bool is_first = true;</span></a>
 <a name="131"><span class="lineNum">     131 </span><span class="lineCov">        944 :   for (auto&amp; child : children) {</span></a>
 <a name="132"><span class="lineNum">     132 </span><span class="lineCov">        711 :     if (child.find('\n') != std::string::npos) {</span></a>
-<a name="133"><span class="lineNum">     133 </span><span class="lineCov">       1204 :       for (auto line :</span></a>
-<a name="134"><span class="lineNum">     134 </span><span class="lineCov">       1365 :            absl::StrSplit(absl::StrCat(child_indent, child), &quot;\n&quot;)) {</span></a>
+<a name="133"><span class="lineNum">     133 </span><span class="lineCov">        161 :       for (auto line :</span></a>
+<a name="134"><span class="lineNum">     134 </span><span class="lineCov">       1526 :            absl::StrSplit(absl::StrCat(child_indent, child), &quot;\n&quot;)) {</span></a>
 <a name="135"><span class="lineNum">     135 </span><span class="lineCov">       1204 :         lines.emplace_back(std::string(line));</span></a>
-<a name="136"><span class="lineNum">     136 </span>            :       }</a>
+<a name="136"><span class="lineNum">     136 </span><span class="lineCov">        161 :       }</span></a>
 <a name="137"><span class="lineNum">     137 </span><span class="lineCov">        550 :     } else if (lines.back().size() + child.size() &lt; max_len) {</span></a>
 <a name="138"><span class="lineNum">     138 </span><span class="lineCov">        464 :       absl::StrAppend(&amp;lines.back(), is_first ? &quot;&quot; : &quot; &quot;, child);</span></a>
 <a name="139"><span class="lineNum">     139 </span>            :     } else {</a>
@@ -209,7 +209,7 @@
 <a name="147"><span class="lineNum">     147 </span><span class="lineCov">        218 :     lines.emplace_back(absl::StrCat(indent, &quot;)&quot;));</span></a>
 <a name="148"><span class="lineNum">     148 </span>            :   }</a>
 <a name="149"><span class="lineNum">     149 </span><span class="lineCov">        466 :   return absl::StrJoin(lines, &quot;\n&quot;);</span></a>
-<a name="150"><span class="lineNum">     150 </span>            : }</a>
+<a name="150"><span class="lineNum">     150 </span><span class="lineCov">        233 : }</span></a>
 <a name="151"><span class="lineNum">     151 </span>            : </a>
 <a name="152"><span class="lineNum">     152 </span><span class="lineCov">       6029 : std::string ToShortStringImpl(antlr4::tree::ParseTree* pt,</span></a>
 <a name="153"><span class="lineNum">     153 </span>            :                               const antlr4::Parser&amp; parser,</a>
@@ -227,15 +227,15 @@
 <a name="165"><span class="lineNum">     165 </span><span class="lineCov">       4816 :   if (pt-&gt;children.size() == 1) {</span></a>
 <a name="166"><span class="lineNum">     166 </span><span class="lineCov">       4249 :     return ToShortStringImpl(pt-&gt;children.front(), parser, indent, max_len);</span></a>
 <a name="167"><span class="lineNum">     167 </span>            :   }</a>
-<a name="168"><span class="lineNum">     168 </span><span class="lineCov">       1134 :   std::string s(antlr4::tree::Trees::getNodeText(pt, parser.getRuleNames()));</span></a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineCov">        567 :   std::string s(antlr4::tree::Trees::getNodeText(pt, parser.getRuleNames()));</span></a>
 <a name="169"><span class="lineNum">     169 </span><span class="lineCov">        567 :   if (pt-&gt;children.empty()) {</span></a>
 <a name="170"><span class="lineNum">     170 </span><span class="lineNoCov">          0 :     return s;</span></a>
 <a name="171"><span class="lineNum">     171 </span>            :   }</a>
-<a name="172"><span class="lineNum">     172 </span><span class="lineCov">       1134 :   std::vector&lt;std::string&gt; children;</span></a>
-<a name="173"><span class="lineNum">     173 </span><span class="lineCov">       1134 :   std::string child_indent(absl::StrCat(indent, kIndent));</span></a>
+<a name="172"><span class="lineNum">     172 </span><span class="lineCov">        567 :   std::vector&lt;std::string&gt; children;</span></a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">        567 :   std::string child_indent(absl::StrCat(indent, kIndent));</span></a>
 <a name="174"><span class="lineNum">     174 </span><span class="lineCov">        567 :   bool is_split = false;</span></a>
 <a name="175"><span class="lineNum">     175 </span><span class="lineCov">        567 :   size_t child_size = 0;</span></a>
-<a name="176"><span class="lineNum">     176 </span><span class="lineCov">       1134 :   std::string result;</span></a>
+<a name="176"><span class="lineNum">     176 </span><span class="lineCov">        567 :   std::string result;</span></a>
 <a name="177"><span class="lineNum">     177 </span><span class="lineCov">       2254 :   for (auto child : pt-&gt;children) {</span></a>
 <a name="178"><span class="lineNum">     178 </span><span class="lineCov">       1687 :     if (!child) {</span></a>
 <a name="179"><span class="lineNum">     179 </span><span class="lineCov">         92 :       continue;</span></a>
@@ -247,7 +247,7 @@
 <a name="185"><span class="lineNum">     185 </span><span class="lineCov">       1595 :     is_split |= crt.find('\n') != std::string::npos;</span></a>
 <a name="186"><span class="lineNum">     186 </span><span class="lineCov">       1595 :     child_size += crt.size();</span></a>
 <a name="187"><span class="lineNum">     187 </span><span class="lineCov">       1595 :     children.emplace_back(std::move(crt));</span></a>
-<a name="188"><span class="lineNum">     188 </span>            :   }</a>
+<a name="188"><span class="lineNum">     188 </span><span class="lineCov">       1687 :   }</span></a>
 <a name="189"><span class="lineNum">     189 </span><span class="lineCov">        567 :   if (children.empty()) {</span></a>
 <a name="190"><span class="lineNum">     190 </span><span class="lineNoCov">          0 :     return s;</span></a>
 <a name="191"><span class="lineNum">     191 </span>            :   }</a>
@@ -257,7 +257,7 @@
 <a name="195"><span class="lineNum">     195 </span><span class="lineCov">        334 :     return absl::StrCat(s, &quot;(&quot;, absl::StrJoin(children, &quot; &quot;), &quot;)&quot;);</span></a>
 <a name="196"><span class="lineNum">     196 </span>            :   }</a>
 <a name="197"><span class="lineNum">     197 </span><span class="lineCov">        233 :   return ProcessShortStringChildren(s, children, indent, max_len);</span></a>
-<a name="198"><span class="lineNum">     198 </span>            : }</a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineCov">        567 : }</span></a>
 <a name="199"><span class="lineNum">     199 </span>            : </a>
 <a name="200"><span class="lineNum">     200 </span><span class="lineCov">         93 : std::string TreeUtil::ToShortString(antlr4::tree::ParseTree* pt,</span></a>
 <a name="201"><span class="lineNum">     201 </span>            :                                     const antlr4::Parser&amp; parser) {</a>
@@ -270,7 +270,7 @@
 <a name="208"><span class="lineNum">     208 </span><span class="lineCov">       9197 :   location.set_line(token.getLine());</span></a>
 <a name="209"><span class="lineNum">     209 </span><span class="lineCov">       9197 :   location.set_column(token.getCharPositionInLine());</span></a>
 <a name="210"><span class="lineNum">     210 </span><span class="lineCov">       9197 :   return location;</span></a>
-<a name="211"><span class="lineNum">     211 </span>            : }</a>
+<a name="211"><span class="lineNum">     211 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="212"><span class="lineNum">     212 </span>            : </a>
 <a name="213"><span class="lineNum">     213 </span><span class="lineCov">       9186 : pb::CodeLocation GetTokenEndLocation(const antlr4::Token&amp; token) {</span></a>
 <a name="214"><span class="lineNum">     214 </span><span class="lineCov">       9186 :   pb::CodeLocation location;</span></a>
@@ -278,38 +278,38 @@
 <a name="216"><span class="lineNum">     216 </span><span class="lineCov">       9186 :   location.set_line(token.getLine());</span></a>
 <a name="217"><span class="lineNum">     217 </span><span class="lineCov">       9186 :   location.set_column(token.getCharPositionInLine() + token.getText().size());</span></a>
 <a name="218"><span class="lineNum">     218 </span><span class="lineCov">       9186 :   return location;</span></a>
-<a name="219"><span class="lineNum">     219 </span>            : }</a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="220"><span class="lineNum">     220 </span>            : </a>
 <a name="221"><span class="lineNum">     221 </span><span class="lineCov">      33361 : pb::CodeLocation TreeUtil::GetBeginLocation(const antlr4::tree::ParseTree&amp; pt) {</span></a>
 <a name="222"><span class="lineNum">     222 </span><span class="lineCov">      33361 :   if (!pt.children.empty()) {</span></a>
 <a name="223"><span class="lineNum">     223 </span><span class="lineCov">      24167 :     return GetBeginLocation(*pt.children.front());</span></a>
 <a name="224"><span class="lineNum">     224 </span>            :   }</a>
-<a name="225"><span class="lineNum">     225 </span><span class="lineCov">      18388 :   pb::CodeLocation location;</span></a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">       9194 :   pb::CodeLocation location;</span></a>
 <a name="226"><span class="lineNum">     226 </span><span class="lineCov">       9194 :   auto token = GetToken(pt);</span></a>
 <a name="227"><span class="lineNum">     227 </span><span class="lineCov">       9194 :   if (token) {</span></a>
 <a name="228"><span class="lineNum">     228 </span><span class="lineCov">       9194 :     location = GetTokenBeginLocation(*token);</span></a>
 <a name="229"><span class="lineNum">     229 </span>            :   }</a>
 <a name="230"><span class="lineNum">     230 </span><span class="lineCov">       9194 :   return location;</span></a>
-<a name="231"><span class="lineNum">     231 </span>            : }</a>
+<a name="231"><span class="lineNum">     231 </span><span class="lineCov">       9194 : }</span></a>
 <a name="232"><span class="lineNum">     232 </span>            : </a>
 <a name="233"><span class="lineNum">     233 </span><span class="lineCov">      40837 : pb::CodeLocation TreeUtil::GetEndLocation(const antlr4::tree::ParseTree&amp; pt) {</span></a>
 <a name="234"><span class="lineNum">     234 </span><span class="lineCov">      40837 :   if (!pt.children.empty()) {</span></a>
 <a name="235"><span class="lineNum">     235 </span><span class="lineCov">      31651 :     return GetEndLocation(*pt.children.back());</span></a>
 <a name="236"><span class="lineNum">     236 </span>            :   }</a>
-<a name="237"><span class="lineNum">     237 </span><span class="lineCov">      18372 :   pb::CodeLocation location;</span></a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">       9186 :   pb::CodeLocation location;</span></a>
 <a name="238"><span class="lineNum">     238 </span><span class="lineCov">       9186 :   auto token = GetToken(pt);</span></a>
 <a name="239"><span class="lineNum">     239 </span><span class="lineCov">       9186 :   if (token) {</span></a>
 <a name="240"><span class="lineNum">     240 </span><span class="lineCov">       9186 :     location = GetTokenEndLocation(*token);</span></a>
 <a name="241"><span class="lineNum">     241 </span>            :   }</a>
 <a name="242"><span class="lineNum">     242 </span><span class="lineCov">       9186 :   return location;</span></a>
-<a name="243"><span class="lineNum">     243 </span>            : }</a>
+<a name="243"><span class="lineNum">     243 </span><span class="lineCov">       9186 : }</span></a>
 <a name="244"><span class="lineNum">     244 </span>            : </a>
 <a name="245"><span class="lineNum">     245 </span><span class="lineCov">       9186 : pb::CodeInterval TreeUtil::GetInterval(const antlr4::tree::ParseTree&amp; pt) {</span></a>
 <a name="246"><span class="lineNum">     246 </span><span class="lineCov">       9186 :   pb::CodeInterval interval;</span></a>
 <a name="247"><span class="lineNum">     247 </span><span class="lineCov">       9186 :   *interval.mutable_begin() = GetBeginLocation(pt);</span></a>
 <a name="248"><span class="lineNum">     248 </span><span class="lineCov">       9186 :   *interval.mutable_end() = GetEndLocation(pt);</span></a>
 <a name="249"><span class="lineNum">     249 </span><span class="lineCov">       9186 :   return interval;</span></a>
-<a name="250"><span class="lineNum">     250 </span>            : }</a>
+<a name="250"><span class="lineNum">     250 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="251"><span class="lineNum">     251 </span>            : </a>
 <a name="252"><span class="lineNum">     252 </span><span class="lineCov">         28 : absl::string_view TreeUtil::LineSnippet(absl::string_view code,</span></a>
 <a name="253"><span class="lineNum">     253 </span>            :                                         const pb::CodeLocation&amp; location) {</a>
@@ -334,7 +334,7 @@
 <a name="272"><span class="lineNum">     272 </span><span class="lineCov">         17 :   for (absl::string_view line : absl::StrSplit(code, '\n')) {</span></a>
 <a name="273"><span class="lineNum">     273 </span><span class="lineCov">         17 :     if (lineno == location.line()) {</span></a>
 <a name="274"><span class="lineNum">     274 </span><span class="lineCov">         17 :       if (location.column() &lt; line.size()) {</span></a>
-<a name="275"><span class="lineNum">     275 </span><span class="lineCov">         30 :         return line.substr(location.column());</span></a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineCov">         17 :         return line.substr(location.column());</span></a>
 <a name="276"><span class="lineNum">     276 </span>            :       } else {</a>
 <a name="277"><span class="lineNum">     277 </span><span class="lineCov">          4 :         return &quot;&quot;;</span></a>
 <a name="278"><span class="lineNum">     278 </span>            :       }</a>
@@ -374,7 +374,7 @@
 <a name="312"><span class="lineNum">     312 </span><span class="lineCov">         57 :     if (lineno == begin.line()) {</span></a>
 <a name="313"><span class="lineNum">     313 </span><span class="lineCov">         11 :       if (lineno == end.line()) {</span></a>
 <a name="314"><span class="lineNum">     314 </span>            :         // Special case returning from same line.</a>
-<a name="315"><span class="lineNum">     315 </span><span class="lineCov">         18 :         return StringBetween(line, begin.column(), end.column());</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineCov">         11 :         return StringBetween(line, begin.column(), end.column());</span></a>
 <a name="316"><span class="lineNum">     316 </span>            :       }</a>
 <a name="317"><span class="lineNum">     317 </span><span class="lineCov">          4 :       startpos =</span></a>
 <a name="318"><span class="lineNum">     318 </span><span class="lineCov">          4 :           crtpos + std::min(static_cast&lt;size_t&gt;(begin.column()), line.size());</span></a>
@@ -439,17 +439,17 @@
 <a name="377"><span class="lineNum">     377 </span>            :   }</a>
 <a name="378"><span class="lineNum">     378 </span><span class="lineNoCov">          0 :   absl::StrAppend(&amp;result, &quot;]&quot;);</span></a>
 <a name="379"><span class="lineNum">     379 </span><span class="lineNoCov">          0 :   return result;</span></a>
-<a name="380"><span class="lineNum">     380 </span>            : }</a>
+<a name="380"><span class="lineNum">     380 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="381"><span class="lineNum">     381 </span>            : </a>
 <a name="382"><span class="lineNum">     382 </span><span class="lineCov">      48368 : TokenNode::RecomposedStruct TokenNode::Recompose() const {</span></a>
 <a name="383"><span class="lineNum">     383 </span><span class="lineCov">      48368 :   if (has_text()) {</span></a>
 <a name="384"><span class="lineNum">     384 </span><span class="lineCov">      94418 :     return TokenNode::RecomposedStruct(text.value(), text.value(),</span></a>
 <a name="385"><span class="lineNum">     385 </span><span class="lineCov">     141627 :                                        text.value());</span></a>
 <a name="386"><span class="lineNum">     386 </span>            :   }</a>
-<a name="387"><span class="lineNum">     387 </span><span class="lineCov">       2318 :   TokenNode::RecomposedStruct result;</span></a>
+<a name="387"><span class="lineNum">     387 </span><span class="lineCov">       1159 :   TokenNode::RecomposedStruct result;</span></a>
 <a name="388"><span class="lineNum">     388 </span><span class="lineCov">       1159 :   bool first_token = true;</span></a>
 <a name="389"><span class="lineNum">     389 </span><span class="lineCov">       2325 :   for (const auto&amp; token : tokens.value()) {</span></a>
-<a name="390"><span class="lineNum">     390 </span><span class="lineCov">       2332 :     auto crt = token.Recompose();</span></a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineCov">       1166 :     auto crt = token.Recompose();</span></a>
 <a name="391"><span class="lineNum">     391 </span><span class="lineCov">       1166 :     if (first_token) {</span></a>
 <a name="392"><span class="lineNum">     392 </span><span class="lineCov">       1159 :       result.first_token = crt.first_token;</span></a>
 <a name="393"><span class="lineNum">     393 </span><span class="lineCov">       1159 :       first_token = false;</span></a>
@@ -458,9 +458,9 @@
 <a name="396"><span class="lineNum">     396 </span>            :     }</a>
 <a name="397"><span class="lineNum">     397 </span><span class="lineCov">       1166 :     absl::StrAppend(&amp;result.text, crt.text);</span></a>
 <a name="398"><span class="lineNum">     398 </span><span class="lineCov">       1166 :     result.last_token = std::move(crt.last_token);</span></a>
-<a name="399"><span class="lineNum">     399 </span>            :   }</a>
+<a name="399"><span class="lineNum">     399 </span><span class="lineCov">       1166 :   }</span></a>
 <a name="400"><span class="lineNum">     400 </span><span class="lineCov">       1159 :   return result;</span></a>
-<a name="401"><span class="lineNum">     401 </span>            : }</a>
+<a name="401"><span class="lineNum">     401 </span><span class="lineCov">       1159 : }</span></a>
 <a name="402"><span class="lineNum">     402 </span>            : </a>
 <a name="403"><span class="lineNum">     403 </span><span class="lineCov">      48368 : TokenNode TreeUtil::TokenNodeFromTree(const antlr4::tree::ParseTree* pt) {</span></a>
 <a name="404"><span class="lineNum">     404 </span><span class="lineCov">      48368 :   if (!pt) {</span></a>
@@ -470,13 +470,13 @@
 <a name="408"><span class="lineNum">     408 </span><span class="lineCov">      48368 :   if (token) {</span></a>
 <a name="409"><span class="lineNum">     409 </span><span class="lineCov">      47209 :     return TokenNode(*token);</span></a>
 <a name="410"><span class="lineNum">     410 </span>            :   }</a>
-<a name="411"><span class="lineNum">     411 </span><span class="lineCov">       2318 :   TokenNode::Tokens tokens;</span></a>
+<a name="411"><span class="lineNum">     411 </span><span class="lineCov">       1159 :   TokenNode::Tokens tokens;</span></a>
 <a name="412"><span class="lineNum">     412 </span><span class="lineCov">       1159 :   tokens.reserve(pt-&gt;children.size());</span></a>
 <a name="413"><span class="lineNum">     413 </span><span class="lineCov">       2325 :   for (auto child : pt-&gt;children) {</span></a>
 <a name="414"><span class="lineNum">     414 </span><span class="lineCov">       1166 :     tokens.emplace_back(TokenNodeFromTree(child));</span></a>
 <a name="415"><span class="lineNum">     415 </span>            :   }</a>
 <a name="416"><span class="lineNum">     416 </span><span class="lineCov">       1159 :   return TokenNode(std::move(tokens));</span></a>
-<a name="417"><span class="lineNum">     417 </span>            : }</a>
+<a name="417"><span class="lineNum">     417 </span><span class="lineCov">       1159 : }</span></a>
 <a name="418"><span class="lineNum">     418 </span>            : </a>
 <a name="419"><span class="lineNum">     419 </span><span class="lineCov">     289291 : std::vector&lt;ErrorInfo&gt; TreeUtil::FindErrors(antlr4::tree::ParseTree* pt,</span></a>
 <a name="420"><span class="lineNum">     420 </span>            :                                             absl::string_view code) {</a>
@@ -485,19 +485,19 @@
 <a name="423"><span class="lineNum">     423 </span><span class="lineNoCov">          0 :     return result;</span></a>
 <a name="424"><span class="lineNum">     424 </span>            :   }</a>
 <a name="425"><span class="lineNum">     425 </span><span class="lineCov">     289291 :   if (antlr4::tree::ErrorNode::is(pt)) {</span></a>
-<a name="426"><span class="lineNum">     426 </span><span class="lineCov">         12 :     ErrorInfo error;</span></a>
+<a name="426"><span class="lineNum">     426 </span><span class="lineCov">          6 :     ErrorInfo error;</span></a>
 <a name="427"><span class="lineNum">     427 </span><span class="lineCov">          6 :     error.location = GetBeginLocation(*pt);</span></a>
 <a name="428"><span class="lineNum">     428 </span><span class="lineCov">          6 :     error.message = pt-&gt;toString();</span></a>
 <a name="429"><span class="lineNum">     429 </span><span class="lineCov">          6 :     error.snippet = LineSnippet(code, error.location);</span></a>
 <a name="430"><span class="lineNum">     430 </span><span class="lineCov">          6 :     result.emplace_back(std::move(error));</span></a>
-<a name="431"><span class="lineNum">     431 </span>            :   } else {</a>
+<a name="431"><span class="lineNum">     431 </span><span class="lineCov">          6 :   } else {</span></a>
 <a name="432"><span class="lineNum">     432 </span><span class="lineCov">     563130 :     for (auto child : pt-&gt;children) {</span></a>
-<a name="433"><span class="lineNum">     433 </span><span class="lineCov">     547690 :       auto crt = FindErrors(child, code);</span></a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineCov">     273845 :       auto crt = FindErrors(child, code);</span></a>
 <a name="434"><span class="lineNum">     434 </span><span class="lineCov">     273845 :       std::move(crt.begin(), crt.end(), std::back_inserter(result));</span></a>
-<a name="435"><span class="lineNum">     435 </span>            :     }</a>
+<a name="435"><span class="lineNum">     435 </span><span class="lineCov">     273845 :     }</span></a>
 <a name="436"><span class="lineNum">     436 </span>            :   }</a>
 <a name="437"><span class="lineNum">     437 </span><span class="lineCov">     289291 :   return result;</span></a>
-<a name="438"><span class="lineNum">     438 </span>            : }</a>
+<a name="438"><span class="lineNum">     438 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="439"><span class="lineNum">     439 </span>            : </a>
 <a name="440"><span class="lineNum">     440 </span><span class="lineCov">      47202 : std::string TreeUtil::Recompose(const antlr4::tree::ParseTree* pt) {</span></a>
 <a name="441"><span class="lineNum">     441 </span><span class="lineCov">      47202 :   return TokenNodeFromTree(pt).Recompose().text;</span></a>
@@ -515,7 +515,7 @@
 <a name="453"><span class="lineNum">     453 </span>            :   }</a>
 <a name="454"><span class="lineNum">     454 </span><span class="lineCov">          2 :   error.snippet = TreeUtil::LineSnippet(code, error.location);</span></a>
 <a name="455"><span class="lineNum">     455 </span><span class="lineCov">          2 :   return error;</span></a>
-<a name="456"><span class="lineNum">     456 </span>            : }</a>
+<a name="456"><span class="lineNum">     456 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="457"><span class="lineNum">     457 </span>            : </a>
 <a name="458"><span class="lineNum">     458 </span><span class="lineCov">          3 : ErrorInfo ErrorInfo::FromToken(const antlr4::Token&amp; token,</span></a>
 <a name="459"><span class="lineNum">     459 </span>            :                                absl::string_view code) {</a>
@@ -525,7 +525,7 @@
 <a name="463"><span class="lineNum">     463 </span><span class="lineCov">          9 :                                token.getText(), &quot;`&quot;);</span></a>
 <a name="464"><span class="lineNum">     464 </span><span class="lineCov">          3 :   error.snippet = TreeUtil::LineSnippet(code, error.location);</span></a>
 <a name="465"><span class="lineNum">     465 </span><span class="lineCov">          3 :   return error;</span></a>
-<a name="466"><span class="lineNum">     466 </span>            : }</a>
+<a name="466"><span class="lineNum">     466 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="467"><span class="lineNum">     467 </span>            : </a>
 <a name="468"><span class="lineNum">     468 </span><span class="lineCov">          3 : ErrorInfo ErrorInfo::FromException(const antlr4::RecognitionException&amp; e,</span></a>
 <a name="469"><span class="lineNum">     469 </span>            :                                    absl::string_view code) {</a>
@@ -539,7 +539,7 @@
 <a name="477"><span class="lineNum">     477 </span>            :   }</a>
 <a name="478"><span class="lineNum">     478 </span><span class="lineCov">          3 :   absl::StrAppend(&amp;error.message, &quot; - &quot;, e.what());</span></a>
 <a name="479"><span class="lineNum">     479 </span><span class="lineCov">          3 :   return error;</span></a>
-<a name="480"><span class="lineNum">     480 </span>            : }</a>
+<a name="480"><span class="lineNum">     480 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="481"><span class="lineNum">     481 </span>            : </a>
 <a name="482"><span class="lineNum">     482 </span><span class="lineCov">         12 : pb::ErrorInfo ErrorInfo::ToProto() const {</span></a>
 <a name="483"><span class="lineNum">     483 </span><span class="lineCov">         12 :   pb::ErrorInfo error;</span></a>
@@ -547,16 +547,16 @@
 <a name="485"><span class="lineNum">     485 </span><span class="lineCov">         12 :   error.set_error_message(message);</span></a>
 <a name="486"><span class="lineNum">     486 </span><span class="lineCov">         12 :   error.set_snippet(snippet);</span></a>
 <a name="487"><span class="lineNum">     487 </span><span class="lineCov">         12 :   return error;</span></a>
-<a name="488"><span class="lineNum">     488 </span>            : }</a>
+<a name="488"><span class="lineNum">     488 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="489"><span class="lineNum">     489 </span>            : </a>
 <a name="490"><span class="lineNum">     490 </span><span class="lineCov">          4 : pb::ParseErrors ErrorInfo::ToParseErrors(</span></a>
 <a name="491"><span class="lineNum">     491 </span>            :     const absl::Span&lt;const ErrorInfo&gt;&amp; errors) {</a>
 <a name="492"><span class="lineNum">     492 </span><span class="lineCov">          4 :   pb::ParseErrors pb_errors;</span></a>
 <a name="493"><span class="lineNum">     493 </span><span class="lineCov">         15 :   for (auto error : errors) {</span></a>
 <a name="494"><span class="lineNum">     494 </span><span class="lineCov">         11 :     *pb_errors.add_error() = error.ToProto();</span></a>
-<a name="495"><span class="lineNum">     495 </span>            :   }</a>
+<a name="495"><span class="lineNum">     495 </span><span class="lineCov">         11 :   }</span></a>
 <a name="496"><span class="lineNum">     496 </span><span class="lineCov">          4 :   return pb_errors;</span></a>
-<a name="497"><span class="lineNum">     497 </span>            : }</a>
+<a name="497"><span class="lineNum">     497 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="498"><span class="lineNum">     498 </span>            : </a>
 <a name="499"><span class="lineNum">     499 </span><span class="lineCov">         93 : ErrorInfo ErrorInfo::FromProto(const pb::ErrorInfo&amp; info) {</span></a>
 <a name="500"><span class="lineNum">     500 </span><span class="lineCov">         93 :   return ErrorInfo{info.location(), info.error_message(), info.snippet()};</span></a>
