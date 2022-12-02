@@ -17,6 +17,8 @@
 import examples.claim
 import dataproc
 import dataset
+import dataset_beam
+import dataset_pandas
 import dataset_spark
 import flags
 
@@ -73,9 +75,9 @@ def analyze_array(filename: String) => {
     })
 }
 
-def analyze_dataset(engine: dataset.Engine, filename: String) => {
+def analyze_dataset(filename: String) => {
   print("Analyzing w/ datasets: " + filename)
-  dataset.read_parquet(engine, examples.claim.Claim(), filename)
+  dataset.read_parquet(examples.claim.Claim(), filename)
     .aggregate(c => dataset.agg(c)
       .group_by({person_id_syn = c.person_id_syn})
       .to_array({claims = c}))
@@ -94,13 +96,27 @@ demo_dir = flags.define_string(
 use_dataset = flags.define_bool(
   "use_dataset", true,
   "Use the dataset based implementation for demo, else use arrays");
+engine_name = flags.define_string(
+  "engine", "spark",
+  "Choose between pandas, spark, beam")
+
+def get_engine(engine_name: String) : dataset.Engine => {
+    if (engine_name == "pandas") {
+      return dataset_pandas.default_engine()
+    }
+    if (engine_name == "beam") {
+      return dataset_beam.default_local_engine()
+    }
+    return dataset_spark.default_local_engine("Assign Demo")
+}
 
 def main_function main() => {
   dir = flags.get_string(demo_dir)
   size = 0u
   if (flags.get_bool(use_dataset)) {
-    engine = dataset_spark.default_local_engine("Assign Demo")
-    size = analyze_dataset(engine, generate_parquet(dir)).collect()
+    step = analyze_dataset(generate_parquet(dir))
+    engine = get_engine(flags.get_string(engine_name))
+    size = step.collect(engine)
       .map(t => print(t)).to_array().len()
   } else {
     size = analyze_array(generate_csv(dir)).to_array().len()

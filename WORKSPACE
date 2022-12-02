@@ -41,3 +41,14 @@ pip_parse(
 load("@pip_deps//:requirements.bzl", "install_deps")
 
 install_deps()
+
+
+pip_parse(
+    name = "pip_interactive_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@nuna_nudl//:requirements_interactive_lock.txt",
+)
+
+load("@pip_interactive_deps//:requirements.bzl",
+     instal_interactive_deps = "install_deps")
+instal_interactive_deps()

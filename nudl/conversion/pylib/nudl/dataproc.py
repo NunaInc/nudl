@@ -21,13 +21,14 @@ Nudl builtins for performing operations on schemas / data.
 import collections.abc
 import dataclass_csv
 import os
+import smart_open
 import typing
 from dataschema import schema_synth, data_writer
 
 
 def read_csv(seed: typing.Any, filename: str,
              dialect: str) -> collections.abc.Iterable[typing.Any]:
-    with open(filename) as file_csv:
+    with smart_open.open(filename) as file_csv:
         reader = dataclass_csv.DataclassReader(file_csv, type(seed))
         for row in reader:
             yield row

@@ -1,7 +1,6 @@
 .bazeliskrc
 .bazelrc
 .clang-format
-.github
 .gitignore
 BUILD.bazel
 CPPLINT.cfg
@@ -14,3 +13,5 @@ external
 nudl
 requirements.txt
 requirements_lock.txt
+requirements_interactive.txt
+requirements_interactive_lock.txt

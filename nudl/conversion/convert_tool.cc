@@ -65,23 +65,6 @@ int LogErrorLines(absl::string_view context, const absl::Status& err_status) {
 }
 
 namespace {
-std_filesystem::path PythonFileName(const std_filesystem::path& base_path,
-                                    analysis::Module* module) {
-  if (module->built_in_scope() == module) {
-    return base_path / "nudl_builtins.py";
-  } else if (module->is_init_module()) {
-    return base_path /
-           analysis::ModuleFileReader::ModuleNameToPath(
-               conversion::PythonSafeName(module->module_name(), module)) /
-           "__init__.py";
-  } else {
-    return base_path /
-           absl::StrCat(
-               analysis::ModuleFileReader::ModuleNameToPath(
-                   conversion::PythonSafeName(module->module_name(), module)),
-               ".py");
-  }
-}
 
 // Iterates the python file paths under py_path.
 // The processor is called with the relative path from py_path.
@@ -138,7 +121,7 @@ absl::Status ConvertTool::LoadModule(absl::string_view module_name) {
   return absl::OkStatus();
 }
 
-absl::Status ConvertTool::WriteOutput(
+absl::Status ConvertTool::WritePythonOutput(
     absl::string_view output_path, absl::string_view py_path,
     bool direct_output,
     const absl::flat_hash_map<std::string, std::string>& output_dirs) {
@@ -156,22 +139,23 @@ absl::Status ConvertTool::WriteOutput(
       status::UpdateOrAnnotate(error, convert_result.status());
       return;
     }
-    std_filesystem::path file_path(PythonFileName(dest_path, module));
-    if (output_dirs.contains(module->name())) {
-      auto it = output_dirs.find(module->name());
-      file_path = dest_path / it->second / file_path.filename();
-      PythonPreparePath(file_path, dest_path);
-    } else if (direct_output) {
-      file_path = dest_path / file_path.filename();
-    } else {
-      PythonPreparePath(file_path, dest_path);
-    }
-    status::UpdateOrAnnotate(error,
-                             WriteFile(file_path, convert_result.value()));
-    std::cout << "Written: " << file_path.native() << " with "
-              << module->module_name() << std::endl;
-    if (!run_yapf_.empty()) {
-      status::UpdateOrAnnotate(error, RunYapf(file_path));
+    for (const auto& file_spec : convert_result.value().files) {
+      std_filesystem::path file_path = dest_path / file_spec.file_name;
+      if (output_dirs.contains(module->name())) {
+        auto it = output_dirs.find(module->name());
+        file_path = dest_path / it->second / file_path.filename();
+        PythonPreparePath(file_path, dest_path);
+      } else if (direct_output) {
+        file_path = dest_path / file_path.filename();
+      } else {
+        PythonPreparePath(file_path, dest_path);
+      }
+      status::UpdateOrAnnotate(error, WriteFile(file_path, file_spec.content));
+      std::cout << "Written: " << file_path.native() << " with "
+                << module->module_name() << std::endl;
+      if (!run_yapf_.empty()) {
+        status::UpdateOrAnnotate(error, RunYapf(file_path));
+      }
     }
   });
   IteratePythonFiles(py_path, [&dest_path](const std_filesystem::path& crt_path,
@@ -192,9 +176,12 @@ absl::Status ConvertTool::WriteConversionToStdout() {
       status::UpdateOrAnnotate(error, convert_result.status());
       return;
     }
-    std::cout << "Module: " << module->module_name() << std::endl
-              << ">>>>>>>>>" << std::endl
-              << convert_result.value() << "<<<<<<<<<" << std::endl;
+    for (const auto& file_spec : convert_result.value().files) {
+      std::cout << "Module: " << module->module_name() << std::endl
+                << "File: " << file_spec.file_name << std::endl
+                << ">>>>>>>>>" << std::endl
+                << file_spec.content << "<<<<<<<<<" << std::endl;
+    }
   });
   return error;
 }
@@ -309,9 +296,9 @@ absl::Status RunConvertTool(const ConvertToolOptions& options) {
   }
   if (options.output_dir.empty()) {
     RETURN_IF_ERROR(tool.WriteConversionToStdout());
-  } else {
-    RETURN_IF_ERROR(tool.WriteOutput(options.output_dir, options.py_path,
-                                     options.direct_output, output_dirs));
+  } else if (options.lang == ConvertLang::PYTHON) {
+    RETURN_IF_ERROR(tool.WritePythonOutput(options.output_dir, options.py_path,
+                                           options.direct_output, output_dirs));
   }
   tool.WriteTimingInfoToStdout();
   return absl::OkStatus();

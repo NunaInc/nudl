@@ -1,0 +1,9 @@
+# For some reason this package is totally incompatible
+# for pip-compile w/ apache-beam==2.43.0, so placing it in another file.
+# This one actually fails w/ pip_compile,
+# apache-beam[interactive]==2.43.0
+# So using the component dependencies below:
+google-cloud-dataproc==5.0.3
+timeloop==1.0.2
+facets_overview==1.0.0
+ipython>=8,<9

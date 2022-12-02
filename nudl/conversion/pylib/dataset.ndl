@@ -14,41 +14,37 @@
 // limitations under the License.
 //
 
-// A virtual type for underlying engines.
-// TODO(catalin): neet to support native types.
-typedef Engine = Struct<String>
-
 // Creates an empty dataset with specified structure.
-def method empty_dataset(
-  engine: Engine, seed: {T: Struct}) : Dataset<T> =>
+def method empty_dataset(seed: {T: Struct}) : Dataset<T> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${engine}.empty_dataset(${seed})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.EmptyStep(${seed})[[end]b]
 
 
 // Reads a CSV file specification and creates a dataset with
 // a specified schema determined by T.
 // Example: read_csv(Foo(), '/path/to/foo.parquet')
-def method read_csv(
-  engine: Engine, seed: {T: Struct},
-  file_spec: String) : Dataset<T> =>
+def method read_csv(seed: {T: Struct}, file_spec: String) : Dataset<T> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${engine}.read_csv(${seed}, ${file_spec})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.ReadCsvStep(${seed}, ${file_spec})[[end]]
+
 
 // Reads a Parquet file specification and creates a
 // dataset with specified schema determined by T.
 // Example: read_parquet(Foo(), '/path/to/foo.parquet')
-def method read_parquet(
-  engine: Engine, seed: {T: Struct},
-  file_spec: String) : Dataset<T> =>
+def method read_parquet(seed: {T: Struct}, file_spec: String) : Dataset<T> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${engine}.read_parquet(${seed}, ${file_spec})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.ReadParquetStep(${seed}, ${file_spec})[[end]]
 
 // Applies the provided function on all members of src dataset,
 // obtaining a dataset from the results.
 def method map(src: Dataset<{T: Any}>,
                f: Function<T, {Y: Struct}>) : Dataset<Y> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${src}.dataset_map(${{dataset_seed}}, ${f})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.MapStep(${src}, ${{dataset_seed}}, ${f})[[end]]
 
 // Applies the provided function that returns an array, then
 // flattens it into the output. E.g. if you return this
@@ -57,19 +53,22 @@ def method map(src: Dataset<{T: Any}>,
 def method flat_map(src: Dataset<{T: Any}>,
                     f: Function<T, Array<{Y: Struct}>>) : Dataset<Y> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${src}.dataset_flat_map(${{dataset_seed}}, ${f})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.FlatMapStep(${src}, ${{dataset_seed}}, ${f})[[end]]
 
 // Filters the input dataset by the provided predicate `f`.
 def method filter(src: Dataset<{T: Any}>,
                   f: Function<T, Bool>) : Dataset<T> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${src}.dataset_filter(${f})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.FilterStep(${src}, ${f})[[end]]
 
 // Limits the input dataset to a number of elements.
 def method limit(src: Dataset<{T: Any}>,
                  size: Int) : Dataset<T> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${src}.dataset_limit(${size})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.LimitStep(${src}, ${f})[[end]]
 
 // Specification for a join. We do only left joins.
 //
@@ -99,7 +98,10 @@ def method join_left(
   right_spec: {Spec: Tuple}
 ) : DatasetJoin<T, F, Spec> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${left_src}.dataset_join_left(${{dataset_seed}}, ${left_key}, ${right_spec})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]
+nudl.dataset.JoinLeftStep(${left_src}, ${{dataset_seed}}, ${left_key}, ${right_spec})
+[[end]]
 
 def method join_by(
   right_src: {R: Dataset<{T: Struct}>},
@@ -132,11 +134,12 @@ def method aggregate(src: Dataset<{T}>,
   builder: Function<T, Tuple<T, {Spec: Tuple}>>)
     : DatasetAggregate<Spec> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${src}.dataset_aggregate(${{dataset_seed}}, ${builder})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.AggregateStep(${src}, ${{dataset_seed}}, ${builder})[[end]]
 
 // Root for an aggregation.
 // For detail specification of aggregates check aggregate.ndl
-def agg(t: {T}): Tuple<T, Tuple<T>> => [t, {_arg = t}]
+def agg(t: {T}): Tuple<T, Tuple<T>> => [ t, {_agg = t} ]
 
 def method group_by(t: Tuple<{T}, {A: Tuple}>, value: Tuple<{G}>)
     : Tuple<T, TupleJoin<A, Tuple<Tuple<G>>>> =>
@@ -211,9 +214,14 @@ def method to_array(t: Tuple<{T}, {A: Tuple}>, value: {V: Any})
     : Tuple<T, TupleJoin<A, Tuple<Tuple<V>>>> =>
   return { arg = t[0], agg = tuple_join(t[1], {to_array = { _unnamed = value }}) }
 
+// A virtual type for underlying engines.
+// TODO(catalin): neet to support native types.
+typedef Engine = Struct<String>
+
 // Collects the result of a dataset as an array.
 // Of course, it must fit in memory or so :)
 // We may choose to limit the collection to say 10k records, but
 // still should fit in memory.
-def method collect(src: Dataset<{T}>) : Array<T> =>
-[[pyinline]]${src}.dataset_collect()[[end]]
+def method collect(src: Dataset<{T}>, engine: Engine) : Array<T> =>
+[[skip_conversion]][[end]]
+[[pyinline]]${engine}.collect(${src})[[end]]

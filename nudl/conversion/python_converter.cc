@@ -34,6 +34,23 @@
 namespace nudl {
 namespace conversion {
 
+std::string PythonFileName(analysis::Module* module,
+                           absl::string_view termination = ".py") {
+  if (module->built_in_scope() == module) {
+    return absl::StrCat("nudl_builtins", termination);
+  } else if (module->is_init_module()) {
+    return absl::StrCat(
+        analysis::ModuleFileReader::ModuleNameToPath(
+            conversion::PythonSafeName(module->module_name(), module)),
+        "__init__", termination);
+  } else {
+    return absl::StrCat(
+        analysis::ModuleFileReader::ModuleNameToPath(
+            conversion::PythonSafeName(module->module_name(), module)),
+        termination);
+  }
+}
+
 class PythonConvertState : public ConvertState {
  public:
   explicit PythonConvertState(analysis::Module* module,
@@ -106,6 +123,8 @@ class PythonConvertState : public ConvertState {
    private:
     PythonConvertState* const state_;
   };
+  absl::optional<std::string> main_module_content() const;
+  void set_main_module_content(std::string content);
 
  protected:
   PythonConvertState* const superstate_ = nullptr;
@@ -119,6 +138,7 @@ class PythonConvertState : public ConvertState {
   absl::flat_hash_set<std::string> converted_structs_;
   std::vector<analysis::Function*> in_function_call_;
   absl::flat_hash_set<std::string> imports_;
+  absl::optional<std::string> main_module_content_;
   bool is_inline_ = true;
 };
 
@@ -206,6 +226,14 @@ absl::Status PythonConvertState::CheckInline(
   return absl::OkStatus();
 }
 
+absl::optional<std::string> PythonConvertState::main_module_content() const {
+  return main_module_content_;
+}
+
+void PythonConvertState::set_main_module_content(std::string content) {
+  main_module_content_ = std::move(content);
+}
+
 absl::Status PythonConvertState::AddState(const PythonConvertState& state) {
   AddImports(state);
   if (!state.is_inline() && should_inline()) {
@@ -274,10 +302,19 @@ absl::StatusOr<std::unique_ptr<ConvertState>> PythonConverter::BeginModule(
   return std::make_unique<PythonConvertState>(module);
 }
 
-absl::StatusOr<std::string> PythonConverter::FinishModule(
+absl::StatusOr<ConversionResult> PythonConverter::FinishModule(
     analysis::Module* module, std::unique_ptr<ConvertState> state) const {
   auto bstate = static_cast<PythonConvertState*>(state.get());
-  return {bstate->out_str()};
+  ConversionResult result;
+  if (module->main_function().has_value()) {
+    RET_CHECK(bstate->main_module_content().has_value());
+    result.files.emplace_back(ConversionResult::ConvertedFile{
+        PythonFileName(state->module(), "_main.py"),
+        bstate->main_module_content().value()});
+  }
+  result.files.emplace_back(ConversionResult::ConvertedFile{
+      PythonFileName(state->module()), bstate->out_str()});
+  return {std::move(result)};
 }
 
 absl::Status PythonConverter::ConvertInlineExpression(
@@ -309,8 +346,10 @@ absl::Status PythonConverter::ProcessModule(analysis::Module* module,
   }
   if (module->main_function().has_value()) {
     PythonConvertState expression_state(&local_state);
-    RETURN_IF_ERROR(ConvertMainFunction(module->main_function().value(),
-                                        &expression_state));
+    ASSIGN_OR_RETURN(std::string main_module,
+                     ConvertMainFunction(module->main_function().value(),
+                                         &expression_state));
+    bstate->set_main_module_content(std::move(main_module));
     RETURN_IF_ERROR(local_state.AddState(expression_state));
   }
   std::vector<std::string> imports(local_state.imports().begin(),
@@ -369,7 +408,8 @@ absl::optional<std::pair<std::string, std::string>> PythonTypeName(
            {"collections.abc.Callable", "collections.abc"}},
           {pb::TypeId::UNION_ID, {"typing.Union", "typing"}},
           {pb::TypeId::NULLABLE_ID, {"typing.Optional", "typing"}},
-          {pb::TypeId::DATASET_ID, {"nudl.dataset.Dataset", "nudl.dataset"}},
+          {pb::TypeId::DATASET_ID,
+           {"nudl.dataset.DatasetStep", "nudl.dataset"}},
           {pb::TypeId::TYPE_ID, {"type", ""}},
           {pb::TypeId::MODULE_ID, {"types.ModuleType", "types"}},
           {pb::TypeId::INTEGRAL_ID, {"int", ""}},
@@ -641,8 +681,28 @@ absl::Status PythonConverter::ConvertIdentifier(
     auto object = expression.named_object();
     if (!object.has_value() ||
         !analysis::Function::IsFunctionKind(*object.value())) {
-      bstate->out() << PythonSafeName(scoped_name(expression.scoped_name()),
-                                      expression.named_object());
+      std::string object_prefix = scoped_name(expression.scoped_name());
+      // This takes care of the case in which an external function that
+      // uses an external top level variable or related object is used in
+      // the locally bound function.
+      if (bindings_on_use_ && object.has_value() &&
+          analysis::VarBase::IsVarKind(*object.value())) {
+        auto obj =
+            static_cast<analysis::VarBase*>(object.value())->GetRootVar();
+        if (obj->parent_store().has_value()) {
+          auto parent_store = obj->parent_store().value();
+          if (parent_store->kind() == pb::ObjectKind::OBJ_MODULE &&
+              parent_store != state->module()) {
+            auto parent_module = static_cast<analysis::Module*>(parent_store);
+            std::string external_prefix =
+                absl::StrCat(parent_module->scope_name().name(), ".");
+            if (!absl::StartsWith(object_prefix, external_prefix)) {
+              object_prefix = absl::StrCat(external_prefix, object_prefix);
+            }
+          }
+        }
+      }
+      bstate->out() << PythonSafeName(object_prefix, object);
     } else {
       analysis::ScopedName fun_scoped_name(
           expression.scoped_name().scope_name_ptr(),
@@ -1606,14 +1666,19 @@ absl::StatusOr<bool> PythonConverter::ConvertFunction(
   return true;
 }
 
-absl::Status PythonConverter::ConvertMainFunction(
+absl::StatusOr<std::string> PythonConverter::ConvertMainFunction(
     analysis::Function* fun, PythonConvertState* state) const {
-  state->add_import("import absl.app");
+  std::string s;
+  absl::StrAppend(&s, "import absl.app\n");
+  const std::string module_name(
+      PythonSafeName(state->module()->module_name(), state->module()));
+  absl::StrAppend(&s, "import ", module_name, "\n\n");
   ASSIGN_OR_RETURN(auto fname, LocalFunctionName(fun, true, state));
-  state->out() << std::endl
-               << "if __name__ == \"__main__\":" << std::endl
-               << "  absl.app.run(lambda _: " << fname << "())" << std::endl;
-  return absl::OkStatus();
+  absl::StrAppend(&s,
+                  "if __name__ == \"__main__\":\n"
+                  "  absl.app.run(lambda _: ",
+                  module_name, ".", fname, "())\n");
+  return s;
 }
 
 absl::StatusOr<std::string> PythonConverter::LocalFunctionName(
@@ -1638,6 +1703,14 @@ absl::StatusOr<std::string> PythonConverter::LocalFunctionName(
           "__", fun->call_name()),
       fun);
 }
+
+/*
+absl::StatusOr<std::string> PythonConverter::LocalOjbectName(
+    analysis::NamedObject* object, const ScopedName& scoped_name) {
+  if (bindings_on_use_) {
+  if (scoped_name.
+}
+*/
 
 // TODO(catalin): this functionality can sit at the converter level.
 absl::StatusOr<absl::flat_hash_map<std::string, std::unique_ptr<ConvertState>>>

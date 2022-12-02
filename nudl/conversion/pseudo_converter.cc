@@ -16,6 +16,8 @@
 
 #include "nudl/conversion/pseudo_converter.h"
 
+#include <utility>
+
 #include "nudl/status/status.h"
 
 namespace nudl {
@@ -160,10 +162,14 @@ absl::StatusOr<std::unique_ptr<ConvertState>> PseudoConverter::BeginModule(
   return std::make_unique<PseudoConvertState>(module);
 }
 
-absl::StatusOr<std::string> PseudoConverter::FinishModule(
+absl::StatusOr<ConversionResult> PseudoConverter::FinishModule(
     analysis::Module* module, std::unique_ptr<ConvertState> state) const {
   auto bstate = static_cast<PseudoConvertState*>(state.get());
-  return {bstate->out().str()};
+  ConversionResult result;
+  result.files.push_back(ConversionResult::ConvertedFile{
+      absl::StrCat(module->scope_name().name(), ".pseudo"),
+      bstate->out().str()});
+  return {std::move(result)};
 }
 
 absl::Status PseudoConverter::ProcessModule(analysis::Module* module,

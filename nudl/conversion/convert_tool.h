@@ -51,7 +51,7 @@ class ConvertTool {
   absl::Status Prepare();
   void AddBuiltinModule();
   absl::Status LoadModule(absl::string_view module_name);
-  absl::Status WriteOutput(
+  absl::Status WritePythonOutput(
       absl::string_view output_path, absl::string_view py_path,
       bool direct_output,
       const absl::flat_hash_map<std::string, std::string>& output_dirs);

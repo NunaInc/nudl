@@ -36,6 +36,14 @@ nudl_deps = [
     "@pip_deps_pyspark//:pkg",
     "@pip_deps_pytz//:pkg",
     "@pip_deps_smart_open//:pkg",
+    "@pip_deps_apache_beam//:pkg",
+]
+
+beam_interactive_deps = [
+    "@pip_interactive_deps_google_cloud_dataproc//:pkg",
+    "@pip_interactive_deps_timeloop//:pkg",
+    "@pip_interactive_deps_facets_overview//:pkg",
+    "@pip_interactive_deps_ipython//:pkg",
 ]
 
 py_library(
@@ -44,18 +52,20 @@ py_library(
         "nudl/__init__.py",
         "nudl/dataproc.py",
         "nudl/dataset.py",
+        "nudl/dataset_beam.py",
+        "nudl/dataset_pandas.py",
         "nudl/dataset_spark.py",
         "nudl/flags.py"
     ],
     imports = ["."],
     visibility = ["//visibility:public"],
-    deps = nudl_deps,
+    deps = nudl_deps + beam_interactive_deps,
 )
 
 pyright_test(
     name = "nudl_pyright_test",
     srcs = [":nudl"],
-    deps = nudl_deps,
+    deps = nudl_deps + beam_interactive_deps,
     imports = ["."],
     extra_pyright_args = """{
       "pythonVersion": "3.9"
@@ -76,6 +86,8 @@ nudl_py_library(
     srcs = [
         "dataproc.ndl",
         "dataset.ndl",
+        "dataset_beam.ndl",
+        "dataset_pandas.ndl",
         "dataset_spark.ndl",
         "flags.ndl",
         "nudl_builtins.ndl",

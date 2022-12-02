@@ -17,6 +17,8 @@
 //
 import dataproc
 import dataset
+import dataset_beam
+import dataset_pandas
 import dataset_spark
 import flags
 
@@ -42,26 +44,62 @@ def generate_parquet(gendir: String, count: Int = 2000) => {
     Tuple([Left(), Right()]), gendir, count, GENERATORS_RE)
 }
 
-def process(engine: dataset.Engine, filenames: Array<String>) => {
-  left = engine.read_parquet(Left(), _ensured(filenames[0]))
-  right = engine.read_parquet(Right(), _ensured(filenames[1]));
+def print_series(p) : Null =>
+[[pyimport]]import pandas[[end]]
+[[pyinline]]print(p.to_dict() if isinstance(p, pandas.Series) else p)[[end]]
+
+def process(filenames: Array<String>) => {
+  left = dataset.read_parquet(Left(), _ensured(filenames[0]))
+  right = dataset.read_parquet(Right(), _ensured(filenames[1]));
   src = left.join_left(
     l => l.l_id,
-//    {right = right.join_by(r => r.l_id),
-//     right_multi = right.join_multi_by(r => r.l_id % 500 + 1)})
-    {right_multi = [right, right].join_multi_by(r => r.l_id % 500 + 1)})
-  .map(p => { print(p); p })
+    //  Various join possibilities:
+    {right_simple = right.join_by(r => r.l_id),
+     right_multi = right.join_multi_by(r => r.l_id % 500 + 1),
+      right_multi_array = [right, right].join_multi_by(r => r.l_id % 500 + 1)})
+  /* Uncomment for some extra blurbs:
+     .map(p => {
+      if ((p.l_id % 40) == 0) {
+        print_series(p)
+      }
+      p
+    })
+   */
 }
 
 demo_dir = flags.define_string(
   "demo_dir", "/tmp/jointest",
   "Use this directory for storing temporary data")
+engine_name = flags.define_string(
+  "engine", "spark",
+  "Choose between pandas, spark, beam")
 
-def main_function main() => {
-    engine = dataset_spark.default_local_engine("Join Demo")
-    print(process(engine, generate_parquet(flags.get_string(demo_dir)))
+def get_engine(engine_name: String) : dataset.Engine => {
+    if (engine_name == "pandas") {
+      return dataset_pandas.default_engine()
+    }
+    if (engine_name == "beam") {
+      return dataset_beam.default_local_engine()
+    }
+    return dataset_spark.default_local_engine("Join Demo")
+}
+
+def run_main() : Null => {
+    step = process(generate_parquet(flags.get_string(demo_dir)))
       .filter(t => len(t.right_multi) > 0u)
       .aggregate(t => dataset.agg(t)
-        .count(1).sum({s = len(t.right_multi)}))
-      .collect())
+        .count(1).sum({s = len(t.right_multi)}));
+    engine = get_engine(flags.get_string(engine_name))
+
+    print(step.collect(engine))
+}
+
+def profile_main() : Null =>
+[[pyimport]]import cProfile[[end]]
+[[pyinline]]cProfile.runctx("run_main__i0()", globals(), locals())[[end]]
+
+def main_function main() : Null => {
+  print("Starting join example")
+  run_main()
+  // profile_main()
 }

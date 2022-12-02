@@ -41,7 +41,7 @@ class PythonConverter : public Converter {
       analysis::Module* module) const override;
   absl::Status ProcessModule(analysis::Module* module,
                              ConvertState* state) const override;
-  absl::StatusOr<std::string> FinishModule(
+  absl::StatusOr<ConversionResult> FinishModule(
       analysis::Module* module,
       std::unique_ptr<ConvertState> state) const override;
 
@@ -126,8 +126,8 @@ class PythonConverter : public Converter {
   absl::StatusOr<std::string> LocalFunctionName(analysis::Function* fun,
                                                 bool is_on_use,
                                                 ConvertState* state) const;
-  absl::Status ConvertMainFunction(analysis::Function* fun,
-                                   PythonConvertState* state) const;
+  absl::StatusOr<std::string> ConvertMainFunction(
+      analysis::Function* fun, PythonConvertState* state) const;
 
   absl::StatusOr<
       absl::flat_hash_map<std::string, std::unique_ptr<ConvertState>>>
