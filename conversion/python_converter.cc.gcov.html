@@ -32,17 +32,17 @@
             <td></td>
             <td class="headerItem">Lines:</td>
             <td class="headerCovTableEntry">914</td>
-            <td class="headerCovTableEntry">1148</td>
-            <td class="headerCovTableEntryMed">79.6 %</td>
+            <td class="headerCovTableEntry">1182</td>
+            <td class="headerCovTableEntryMed">77.3 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-12-02 14:37:46</td>
+            <td class="headerValue">2022-12-20 22:45:35</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">82</td>
-            <td class="headerCovTableEntry">87</td>
-            <td class="headerCovTableEntryHi">94.3 %</td>
+            <td class="headerCovTableEntry">89</td>
+            <td class="headerCovTableEntryHi">92.1 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -1094,7 +1094,7 @@
 <a name="1032"><span class="lineNum">    1032 </span><span class="lineCov">        373 :     re2::StringPiece input(code);</span></a>
 <a name="1033"><span class="lineNum">    1033 </span><span class="lineCov">        373 :     absl::flat_hash_set&lt;std::string&gt; macros;</span></a>
 <a name="1034"><span class="lineNum">    1034 </span><span class="lineCov">        373 :     std::string token;</span></a>
-<a name="1035"><span class="lineNum">    1035 </span><span class="lineCov">        373 :     while (RE2::Consume(&amp;input, R&quot;(.*\${{(\w+)}})&quot;, &amp;token)) {</span></a>
+<a name="1035"><span class="lineNum">    1035 </span><span class="lineCov">        373 :     while (re2::RE2::FindAndConsume(&amp;input, R&quot;(\${{(\w+)}})&quot;, &amp;token)) {</span></a>
 <a name="1036"><span class="lineNum">    1036 </span><span class="lineNoCov">          0 :       macros.insert(token);</span></a>
 <a name="1037"><span class="lineNum">    1037 </span>            :     }</a>
 <a name="1038"><span class="lineNum">    1038 </span><span class="lineCov">        746 :     return macros;</span></a>
@@ -1766,63 +1766,100 @@
 <a name="1704"><span class="lineNum">    1704 </span><span class="lineCov">         50 :       fun);</span></a>
 <a name="1705"><span class="lineNum">    1705 </span>            : }</a>
 <a name="1706"><span class="lineNum">    1706 </span>            : </a>
-<a name="1707"><span class="lineNum">    1707 </span>            : /*</a>
-<a name="1708"><span class="lineNum">    1708 </span>            : absl::StatusOr&lt;std::string&gt; PythonConverter::LocalOjbectName(</a>
-<a name="1709"><span class="lineNum">    1709 </span>            :     analysis::NamedObject* object, const ScopedName&amp; scoped_name) {</a>
-<a name="1710"><span class="lineNum">    1710 </span>            :   if (bindings_on_use_) {</a>
-<a name="1711"><span class="lineNum">    1711 </span>            :   if (scoped_name.</a>
-<a name="1712"><span class="lineNum">    1712 </span>            : }</a>
-<a name="1713"><span class="lineNum">    1713 </span>            : */</a>
-<a name="1714"><span class="lineNum">    1714 </span>            : </a>
-<a name="1715"><span class="lineNum">    1715 </span>            : // TODO(catalin): this functionality can sit at the converter level.</a>
-<a name="1716"><span class="lineNum">    1716 </span>            : absl::StatusOr&lt;absl::flat_hash_map&lt;std::string, std::unique_ptr&lt;ConvertState&gt;&gt;&gt;</a>
-<a name="1717"><span class="lineNum">    1717 </span><span class="lineCov">        373 : PythonConverter::ProcessMacros(const absl::flat_hash_set&lt;std::string&gt;&amp; macros,</span></a>
-<a name="1718"><span class="lineNum">    1718 </span>            :                                analysis::Scope* scope,</a>
-<a name="1719"><span class="lineNum">    1719 </span>            :                                analysis::FunctionBinding* binding,</a>
-<a name="1720"><span class="lineNum">    1720 </span>            :                                analysis::Function* fun,</a>
-<a name="1721"><span class="lineNum">    1721 </span>            :                                ConvertState* state) const {</a>
-<a name="1722"><span class="lineNum">    1722 </span>            :   auto result_type =</a>
-<a name="1723"><span class="lineNum">    1723 </span><span class="lineCov">        373 :       (binding ? binding-&gt;type_spec-&gt;ResultType() : fun-&gt;result_type());</span></a>
-<a name="1724"><span class="lineNum">    1724 </span><span class="lineCov">        373 :   if (!result_type) {</span></a>
-<a name="1725"><span class="lineNum">    1725 </span><span class="lineNoCov">          0 :     return status::InvalidArgumentErrorBuilder()</span></a>
-<a name="1726"><span class="lineNum">    1726 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot;Function: &quot; &lt;&lt; fun-&gt;function_name()</span></a>
-<a name="1727"><span class="lineNum">    1727 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot; has not a result type defined.&quot;;</span></a>
-<a name="1728"><span class="lineNum">    1728 </span>            :   }</a>
-<a name="1729"><span class="lineNum">    1729 </span><span class="lineCov">        373 :   absl::flat_hash_map&lt;std::string, std::unique_ptr&lt;ConvertState&gt;&gt; result;</span></a>
-<a name="1730"><span class="lineNum">    1730 </span><span class="lineCov">        373 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
-<a name="1731"><span class="lineNum">    1731 </span><span class="lineCov">        373 :   for (const auto&amp; macro : macros) {</span></a>
-<a name="1732"><span class="lineNum">    1732 </span><span class="lineNoCov">          0 :     auto sub_state = std::make_unique&lt;PythonConvertState&gt;(bstate, true);</span></a>
-<a name="1733"><span class="lineNum">    1733 </span><span class="lineNoCov">          0 :     if (macro == &quot;result_type&quot;) {</span></a>
-<a name="1734"><span class="lineNum">    1734 </span><span class="lineNoCov">          0 :       RETURN_IF_ERROR(AddTypeName(result_type, true, sub_state.get()))</span></a>
-<a name="1735"><span class="lineNum">    1735 </span><span class="lineNoCov">          0 :           &lt;&lt; &quot;Converting type name per macro: &quot; &lt;&lt; macro;</span></a>
-<a name="1736"><span class="lineNum">    1736 </span><span class="lineNoCov">          0 :     } else if (macro == &quot;result_seed&quot; || macro == &quot;dataset_seed&quot;) {</span></a>
-<a name="1737"><span class="lineNum">    1737 </span><span class="lineNoCov">          0 :       auto res_type = result_type;</span></a>
-<a name="1738"><span class="lineNum">    1738 </span><span class="lineNoCov">          0 :       if (macro == &quot;dataset_seed&quot;) {</span></a>
-<a name="1739"><span class="lineNum">    1739 </span><span class="lineNoCov">          0 :         RET_CHECK(analysis::TypeUtils::IsDatasetType(*result_type) &amp;&amp;</span></a>
-<a name="1740"><span class="lineNum">    1740 </span>            :                   result_type-&gt;ResultType())</a>
-<a name="1741"><span class="lineNum">    1741 </span><span class="lineNoCov">          0 :             &lt;&lt; &quot;Invalid type for macro &quot; &lt;&lt; macro</span></a>
-<a name="1742"><span class="lineNum">    1742 </span><span class="lineNoCov">          0 :             &lt;&lt; &quot; - found: &quot; &lt;&lt; result_type-&gt;full_name();</span></a>
-<a name="1743"><span class="lineNum">    1743 </span><span class="lineNoCov">          0 :         res_type = result_type-&gt;ResultType();</span></a>
-<a name="1744"><span class="lineNum">    1744 </span>            :       }</a>
-<a name="1745"><span class="lineNum">    1745 </span><span class="lineNoCov">          0 :       ASSIGN_OR_RETURN(auto default_value,</span></a>
-<a name="1746"><span class="lineNum">    1746 </span>            :                        bstate-&gt;module()-&gt;BuildDefaultValueExpression(res_type),</a>
-<a name="1747"><span class="lineNum">    1747 </span>            :                        _ &lt;&lt; &quot;Processing conversion macro: &quot; &lt;&lt; macro</a>
-<a name="1748"><span class="lineNum">    1748 </span>            :                          &lt;&lt; &quot; for result type: &quot; &lt;&lt; res_type-&gt;full_name());</a>
-<a name="1749"><span class="lineNum">    1749 </span><span class="lineNoCov">          0 :       RETURN_IF_ERROR(ConvertExpression(*default_value, sub_state.get()));</span></a>
-<a name="1750"><span class="lineNum">    1750 </span><span class="lineNoCov">          0 :       RETURN_IF_ERROR(sub_state-&gt;CheckInline(*default_value))</span></a>
-<a name="1751"><span class="lineNum">    1751 </span><span class="lineNoCov">          0 :           &lt;&lt; &quot;Converting default expression per macro: &quot; &lt;&lt; macro;</span></a>
-<a name="1752"><span class="lineNum">    1752 </span><span class="lineNoCov">          0 :     } else {</span></a>
-<a name="1753"><span class="lineNum">    1753 </span><span class="lineNoCov">          0 :       return status::UnimplementedErrorBuilder()</span></a>
-<a name="1754"><span class="lineNum">    1754 </span><span class="lineNoCov">          0 :              &lt;&lt; &quot;Unknown macro: &quot; &lt;&lt; macro</span></a>
-<a name="1755"><span class="lineNum">    1755 </span><span class="lineNoCov">          0 :              &lt;&lt; &quot; in function: &quot; &lt;&lt; fun-&gt;function_name();</span></a>
-<a name="1756"><span class="lineNum">    1756 </span>            :     }</a>
-<a name="1757"><span class="lineNum">    1757 </span><span class="lineNoCov">          0 :     result.emplace(macro, std::move(sub_state));</span></a>
-<a name="1758"><span class="lineNum">    1758 </span><span class="lineNoCov">          0 :   }</span></a>
-<a name="1759"><span class="lineNum">    1759 </span><span class="lineCov">        373 :   return {std::move(result)};</span></a>
-<a name="1760"><span class="lineNum">    1760 </span><span class="lineCov">        373 : }</span></a>
-<a name="1761"><span class="lineNum">    1761 </span>            : </a>
-<a name="1762"><span class="lineNum">    1762 </span>            : }  // namespace conversion</a>
-<a name="1763"><span class="lineNum">    1763 </span>            : }  // namespace nudl</a>
+<a name="1707"><span class="lineNum">    1707 </span><span class="lineNoCov">          0 : absl::Status PythonConverter::ProcessSeedMacro(</span></a>
+<a name="1708"><span class="lineNum">    1708 </span>            :     PythonConvertState* state, const analysis::TypeSpec* result_type,</a>
+<a name="1709"><span class="lineNum">    1709 </span>            :     bool is_dataset_seed) const {</a>
+<a name="1710"><span class="lineNum">    1710 </span><span class="lineNoCov">          0 :   auto res_type = result_type;</span></a>
+<a name="1711"><span class="lineNum">    1711 </span><span class="lineNoCov">          0 :   if (is_dataset_seed) {</span></a>
+<a name="1712"><span class="lineNum">    1712 </span><span class="lineNoCov">          0 :     RET_CHECK(analysis::TypeUtils::IsDatasetType(*result_type) &amp;&amp;</span></a>
+<a name="1713"><span class="lineNum">    1713 </span>            :               result_type-&gt;ResultType())</a>
+<a name="1714"><span class="lineNum">    1714 </span><span class="lineNoCov">          0 :         &lt;&lt; &quot;Invalid type for `dataset_seed` macro - found: &quot;</span></a>
+<a name="1715"><span class="lineNum">    1715 </span><span class="lineNoCov">          0 :         &lt;&lt; result_type-&gt;full_name();</span></a>
+<a name="1716"><span class="lineNum">    1716 </span><span class="lineNoCov">          0 :     res_type = result_type-&gt;ResultType();</span></a>
+<a name="1717"><span class="lineNum">    1717 </span>            :   }</a>
+<a name="1718"><span class="lineNum">    1718 </span><span class="lineNoCov">          0 :   ASSIGN_OR_RETURN(auto default_value,</span></a>
+<a name="1719"><span class="lineNum">    1719 </span>            :                    state-&gt;module()-&gt;BuildDefaultValueExpression(res_type),</a>
+<a name="1720"><span class="lineNum">    1720 </span>            :                    _ &lt;&lt; &quot;Processing dataset seed macro for result type: &quot;</a>
+<a name="1721"><span class="lineNum">    1721 </span>            :                      &lt;&lt; res_type-&gt;full_name());</a>
+<a name="1722"><span class="lineNum">    1722 </span><span class="lineNoCov">          0 :   RETURN_IF_ERROR(ConvertExpression(*default_value, state));</span></a>
+<a name="1723"><span class="lineNum">    1723 </span><span class="lineNoCov">          0 :   RETURN_IF_ERROR(state-&gt;CheckInline(*default_value))</span></a>
+<a name="1724"><span class="lineNum">    1724 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot;Converting default expression per seed macro&quot;;</span></a>
+<a name="1725"><span class="lineNum">    1725 </span><span class="lineNoCov">          0 :   return absl::OkStatus();</span></a>
+<a name="1726"><span class="lineNum">    1726 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="1727"><span class="lineNum">    1727 </span>            : </a>
+<a name="1728"><span class="lineNum">    1728 </span><span class="lineNoCov">          0 : absl::Status PythonConverter::ProcessFieldUsageMacro(</span></a>
+<a name="1729"><span class="lineNum">    1729 </span>            :     PythonConvertState* state, analysis::FunctionBinding* binding) const {</a>
+<a name="1730"><span class="lineNum">    1730 </span>            :   const std::string map_name =</a>
+<a name="1731"><span class="lineNum">    1731 </span><span class="lineNoCov">          0 :       state-&gt;module()-&gt;NextLocalName(&quot;FIELD_USAGE_MAP&quot;, &quot;_INTERNAL_&quot;);</span></a>
+<a name="1732"><span class="lineNum">    1732 </span><span class="lineNoCov">          0 :   analysis::FieldUsageVisitor field_visitor;</span></a>
+<a name="1733"><span class="lineNum">    1733 </span><span class="lineNoCov">          0 :   for (const auto&amp; expr : binding-&gt;call_expressions) {</span></a>
+<a name="1734"><span class="lineNum">    1734 </span><span class="lineNoCov">          0 :     if (expr.has_value()) {</span></a>
+<a name="1735"><span class="lineNum">    1735 </span><span class="lineNoCov">          0 :       analysis::VisitFunctionExpressions(expr.value(), &amp;field_visitor);</span></a>
+<a name="1736"><span class="lineNum">    1736 </span>            :     }</a>
+<a name="1737"><span class="lineNum">    1737 </span>            :   }</a>
+<a name="1738"><span class="lineNum">    1738 </span><span class="lineNoCov">          0 :   auto superstate = state-&gt;top_superstate();</span></a>
+<a name="1739"><span class="lineNum">    1739 </span><span class="lineNoCov">          0 :   PythonConvertState local_state(superstate);</span></a>
+<a name="1740"><span class="lineNum">    1740 </span><span class="lineNoCov">          0 :   auto&amp; out = local_state.out();</span></a>
+<a name="1741"><span class="lineNum">    1741 </span><span class="lineNoCov">          0 :   out &lt;&lt; std::endl</span></a>
+<a name="1742"><span class="lineNum">    1742 </span>            :       &lt;&lt; map_name &lt;&lt; &quot; = &quot;</a>
+<a name="1743"><span class="lineNum">    1743 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot;{&quot; &lt;&lt; std::endl;</span></a>
+<a name="1744"><span class="lineNum">    1744 </span><span class="lineNoCov">          0 :   local_state.inc_indent(2);</span></a>
+<a name="1745"><span class="lineNum">    1745 </span><span class="lineNoCov">          0 :   for (const auto&amp; it : field_visitor.usage_map()) {</span></a>
+<a name="1746"><span class="lineNum">    1746 </span><span class="lineNoCov">          0 :     RETURN_IF_ERROR(AddTypeName(it.first, true, &amp;local_state))</span></a>
+<a name="1747"><span class="lineNum">    1747 </span><span class="lineNoCov">          0 :         &lt;&lt; &quot;Converting type name for field dependency of: &quot;</span></a>
+<a name="1748"><span class="lineNum">    1748 </span><span class="lineNoCov">          0 :         &lt;&lt; it.first-&gt;full_name();</span></a>
+<a name="1749"><span class="lineNum">    1749 </span><span class="lineNoCov">          0 :     out &lt;&lt; &quot; : set([&quot;;</span></a>
+<a name="1750"><span class="lineNum">    1750 </span><span class="lineNoCov">          0 :     for (const auto&amp; name : *it.second) {</span></a>
+<a name="1751"><span class="lineNum">    1751 </span><span class="lineNoCov">          0 :       out &lt;&lt; &quot;\&quot;&quot; &lt;&lt; absl::Utf8SafeCEscape(name) &lt;&lt; &quot;\&quot;, &quot;;</span></a>
+<a name="1752"><span class="lineNum">    1752 </span>            :     }</a>
+<a name="1753"><span class="lineNum">    1753 </span><span class="lineNoCov">          0 :     out &lt;&lt; &quot;]),&quot; &lt;&lt; std::endl;</span></a>
+<a name="1754"><span class="lineNum">    1754 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="1755"><span class="lineNum">    1755 </span><span class="lineNoCov">          0 :   local_state.dec_indent(2);</span></a>
+<a name="1756"><span class="lineNum">    1756 </span><span class="lineNoCov">          0 :   out &lt;&lt; &quot;}&quot; &lt;&lt; std::endl;</span></a>
+<a name="1757"><span class="lineNum">    1757 </span><span class="lineNoCov">          0 :   superstate-&gt;out() &lt;&lt; local_state.out_str();</span></a>
+<a name="1758"><span class="lineNum">    1758 </span><span class="lineNoCov">          0 :   superstate-&gt;AddImports(local_state);</span></a>
+<a name="1759"><span class="lineNum">    1759 </span>            : </a>
+<a name="1760"><span class="lineNum">    1760 </span><span class="lineNoCov">          0 :   state-&gt;out() &lt;&lt; map_name;</span></a>
+<a name="1761"><span class="lineNum">    1761 </span><span class="lineNoCov">          0 :   return absl::OkStatus();</span></a>
+<a name="1762"><span class="lineNum">    1762 </span><span class="lineNoCov">          0 : }</span></a>
+<a name="1763"><span class="lineNum">    1763 </span>            : </a>
+<a name="1764"><span class="lineNum">    1764 </span>            : absl::StatusOr&lt;absl::flat_hash_map&lt;std::string, std::unique_ptr&lt;ConvertState&gt;&gt;&gt;</a>
+<a name="1765"><span class="lineNum">    1765 </span><span class="lineCov">        373 : PythonConverter::ProcessMacros(const absl::flat_hash_set&lt;std::string&gt;&amp; macros,</span></a>
+<a name="1766"><span class="lineNum">    1766 </span>            :                                analysis::Scope* scope,</a>
+<a name="1767"><span class="lineNum">    1767 </span>            :                                analysis::FunctionBinding* binding,</a>
+<a name="1768"><span class="lineNum">    1768 </span>            :                                analysis::Function* fun,</a>
+<a name="1769"><span class="lineNum">    1769 </span>            :                                ConvertState* state) const {</a>
+<a name="1770"><span class="lineNum">    1770 </span>            :   const analysis::TypeSpec* result_type =</a>
+<a name="1771"><span class="lineNum">    1771 </span><span class="lineCov">        373 :       (binding ? binding-&gt;type_spec-&gt;ResultType() : fun-&gt;result_type());</span></a>
+<a name="1772"><span class="lineNum">    1772 </span><span class="lineCov">        373 :   if (!result_type) {</span></a>
+<a name="1773"><span class="lineNum">    1773 </span><span class="lineNoCov">          0 :     return status::InvalidArgumentErrorBuilder()</span></a>
+<a name="1774"><span class="lineNum">    1774 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot;Function: &quot; &lt;&lt; fun-&gt;function_name()</span></a>
+<a name="1775"><span class="lineNum">    1775 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot; has not a result type defined.&quot;;</span></a>
+<a name="1776"><span class="lineNum">    1776 </span>            :   }</a>
+<a name="1777"><span class="lineNum">    1777 </span><span class="lineCov">        373 :   absl::flat_hash_map&lt;std::string, std::unique_ptr&lt;ConvertState&gt;&gt; result;</span></a>
+<a name="1778"><span class="lineNum">    1778 </span><span class="lineCov">        373 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
+<a name="1779"><span class="lineNum">    1779 </span><span class="lineCov">        373 :   for (const auto&amp; macro : macros) {</span></a>
+<a name="1780"><span class="lineNum">    1780 </span><span class="lineNoCov">          0 :     auto sub_state = std::make_unique&lt;PythonConvertState&gt;(bstate, true);</span></a>
+<a name="1781"><span class="lineNum">    1781 </span><span class="lineNoCov">          0 :     if (macro == &quot;result_type&quot;) {</span></a>
+<a name="1782"><span class="lineNum">    1782 </span><span class="lineNoCov">          0 :       RETURN_IF_ERROR(AddTypeName(result_type, true, sub_state.get()))</span></a>
+<a name="1783"><span class="lineNum">    1783 </span><span class="lineNoCov">          0 :           &lt;&lt; &quot;Converting type name per macro: &quot; &lt;&lt; macro;</span></a>
+<a name="1784"><span class="lineNum">    1784 </span><span class="lineNoCov">          0 :     } else if (macro == &quot;result_seed&quot; || macro == &quot;dataset_seed&quot;) {</span></a>
+<a name="1785"><span class="lineNum">    1785 </span><span class="lineNoCov">          0 :       RETURN_IF_ERROR(ProcessSeedMacro(sub_state.get(), result_type,</span></a>
+<a name="1786"><span class="lineNum">    1786 </span>            :                                        macro == &quot;dataset_seed&quot;));</a>
+<a name="1787"><span class="lineNum">    1787 </span><span class="lineNoCov">          0 :     } else if (macro == &quot;field_usage&quot;) {</span></a>
+<a name="1788"><span class="lineNum">    1788 </span><span class="lineNoCov">          0 :       RETURN_IF_ERROR(ProcessFieldUsageMacro(sub_state.get(), binding));</span></a>
+<a name="1789"><span class="lineNum">    1789 </span><span class="lineNoCov">          0 :     } else {</span></a>
+<a name="1790"><span class="lineNum">    1790 </span><span class="lineNoCov">          0 :       return status::UnimplementedErrorBuilder()</span></a>
+<a name="1791"><span class="lineNum">    1791 </span><span class="lineNoCov">          0 :              &lt;&lt; &quot;Unknown macro: &quot; &lt;&lt; macro</span></a>
+<a name="1792"><span class="lineNum">    1792 </span><span class="lineNoCov">          0 :              &lt;&lt; &quot; in function: &quot; &lt;&lt; fun-&gt;function_name();</span></a>
+<a name="1793"><span class="lineNum">    1793 </span>            :     }</a>
+<a name="1794"><span class="lineNum">    1794 </span><span class="lineNoCov">          0 :     result.emplace(macro, std::move(sub_state));</span></a>
+<a name="1795"><span class="lineNum">    1795 </span><span class="lineNoCov">          0 :   }</span></a>
+<a name="1796"><span class="lineNum">    1796 </span><span class="lineCov">        373 :   return {std::move(result)};</span></a>
+<a name="1797"><span class="lineNum">    1797 </span><span class="lineCov">        373 : }</span></a>
+<a name="1798"><span class="lineNum">    1798 </span>            : </a>
+<a name="1799"><span class="lineNum">    1799 </span>            : }  // namespace conversion</a>
+<a name="1800"><span class="lineNum">    1800 </span>            : }  // namespace nudl</a>
 </pre>
       </td>
     </tr>
