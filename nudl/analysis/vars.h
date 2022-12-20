@@ -102,6 +102,7 @@ class Field : public VarBase {
   std::string full_name() const override;
   std::unique_ptr<VarBase> Clone(
       absl::optional<NameStore*> parent_store) const override;
+  const TypeSpec* parent_type() const;
 
  private:
   const TypeSpec* const parent_type_;

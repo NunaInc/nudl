@@ -20,8 +20,9 @@ This contains the abstract interface for a dataset and an engine
 
 import collections.abc
 import dataclasses
-from dataschema import python2schema
+from dataschema import Schema, Schema_pb2, python2schema
 import enum
+import logging
 import typing
 
 
@@ -46,10 +47,95 @@ def _next_step_id():
     return _DATASET_STEP_ID
 
 
+_UsedFields = typing.Dict[type, typing.Set[str]]
+
+
+class FieldUsageCollector:
+    """Helper class that collects what fields are used from each schema class."""
+
+    def __init__(self):
+        self.field_usage = {}
+
+    def update(self, field_usage: _UsedFields):
+        for k, v in field_usage.items():
+            if k not in self.field_usage:
+                self.field_usage[k] = set()
+            self.field_usage[k].update(v)
+
+    def used_fields(self, seed_type) -> typing.Optional[typing.List[str]]:
+        if seed_type not in self.field_usage:
+            return None
+        return self.field_usage[seed_type]
+
+
+class SchemaFieldsUpdater:
+    """Helper that changes schemas to restrict the fields defined, based
+    on what is used in a dataset operation. This means removing unused
+    fields in a schema and propagating these changes down a pipeline.
+    """
+
+    def __init__(self):
+        self.updated_types: typing.Dict[str, typing.List[Schema.Column]] = {}
+
+    def update_with_fields_used(self, schema: Schema.Table, fields_used):
+        """Updated fields in a schema to keep only the ones that are used."""
+        if not fields_used:
+            return False
+        field_set = set(fields_used)
+        columns = []
+        for column in schema.columns:
+            if column.name() in field_set:
+                columns.append(column)
+        schema.columns = columns
+        column_names = [column.name() for column in columns]
+        logging.info("Restricting schema of: %s to columns: %s",
+                     schema.full_name(), column_names)
+        self.updated_types[schema.full_name()] = columns
+        return True
+
+    def update_column(self, column: Schema.Column):
+        """Updates structured column fields to the schemas previously
+        updated by this object. Performs recursively."""
+        if column.info.column_type == Schema_pb2.ColumnInfo.TYPE_NESTED:  # type: ignore
+            message_name = column.info.message_name  # type: ignore
+            if message_name in self.updated_types:
+                column.fields = self.updated_types[message_name]
+                column_names = [column.name() for column in column.fields]
+                logging.info(
+                    "Updating column %s of type %s to include only columns %s",
+                    column.name(), message_name, column_names)
+                return True
+        was_updated = False
+        for field in column.fields:
+            if self.update_column(field):
+                was_updated = True
+        return was_updated
+
+    def update_fields(self, schema: Schema.Table):
+        """Updates schemas to correspond to changes previously made
+        in this object. Performs recursively."""
+        if schema.full_name() in self.updated_types:
+            schema.columns = self.updated_types[schema.full_name()]
+            column_names = [column.name() for column in schema.columns]
+            logging.info("Updating schema of: %s to columns: %s",
+                         schema.full_name(), column_names)
+            return True
+        was_updated = False
+        for column in schema.columns:
+            if self.update_column(column):
+                was_updated = True
+        if was_updated:
+            self.updated_types[schema.full_name()] = schema.columns
+        return True
+
+
 class DatasetStep:
 
-    def __init__(self, kind: StepKind, source: typing.Optional['DatasetStep'],
-                 seed: typing.Any):
+    def __init__(self,
+                 kind: StepKind,
+                 source: typing.Optional['DatasetStep'],
+                 seed: typing.Any,
+                 field_usage: typing.Optional[_UsedFields] = None):
         if not dataclasses.is_dataclass(seed):
             raise ValueError("Expecting the dataset seed to be a dataclass."
                              f" Got: {seed}")
@@ -58,6 +144,16 @@ class DatasetStep:
         self.source = source
         self.seed = seed
         self.schema = python2schema.ConvertDataclass(self.seed_type())
+        if field_usage is None:
+            self.field_usage = {}
+        else:
+            self.field_usage = field_usage
+        self.direct_collect = False
+        self.field_usage_collector = None
+        self.direct_collect = False
+
+    def __str__(self):
+        return f"{self.__class__.__name__}[{self.seed_type().__qualname__}]"
 
     def seed_instance(self):
         if isinstance(self.seed, type):
@@ -68,6 +164,41 @@ class DatasetStep:
         if isinstance(self.seed, type):
             return self.seed  # type: ignore
         return type(self.seed)
+
+    def propagate_direct_collect(self):
+        return True
+
+    def update_field_usage(self, collector: FieldUsageCollector,
+                           direct_collect: bool):
+        """Records field usage reports in a global collector."""
+        if not self.direct_collect:
+            self.direct_collect = direct_collect
+        self.field_usage_collector = collector
+        self.field_usage_collector.update(self.field_usage)
+        if self.source:
+            self.source.update_field_usage(
+                collector,
+                direct_collect if self.propagate_direct_collect() else False)
+
+    def used_fields(self):
+        """Returns fields used for the schema type of this step."""
+        if self.direct_collect or self.field_usage_collector is None:
+            return None
+        used_fields = self.field_usage_collector.used_fields(self.seed_type())
+        if used_fields is None:
+            return None
+        result_fields = []  # Place them in the original column order
+        for column in self.schema.columns:
+            if column.name() in used_fields:
+                result_fields.append(column.name())
+        return result_fields
+
+    def update_schema_fields(self, updater: SchemaFieldsUpdater):
+        """Updates the schema of this step either according to the fields used,
+        or to previous changes made to the schema for fields used."""
+        if self.source:
+            self.source.update_schema_fields(updater)
+        updater.update_fields(self.schema)
 
 
 class EmptyStep(DatasetStep):
@@ -82,6 +213,9 @@ class ReadCsvStep(DatasetStep):
         super().__init__(StepKind.READ_CSV, None, seed)
         self.filespec = filespec
 
+    def update_schema_fields(self, updater: SchemaFieldsUpdater):
+        updater.update_with_fields_used(self.schema, self.used_fields())
+
 
 class ReadParquetStep(DatasetStep):
 
@@ -89,31 +223,41 @@ class ReadParquetStep(DatasetStep):
         super().__init__(StepKind.READ_PARQUET, None, seed)
         self.filespec = filespec
 
+    def update_schema_fields(self, updater: SchemaFieldsUpdater):
+        updater.update_with_fields_used(self.schema, self.used_fields())
+
 
 class FilterStep(DatasetStep):
 
-    def __init__(self, source: DatasetStep,
+    def __init__(self, source: DatasetStep, field_usage: _UsedFields,
                  fun: collections.abc.Callable[[typing.Any], bool]):
-        super().__init__(StepKind.FILTER, source, source.seed)
+        super().__init__(StepKind.FILTER, source, source.seed, field_usage)
         self.fun = fun
 
 
 class MapStep(DatasetStep):
 
     def __init__(self, source: DatasetStep, seed: typing.Any,
+                 field_usage: _UsedFields,
                  fun: collections.abc.Callable[[typing.Any], typing.Any]):
-        super().__init__(StepKind.MAP, source, seed)
+        super().__init__(StepKind.MAP, source, seed, field_usage)
         self.fun = fun
+
+    def propagate_direct_collect(self):
+        return False
 
 
 class FlatMapStep(DatasetStep):
 
     def __init__(
-        self, source: DatasetStep, seed: typing.Any,
+        self, source: DatasetStep, seed: typing.Any, field_usage: _UsedFields,
         fun: collections.abc.Callable[[typing.Any],
                                       collections.abc.Iterable[typing.Any]]):
-        super().__init__(StepKind.FLAT_MAP, source, source.seed)
+        super().__init__(StepKind.FLAT_MAP, source, source.seed, field_usage)
         self.fun = fun
+
+    def propagate_direct_collect(self):
+        return False
 
 
 def agg_value(agg_value: typing.Tuple) -> typing.Any:
@@ -146,9 +290,13 @@ class AggregateStep(DatasetStep):
     """
 
     def __init__(self, source: DatasetStep, seed: typing.Any,
+                 field_usage: _UsedFields,
                  builder: collections.abc.Callable[[typing.Any], typing.Tuple]):
-        super().__init__(StepKind.AGGREGATE, source, seed)
+        super().__init__(StepKind.AGGREGATE, source, seed, field_usage)
         self.builder = builder
+
+    def propagate_direct_collect(self):
+        return False
 
     def build_spec(self) -> typing.List[typing.Tuple[str, str]]:
         """Returns a list of (aggregation_type, field_name) for this step."""
@@ -236,11 +384,60 @@ class JoinSpecDecoder:
 class JoinLeftStep(DatasetStep):
 
     def __init__(self, source: DatasetStep, seed: typing.Any,
+                 field_usage: _UsedFields,
                  left_key: collections.abc.Callable[[typing.Any], typing.Any],
                  right_spec: typing.Tuple):
-        super().__init__(StepKind.JOIN_LEFT, source, seed)
+        super().__init__(StepKind.JOIN_LEFT, source, seed, field_usage)
         self.left_key = left_key
         self.right_spec = right_spec
+
+    def propagate_direct_collect(self):
+        return False
+
+    def update_field_usage(self, collector: FieldUsageCollector,
+                           direct_collect: bool):
+        super().update_field_usage(collector, direct_collect)
+        for right in self.right_spec:
+            spec = JoinSpecDecoder(right)
+            if spec.join_spec == "right_multi_array":
+                for src in spec.spec_src:
+                    src.update_field_usage(collector, direct_collect)
+            else:
+                spec.spec_src.update_field_usage(collector, direct_collect)
+
+    def right_join_fields(self) -> typing.Set[str]:
+        """Returns the right side fields to be joined based on the
+        used fields."""
+        right_join_fields = set()
+        if not self.right_spec:
+            return right_join_fields
+        used_fields = self.used_fields()
+        # Check if we need to do any joins at all based on used fields:
+        for right in self.right_spec:
+            spec = JoinSpecDecoder(right)
+            if used_fields is None or spec.field_name in used_fields:
+                right_join_fields.add(spec.field_name)
+        return right_join_fields
+
+    def update_schema_fields(self, updater: SchemaFieldsUpdater):
+        if self.source is None:
+            return
+        self.source.update_schema_fields(updater)
+        source_fields = set(
+            column.name() for column in self.source.schema.columns)
+        right_join_fields = self.right_join_fields()
+        for right in self.right_spec:
+            spec = JoinSpecDecoder(right)
+            if spec.field_name not in right_join_fields:
+                continue
+            source_fields.add(spec.field_name)
+            if spec.join_spec == "right_multi_array":
+                for src in spec.spec_src:
+                    src.update_schema_fields(updater)
+            else:
+                spec.spec_src.update_schema_fields(updater)
+        updater.update_fields(self.schema)
+        updater.update_with_fields_used(self.schema, source_fields)
 
 
 class LimitStep(DatasetStep):

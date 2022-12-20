@@ -358,6 +358,14 @@ bool Function::is_skip_conversion() const {
   return native_impl().contains(kFunctionSkipConversion);
 }
 
+const std::vector<Expression*>& Function::call_expressions() const {
+  return call_expressions_;
+}
+
+void Function::add_call_expression(Expression* expression) {
+  call_expressions_.push_back(expression);
+}
+
 const absl::flat_hash_map<std::string, std::string>& Function::native_impl()
     const {
   return native_impl_;
@@ -991,6 +999,8 @@ FunctionBinding::FunctionBinding(const TypeFunction* fun_type,
   names.reserve(num_args);
 }
 
+FunctionBinding::FunctionBinding() {}
+
 void FunctionBinding::CheckCounts() const {
   const size_t num_args = type_arguments.size();
   CHECK_EQ(num_args, call_expressions.size());
@@ -1335,7 +1345,7 @@ absl::Status FunctionBinding::BindArgument(absl::string_view arg_name,
         << "BIND LOG: " << FunctionNameForLog()
         << " Non function argument: " << arg_name
         << " from: " << arg_type->full_name()
-        << " locally resoled: " << local_resolved_arg_type->full_name()
+        << " locally resolved: " << local_resolved_arg_type->full_name()
         << std::endl
         << " with call type: " << call_type->full_name()
         << " rebuilt to: " << rebuilt_type->full_name();
@@ -1424,6 +1434,30 @@ bool FunctionBinding::IsAncestorOf(const FunctionBinding& binding) const {
 
 bool FunctionBinding::IsEqual(const FunctionBinding& binding) const {
   return type_spec->IsEqual(*binding.type_spec);
+}
+
+std::unique_ptr<FunctionBinding> FunctionBinding::Clone(
+    const CloneOverride& clone_override,
+    std::vector<std::unique_ptr<Expression>>* argument_expressions) {
+  CheckCounts();
+  auto clone = absl::WrapUnique(new FunctionBinding());
+  clone->fun_type = fun_type;
+  clone->fun = fun;
+  clone->pragmas = pragmas;
+  clone->type_arguments = type_arguments;
+  clone->call_sub_bindings = call_sub_bindings;
+  clone->is_default_value = is_default_value;
+  clone->names = names;
+  for (const auto& expr : call_expressions) {
+    if (expr.has_value()) {
+      argument_expressions->emplace_back(expr.value()->Clone(clone_override));
+      clone->call_expressions.emplace_back(argument_expressions->back().get());
+    } else {
+      clone->call_expressions.emplace_back(absl::optional<Expression*>{});
+    }
+  }
+  clone->CheckCounts();
+  return clone;
 }
 
 absl::StatusOr<std::unique_ptr<FunctionBinding>> Function::BindArguments(

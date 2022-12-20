@@ -44,7 +44,7 @@ def method map(src: Dataset<{T: Any}>,
                f: Function<T, {Y: Struct}>) : Dataset<Y> =>
 [[skip_conversion]][[end]]
 [[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.MapStep(${src}, ${{dataset_seed}}, ${f})[[end]]
+[[pyinline]]nudl.dataset.MapStep(${src}, ${{dataset_seed}}, ${{field_usage}}, ${f})[[end]]
 
 // Applies the provided function that returns an array, then
 // flattens it into the output. E.g. if you return this
@@ -54,14 +54,14 @@ def method flat_map(src: Dataset<{T: Any}>,
                     f: Function<T, Array<{Y: Struct}>>) : Dataset<Y> =>
 [[skip_conversion]][[end]]
 [[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.FlatMapStep(${src}, ${{dataset_seed}}, ${f})[[end]]
+[[pyinline]]nudl.dataset.FlatMapStep(${src}, ${{dataset_seed}}, ${{field_usage}}, ${f})[[end]]
 
 // Filters the input dataset by the provided predicate `f`.
 def method filter(src: Dataset<{T: Any}>,
                   f: Function<T, Bool>) : Dataset<T> =>
 [[skip_conversion]][[end]]
 [[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.FilterStep(${src}, ${f})[[end]]
+[[pyinline]]nudl.dataset.FilterStep(${src}, ${{field_usage}}, ${f})[[end]]
 
 // Limits the input dataset to a number of elements.
 def method limit(src: Dataset<{T: Any}>,
@@ -100,7 +100,7 @@ def method join_left(
 [[skip_conversion]][[end]]
 [[pyimport]]import nudl.dataset[[end]]
 [[pyinline]]
-nudl.dataset.JoinLeftStep(${left_src}, ${{dataset_seed}}, ${left_key}, ${right_spec})
+nudl.dataset.JoinLeftStep(${left_src}, ${{dataset_seed}}, ${{field_usage}}, ${left_key}, ${right_spec})
 [[end]]
 
 def method join_by(
@@ -135,7 +135,7 @@ def method aggregate(src: Dataset<{T}>,
     : DatasetAggregate<Spec> =>
 [[skip_conversion]][[end]]
 [[pyimport]]import nudl.dataset[[end]]
-[[pyinline]]nudl.dataset.AggregateStep(${src}, ${{dataset_seed}}, ${builder})[[end]]
+[[pyinline]]nudl.dataset.AggregateStep(${src}, ${{dataset_seed}}, ${{field_usage}}, ${builder})[[end]]
 
 // Root for an aggregation.
 // For detail specification of aggregates check aggregate.ndl

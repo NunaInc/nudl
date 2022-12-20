@@ -20,6 +20,7 @@ load("//external/cpplint:cpplint.bzl", "cpplint")
 cc_library(
     name = "analysis",
     srcs = [
+        "dependency_analyzer.cc",
         "errors.cc",
         "expression.cc",
         "function.cc",
@@ -36,6 +37,7 @@ cc_library(
     ],
     hdrs = [
         "analysis.h",
+        "dependency_analyzer.h",
         "errors.h",
         "expression.h",
         "function.h",

@@ -17,6 +17,7 @@
 #define NUDL_ANALYSIS_ANALYSIS_H__
 
 // This is an include-them-all header.
+#include "nudl/analysis/dependency_analyzer.h"
 #include "nudl/analysis/errors.h"
 #include "nudl/analysis/expression.h"
 #include "nudl/analysis/function.h"

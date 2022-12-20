@@ -167,6 +167,8 @@ std::string Field::full_name() const {
   return absl::StrCat(VarBase::full_name(), " of ", parent_type_->full_name());
 }
 
+const TypeSpec* Field::parent_type() const { return parent_type_; }
+
 std::unique_ptr<VarBase> Field::Clone(
     absl::optional<NameStore*> parent_store) const {
   return absl::make_unique<Field>(name_, original_type_, parent_type_,
