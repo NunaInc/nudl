@@ -1032,7 +1032,7 @@ struct NativeConvert {
     re2::StringPiece input(code);
     absl::flat_hash_set<std::string> macros;
     std::string token;
-    while (RE2::Consume(&input, R"(.*\${{(\w+)}})", &token)) {
+    while (re2::RE2::FindAndConsume(&input, R"(\${{(\w+)}})", &token)) {
       macros.insert(token);
     }
     return macros;
@@ -1704,22 +1704,70 @@ absl::StatusOr<std::string> PythonConverter::LocalFunctionName(
       fun);
 }
 
-/*
-absl::StatusOr<std::string> PythonConverter::LocalOjbectName(
-    analysis::NamedObject* object, const ScopedName& scoped_name) {
-  if (bindings_on_use_) {
-  if (scoped_name.
+absl::Status PythonConverter::ProcessSeedMacro(
+    PythonConvertState* state, const analysis::TypeSpec* result_type,
+    bool is_dataset_seed) const {
+  auto res_type = result_type;
+  if (is_dataset_seed) {
+    RET_CHECK(analysis::TypeUtils::IsDatasetType(*result_type) &&
+              result_type->ResultType())
+        << "Invalid type for `dataset_seed` macro - found: "
+        << result_type->full_name();
+    res_type = result_type->ResultType();
+  }
+  ASSIGN_OR_RETURN(auto default_value,
+                   state->module()->BuildDefaultValueExpression(res_type),
+                   _ << "Processing dataset seed macro for result type: "
+                     << res_type->full_name());
+  RETURN_IF_ERROR(ConvertExpression(*default_value, state));
+  RETURN_IF_ERROR(state->CheckInline(*default_value))
+      << "Converting default expression per seed macro";
+  return absl::OkStatus();
 }
-*/
 
-// TODO(catalin): this functionality can sit at the converter level.
+absl::Status PythonConverter::ProcessFieldUsageMacro(
+    PythonConvertState* state, analysis::FunctionBinding* binding) const {
+  const std::string map_name =
+      state->module()->NextLocalName("FIELD_USAGE_MAP", "_INTERNAL_");
+  analysis::FieldUsageVisitor field_visitor;
+  for (const auto& expr : binding->call_expressions) {
+    if (expr.has_value()) {
+      analysis::VisitFunctionExpressions(expr.value(), &field_visitor);
+    }
+  }
+  auto superstate = state->top_superstate();
+  PythonConvertState local_state(superstate);
+  auto& out = local_state.out();
+  out << std::endl
+      << map_name << " = "
+      << "{" << std::endl;
+  local_state.inc_indent(2);
+  for (const auto& it : field_visitor.usage_map()) {
+    RETURN_IF_ERROR(AddTypeName(it.first, true, &local_state))
+        << "Converting type name for field dependency of: "
+        << it.first->full_name();
+    out << " : set([";
+    for (const auto& name : *it.second) {
+      out << "\"" << absl::Utf8SafeCEscape(name) << "\", ";
+    }
+    out << "])," << std::endl;
+  }
+  local_state.dec_indent(2);
+  out << "}" << std::endl;
+  superstate->out() << local_state.out_str();
+  superstate->AddImports(local_state);
+
+  state->out() << map_name;
+  return absl::OkStatus();
+}
+
 absl::StatusOr<absl::flat_hash_map<std::string, std::unique_ptr<ConvertState>>>
 PythonConverter::ProcessMacros(const absl::flat_hash_set<std::string>& macros,
                                analysis::Scope* scope,
                                analysis::FunctionBinding* binding,
                                analysis::Function* fun,
                                ConvertState* state) const {
-  auto result_type =
+  const analysis::TypeSpec* result_type =
       (binding ? binding->type_spec->ResultType() : fun->result_type());
   if (!result_type) {
     return status::InvalidArgumentErrorBuilder()
@@ -1734,21 +1782,10 @@ PythonConverter::ProcessMacros(const absl::flat_hash_set<std::string>& macros,
       RETURN_IF_ERROR(AddTypeName(result_type, true, sub_state.get()))
           << "Converting type name per macro: " << macro;
     } else if (macro == "result_seed" || macro == "dataset_seed") {
-      auto res_type = result_type;
-      if (macro == "dataset_seed") {
-        RET_CHECK(analysis::TypeUtils::IsDatasetType(*result_type) &&
-                  result_type->ResultType())
-            << "Invalid type for macro " << macro
-            << " - found: " << result_type->full_name();
-        res_type = result_type->ResultType();
-      }
-      ASSIGN_OR_RETURN(auto default_value,
-                       bstate->module()->BuildDefaultValueExpression(res_type),
-                       _ << "Processing conversion macro: " << macro
-                         << " for result type: " << res_type->full_name());
-      RETURN_IF_ERROR(ConvertExpression(*default_value, sub_state.get()));
-      RETURN_IF_ERROR(sub_state->CheckInline(*default_value))
-          << "Converting default expression per macro: " << macro;
+      RETURN_IF_ERROR(ProcessSeedMacro(sub_state.get(), result_type,
+                                       macro == "dataset_seed"));
+    } else if (macro == "field_usage") {
+      RETURN_IF_ERROR(ProcessFieldUsageMacro(sub_state.get(), binding));
     } else {
       return status::UnimplementedErrorBuilder()
              << "Unknown macro: " << macro

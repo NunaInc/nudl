@@ -128,12 +128,17 @@ class PythonConverter : public Converter {
                                                 ConvertState* state) const;
   absl::StatusOr<std::string> ConvertMainFunction(
       analysis::Function* fun, PythonConvertState* state) const;
+  absl::Status ProcessFieldUsageMacro(PythonConvertState* state,
+                                      analysis::FunctionBinding* binding) const;
 
   absl::StatusOr<
       absl::flat_hash_map<std::string, std::unique_ptr<ConvertState>>>
   ProcessMacros(const absl::flat_hash_set<std::string>& macros,
                 analysis::Scope* scope, analysis::FunctionBinding* binding,
                 analysis::Function* fun, ConvertState* state) const;
+  absl::Status ProcessSeedMacro(PythonConvertState* state,
+                                const analysis::TypeSpec* result_type,
+                                bool is_dataset_seed) const;
 
   // If we define function bindings where they are used, as opposed
   // to where they are defined.

@@ -49,7 +49,7 @@ def print_series(p) : Null =>
 [[pyinline]]print(p.to_dict() if isinstance(p, pandas.Series) else p)[[end]]
 
 def process(filenames: Array<String>) => {
-  left = dataset.read_parquet(Left(), _ensured(filenames[0]))
+  left = dataset.read_parquet(Left(), _ensured(filenames[0])).filter(l => l.l_id % 2 == 0)
   right = dataset.read_parquet(Right(), _ensured(filenames[1]));
   src = left.join_left(
     l => l.l_id,
@@ -63,8 +63,7 @@ def process(filenames: Array<String>) => {
         print_series(p)
       }
       p
-    })
-   */
+    }) */
 }
 
 demo_dir = flags.define_string(
@@ -88,7 +87,7 @@ def run_main() : Null => {
     step = process(generate_parquet(flags.get_string(demo_dir)))
       .filter(t => len(t.right_multi) > 0u)
       .aggregate(t => dataset.agg(t)
-        .count(1).sum({s = len(t.right_multi)}));
+      .count(1).sum({s = len(t.right_multi)}));
     engine = get_engine(flags.get_string(engine_name))
 
     print(step.collect(engine))

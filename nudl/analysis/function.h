@@ -86,7 +86,17 @@ struct FunctionBinding {
   std::string FunctionNameForLog() const;
   std::string full_name() const;
 
+  // Clones this object, passing the provided clone_override when
+  // cloning the argument expressions, that are placed for storage
+  // in the provided argument_expressions vector.
+  //
+  // Note that the clone stille refers to objects owned by this binding.
+  std::unique_ptr<FunctionBinding> Clone(
+      const CloneOverride& clone_override,
+      std::vector<std::unique_ptr<Expression>>* argument_expressions);
+
  private:
+  FunctionBinding();
   FunctionBinding(const TypeFunction* fun_type, const PragmaHandler* pragmas);
   explicit FunctionBinding(Function* fun);
   absl::Status BindImpl(const std::vector<FunctionCallArgument>& arguments);
@@ -109,7 +119,7 @@ struct FunctionBinding {
   // process.
   std::vector<std::unique_ptr<TypeSpec>> stored_types;
   std::vector<std::unique_ptr<FunctionBinding>> sub_bindings;
-  const PragmaHandler* pragmas;
+  const PragmaHandler* pragmas = nullptr;
   size_t num_args = 0;
   size_t fun_index = 0;
   size_t arg_index = 0;
@@ -235,6 +245,11 @@ class Function : public Scope {
   std::string type_signature() const;
   // The possibly abstract parent that bound this function with types.
   absl::optional<Function*> binding_parent() const;
+
+  // Expressions that call this function.
+  const std::vector<Expression*>& call_expressions() const;
+  // Records a call expression for this function.
+  void add_call_expression(Expression* expression);
 
   // The native implementation blocks:
   const absl::flat_hash_map<std::string, std::string>& native_impl() const;
@@ -365,6 +380,8 @@ class Function : public Scope {
   pb::FunctionResultKind result_kind_ = pb::FunctionResultKind::RESULT_NONE;
   // If the return type of this function was negotiated:
   bool result_type_negotiated_ = false;
+  // Expressions that call this function.
+  std::vector<Expression*> call_expressions_;
 
   // If we are a bound function, this points to the 'parent' from
   // which we were bound.:

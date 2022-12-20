@@ -27,12 +27,17 @@
 namespace nudl {
 namespace analysis {
 
+class Expression;
+class ExpressionVisitor;
 class Function;
 struct FunctionBinding;
 class FunctionGroup;
 class Module;
 class Scope;
 class VarBase;
+
+using CloneOverride =
+    std::function<std::unique_ptr<Expression>(const Expression*)>;
 
 class Expression {
  public:
@@ -54,6 +59,12 @@ class Expression {
   // If the expression performs a function performs a return/yield etc.
   virtual bool ContainsFunctionExit() const;
 
+  // Calls the provided function in-order for this expression and
+  // its children. If visiting `this` expression returns `false`,
+  // visiting the children is canceled and this function returns
+  // `false` as well.
+  virtual bool VisitExpressions(ExpressionVisitor* visitor);
+
   // The scope in which the expression was built.
   Scope* scope() const;
 
@@ -65,6 +76,10 @@ class Expression {
 
   // Builds an expression as a proto.
   virtual pb::ExpressionSpec ToProto() const;
+
+  // Creates a copy of this expression.
+  virtual std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const = 0;
 
   // Returns a string that describes the expression - for debug purposes.
   virtual std::string DebugString() const = 0;
@@ -78,6 +93,12 @@ class Expression {
   const std::any& value() const;
   virtual absl::StatusOr<const TypeSpec*> NegotiateType(
       absl::optional<const TypeSpec*> type_hint) = 0;
+  // Can be used by Clone() to set the general type info of a cloned
+  // expression.
+  std::unique_ptr<Expression> CopyTypeInfo(
+      std::unique_ptr<Expression> clone) const;
+  std::vector<std::unique_ptr<Expression>> CloneChildren(
+      const CloneOverride& clone_override) const;
 
   Scope* const scope_;
   std::vector<std::unique_ptr<Expression>> children_;
@@ -87,13 +108,31 @@ class Expression {
   bool is_default_return_ = false;
 };
 
+class ExpressionVisitor {
+ public:
+  ExpressionVisitor();
+  virtual ~ExpressionVisitor();
+  virtual bool Visit(Expression* expression) = 0;
+  virtual void Reset();
+
+ private:
+  bool PerformVisit(Expression* expression);
+
+  friend class Expression;
+  absl::flat_hash_set<Expression*> visited_;
+};
+
 // A no-operation expression - usually created on pragmas.
 class NopExpression : public Expression {
  public:
   NopExpression(Scope* scope,
                 absl::optional<std::unique_ptr<Expression>> child = {});
+
   pb::ExpressionKind expr_kind() const override;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -116,7 +155,10 @@ class Assignment : public Expression {
   VarBase* var() const;
   bool has_type_spec() const;
   bool is_initial_assignment() const;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -134,7 +176,10 @@ class EmptyStruct : public Expression {
   explicit EmptyStruct(Scope* scope);
 
   pb::ExpressionKind expr_kind() const override;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -164,6 +209,8 @@ class Literal : public Expression {
 
   pb::ExpressionSpec ToProto() const override;
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   // Used to coerce the type into something more restricted if necessary.
@@ -192,6 +239,8 @@ class Identifier : public Expression {
 
   pb::ExpressionSpec ToProto() const override;
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -211,9 +260,14 @@ class FunctionResultExpression : public Expression {
 
   absl::optional<NamedObject*> named_object() const override;
   pb::ExpressionKind expr_kind() const override;
+
   pb::FunctionResultKind result_kind() const;
   Function* parent_function() const;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
+
   bool ContainsFunctionExit() const override;
 
  protected:
@@ -231,7 +285,10 @@ class ArrayDefinitionExpression : public Expression {
                             std::vector<std::unique_ptr<Expression>> elements);
 
   pb::ExpressionKind expr_kind() const override;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -250,7 +307,10 @@ class MapDefinitionExpression : public Expression {
                           std::vector<std::unique_ptr<Expression>> elements);
 
   pb::ExpressionKind expr_kind() const override;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -269,8 +329,12 @@ class TupleDefinitionExpression : public Expression {
                             std::vector<std::unique_ptr<Expression>> elements);
 
   pb::ExpressionKind expr_kind() const override;
+
   std::string DebugString() const override;
   pb::ExpressionSpec ToProto() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
+
   const std::vector<std::string>& names() const;
   const std::vector<absl::optional<const TypeSpec*>>& types() const;
   void CheckSizes() const;
@@ -297,9 +361,14 @@ class IfExpression : public Expression {
                std::vector<std::unique_ptr<Expression>> expression);
 
   pb::ExpressionKind expr_kind() const override;
+
   const std::vector<Expression*>& condition() const;
   const std::vector<Expression*>& expression() const;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
+
   // This returns true if we return on all paths.
   bool ContainsFunctionExit() const override;
 
@@ -315,9 +384,13 @@ class ExpressionBlock : public Expression {
  public:
   ExpressionBlock(Scope* scope,
                   std::vector<std::unique_ptr<Expression>> children);
+
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
   bool ContainsFunctionExit() const override;
 
  protected:
@@ -332,7 +405,10 @@ class IndexExpression : public Expression {
                   std::unique_ptr<Expression> index_expression);
 
   pb::ExpressionKind expr_kind() const override;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
   virtual absl::StatusOr<const TypeSpec*> GetIndexedType(
       const TypeSpec* object_type) const;  // public for testing
@@ -352,6 +428,9 @@ class TupleIndexExpression : public IndexExpression {
 
   pb::ExpressionKind expr_kind() const override;
 
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
+
   absl::StatusOr<const TypeSpec*> GetIndexedType(
       const TypeSpec* object_type) const override;
 
@@ -367,11 +446,14 @@ class LambdaExpression : public Expression {
 
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
+
   Function* lambda_function() const;
   FunctionGroup* lambda_group() const;
 
   pb::ExpressionSpec ToProto() const override;
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -391,8 +473,12 @@ class DotAccessExpression : public Expression {
 
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
+
   const ScopeName& name() const;
   NamedObject* object() const;
+
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
   std::string DebugString() const override;
 
  protected:
@@ -411,14 +497,19 @@ class FunctionCallExpression : public Expression {
       bool is_method_call);
 
   pb::ExpressionKind expr_kind() const override;
+
   FunctionBinding* function_binding() const;
   absl::optional<Expression*> left_expression() const;
   bool is_method_call() const;
 
-  pb::ExpressionSpec ToProto() const override;
-  std::string DebugString() const override;
   const absl::flat_hash_set<Function*>& dependent_functions() const;
   void set_dependent_functions(absl::flat_hash_set<Function*> fun);
+
+  pb::ExpressionSpec ToProto() const override;
+  std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
+  bool VisitExpressions(ExpressionVisitor* visitor) override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -440,12 +531,15 @@ class ImportStatementExpression : public Expression {
 
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
+
   const std::string& local_name() const;
   bool is_alias() const;
   Module* module() const;
 
   pb::ExpressionSpec ToProto() const override;
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -461,10 +555,13 @@ class FunctionDefinitionExpression : public Expression {
 
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
+
   Function* def_function() const;
 
   pb::ExpressionSpec ToProto() const override;
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -478,8 +575,12 @@ class SchemaDefinitionExpression : public Expression {
 
   pb::ExpressionKind expr_kind() const override;
   absl::optional<NamedObject*> named_object() const override;
+
   const TypeStruct* def_schema() const;
+
   std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(
@@ -493,10 +594,14 @@ class TypeDefinitionExpression : public Expression {
                            const TypeSpec* defined_type_spec);
 
   pb::ExpressionKind expr_kind() const override;
+
   const std::string& type_name() const;
   const TypeSpec* defined_type_spec() const;
-  std::string DebugString() const override;
+
   pb::ExpressionSpec ToProto() const override;
+  std::string DebugString() const override;
+  std::unique_ptr<Expression> Clone(
+      const CloneOverride& clone_override) const override;
 
  protected:
   absl::StatusOr<const TypeSpec*> NegotiateType(

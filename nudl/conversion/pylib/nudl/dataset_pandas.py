@@ -21,6 +21,7 @@ This is an implementation of dataset interface using pandas.
 import collections.abc
 import dataclasses
 from dataschema import schema2pandas
+import logging
 import pandas
 import nudl.dataset
 import time
@@ -33,7 +34,7 @@ class PandasDataset:
                  dataframe: pandas.DataFrame):
         self.step = step
         self.dataframe = dataframe
-        print(f"PandasDataset created for {step} - {step.seed}")
+        logging.info("PandasDataset created for %s", step)
 
     def collect(self):
         return list(
@@ -247,21 +248,25 @@ class PandasPipeline:
     def _read_parquet(self,
                       step: nudl.dataset.ReadParquetStep) -> PandasDataset:
         schema = schema2pandas.ConvertTable(step.schema)
+        used_fields = step.used_fields()
+        if used_fields is not None:
+            logging.info("Restricting Parquet read %s columns to: %s", step,
+                         used_fields)
         # TODO(catalin): add a parquet schema check
         return PandasDataset(
             step,
-            pandas.read_parquet(
-                step.filespec,
-                engine="pyarrow",
-                # TODO(catalin): plug in selection here
-                columns=list(schema.keys()),
-                use_nullable_dtypes=True))
+            pandas.read_parquet(step.filespec,
+                                engine="pyarrow",
+                                columns=used_fields,
+                                use_nullable_dtypes=True))
 
     def _filter(self, step: nudl.dataset.FilterStep) -> PandasDataset:
         assert step.source is not None
         src = self.step_dataset(step.source)
-        return PandasDataset(step, src.dataframe[src.dataframe.apply(
-            step.fun, axis=1)])  # type: ignore
+        return PandasDataset(step,
+                             pandas.DataFrame.from_records(
+                                 src.dataframe[src.dataframe.apply(
+                                     step.fun, axis=1)]))  # type: ignore
 
     def _map(self, step: nudl.dataset.MapStep) -> PandasDataset:
         assert step.source is not None
@@ -313,12 +318,18 @@ class PandasPipeline:
     def _join_left(self, step: nudl.dataset.JoinLeftStep) -> PandasDataset:
         assert step.source is not None
         left_src = self.step_dataset(step.source)
-        if not step.right_spec:
+        right_join_fields = step.right_join_fields()
+        if not step.right_spec or not right_join_fields:
+            logging.info("Skiping join left for %s, per no joins needed", step)
             return left_src
 
         left_join = _prepare_for_join(left_src, step.left_key)
         for right in step.right_spec:
             spec = nudl.dataset.JoinSpecDecoder(right)
+            if spec.field_name not in right_join_fields:
+                logging.info("In %s, skiping join column: %s as it is unused",
+                             step, spec.field_name)
+                continue
             if spec.join_spec == "right_multi_array":
                 if not spec.spec_src:
                     continue
@@ -365,4 +376,6 @@ class PandasEngineImpl(nudl.dataset.DatasetEngine):
     def collect(self,
                 step: nudl.dataset.DatasetStep) -> typing.List[typing.Any]:
         pipeline = PandasPipeline()
+        collector = nudl.dataset.FieldUsageCollector()
+        step.update_field_usage(collector, True)
         return pipeline.step_dataset(step).collect()

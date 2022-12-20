@@ -104,6 +104,62 @@ bool Expression::is_default_return() const { return is_default_return_; }
 
 void Expression::set_is_default_return() { is_default_return_ = true; }
 
+bool Expression::VisitExpressions(ExpressionVisitor* visitor) {
+  if (!visitor->PerformVisit(this)) {
+    return false;
+  }
+  for (const auto& child : children_) {
+    child->VisitExpressions(visitor);
+  }
+  return true;
+}
+
+std::unique_ptr<Expression> Expression::CopyTypeInfo(
+    std::unique_ptr<Expression> clone) const {
+  clone->is_default_return_ = is_default_return_;
+  clone->type_spec_ = type_spec_;
+  clone->type_hint_ = type_hint_;
+  clone->named_object_ = named_object_;
+  return clone;
+}
+
+std::vector<std::unique_ptr<Expression>> Expression::CloneChildren(
+    const CloneOverride& clone_override) const {
+  std::vector<std::unique_ptr<Expression>> elements;
+  elements.reserve(children_.size());
+  for (const auto& child : children_) {
+    elements.emplace_back(child->Clone(clone_override));
+  }
+  return elements;
+}
+
+#define RETURN_IF_OVERRIDDEN(clone_override, expr) \
+  do {                                             \
+    if (clone_override) {                          \
+      auto override_result = clone_override(expr); \
+      if (override_result) {                       \
+        return override_result;                    \
+      }                                            \
+    }                                              \
+  } while (false)
+
+ExpressionVisitor::ExpressionVisitor() {}
+
+ExpressionVisitor::~ExpressionVisitor() {}
+
+void ExpressionVisitor::Reset() { visited_.clear(); }
+
+bool ExpressionVisitor::PerformVisit(Expression* expression) {
+  if (visited_.contains(expression)) {
+    return false;
+  }
+  visited_.insert(expression);
+  if (!Visit(expression)) {
+    return false;
+  }
+  return true;
+}
+
 NopExpression::NopExpression(Scope* scope,
                              absl::optional<std::unique_ptr<Expression>> child)
     : Expression(scope) {
@@ -119,6 +175,12 @@ pb::ExpressionKind NopExpression::expr_kind() const {
 std::string NopExpression::DebugString() const {
   return absl::StrCat(
       "NOP{", (children_.empty() ? "" : children_.front()->DebugString()), "}");
+}
+
+std::unique_ptr<Expression> NopExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<NopExpression>(scope_));
 }
 
 absl::StatusOr<const TypeSpec*> NopExpression::NegotiateType(
@@ -159,6 +221,14 @@ pb::ExpressionKind Assignment::expr_kind() const {
   return pb::ExpressionKind::EXPR_ASSIGNMENT;
 }
 
+std::unique_ptr<Expression> Assignment::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<Assignment>(
+      scope_, name_, var_, children_.front()->Clone(clone_override),
+      has_type_spec_, is_initial_assignment_));
+}
+
 absl::StatusOr<const TypeSpec*> Assignment::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   // This should already have this set, per constructor, and we cannot change:
@@ -183,6 +253,12 @@ EmptyStruct::EmptyStruct(Scope* scope) : Expression(scope) {}
 
 pb::ExpressionKind EmptyStruct::expr_kind() const {
   return pb::ExpressionKind::EXPR_EMPTY_STRUCT;
+}
+
+std::unique_ptr<Expression> EmptyStruct::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<EmptyStruct>(scope_));
 }
 
 std::string EmptyStruct::DebugString() const { return "[]"; }
@@ -263,6 +339,13 @@ std::any Literal::StaticValue() const { return value(); }
 
 pb::ExpressionKind Literal::expr_kind() const {
   return pb::ExpressionKind::EXPR_LITERAL;
+}
+
+std::unique_ptr<Expression> Literal::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(absl::WrapUnique(
+      new Literal(scope_, build_type_spec_, value_, str_value_)));
 }
 
 std::string Literal::DebugString() const {
@@ -408,6 +491,13 @@ absl::optional<NamedObject*> Identifier::named_object() const {
   return object_;
 }
 
+std::unique_ptr<Expression> Identifier::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(
+      std::make_unique<Identifier>(scope_, scoped_name_, object_));
+}
+
 std::string Identifier::DebugString() const { return scoped_name_.full_name(); }
 
 pb::ExpressionSpec Identifier::ToProto() const {
@@ -450,6 +540,17 @@ Function* FunctionResultExpression::parent_function() const {
 }
 
 bool FunctionResultExpression::ContainsFunctionExit() const { return true; }
+
+std::unique_ptr<Expression> FunctionResultExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  absl::optional<std::unique_ptr<Expression>> expression;
+  if (!children_.empty()) {
+    expression = children_.front()->Clone(clone_override);
+  }
+  return CopyTypeInfo(std::make_unique<FunctionResultExpression>(
+      scope_, parent_function_, result_kind_, std::move(expression)));
+}
 
 std::string FunctionResultExpression::DebugString() const {
   switch (result_kind_) {
@@ -525,6 +626,13 @@ std::string ArrayDefinitionExpression::DebugString() const {
     elements.emplace_back(child->DebugString());
   }
   return absl::StrCat("[", absl::StrJoin(elements, ", "), "]");
+}
+
+std::unique_ptr<Expression> ArrayDefinitionExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<ArrayDefinitionExpression>(
+      scope_, CloneChildren(clone_override)));
 }
 
 absl::StatusOr<const TypeSpec*> ArrayDefinitionExpression::NegotiateTuple(
@@ -632,6 +740,13 @@ std::string MapDefinitionExpression::DebugString() const {
   return absl::StrCat("[", absl::StrJoin(elements, ", "), "]");
 }
 
+std::unique_ptr<Expression> MapDefinitionExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<MapDefinitionExpression>(
+      scope_, CloneChildren(clone_override)));
+}
+
 absl::StatusOr<const TypeSpec*> MapDefinitionExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   const TypeSpec* base_type = nullptr;
@@ -708,8 +823,16 @@ std::string TupleDefinitionExpression::DebugString() const {
       absl::StrAppend(&s, ": ", types_[i].value()->full_name());
     }
     absl::StrAppend(&s, " = ", children_[i]->DebugString());
+    elements.emplace_back(std::move(s));
   }
   return absl::StrCat("TupleDef {\n", absl::StrJoin(elements, "\n"), "}");
+}
+
+std::unique_ptr<Expression> TupleDefinitionExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<TupleDefinitionExpression>(
+      scope_, names_, types_, CloneChildren(clone_override)));
 }
 
 pb::ExpressionSpec TupleDefinitionExpression::ToProto() const {
@@ -827,6 +950,22 @@ IfExpression::IfExpression(Scope* scope,
   }
 }
 
+std::unique_ptr<Expression> IfExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  std::vector<std::unique_ptr<Expression>> conditions, expressions;
+  conditions.reserve(condition_.size());
+  expressions.reserve(expression_.size());
+  for (const auto condition : condition_) {
+    conditions.emplace_back(condition->Clone(clone_override));
+  }
+  for (const auto expression : expression_) {
+    expressions.emplace_back(expression->Clone(clone_override));
+  }
+  return CopyTypeInfo(std::make_unique<IfExpression>(
+      scope_, std::move(conditions), std::move(expressions)));
+}
+
 namespace {
 std::string Reindent(std::string s) {
   std::vector<std::string> elements;
@@ -918,6 +1057,13 @@ std::string ExpressionBlock::DebugString() const {
   return absl::StrJoin(elements, "\n");
 }
 
+std::unique_ptr<Expression> ExpressionBlock::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(
+      std::make_unique<ExpressionBlock>(scope_, CloneChildren(clone_override)));
+}
+
 absl::StatusOr<const TypeSpec*> ExpressionBlock::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   return children_.back()->type_spec(type_hint);
@@ -938,6 +1084,14 @@ pb::ExpressionKind IndexExpression::expr_kind() const {
 std::string IndexExpression::DebugString() const {
   return absl::StrCat(children_.front()->DebugString(), "[",
                       children_.back()->DebugString(), "]");
+}
+
+std::unique_ptr<Expression> IndexExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<IndexExpression>(
+      scope_, children_.front()->Clone(clone_override),
+      children_.back()->Clone(clone_override)));
 }
 
 absl::StatusOr<const TypeSpec*> IndexExpression::NegotiateType(
@@ -981,6 +1135,14 @@ TupleIndexExpression::TupleIndexExpression(
                       std::move(index_expression)),
       index_(index) {}
 
+std::unique_ptr<Expression> TupleIndexExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<TupleIndexExpression>(
+      scope_, children_.front()->Clone(clone_override),
+      children_.back()->Clone(clone_override), index_));
+}
+
 pb::ExpressionKind TupleIndexExpression::expr_kind() const {
   return pb::ExpressionKind::EXPR_TUPLE_INDEX;
 }
@@ -1014,6 +1176,13 @@ absl::optional<NamedObject*> LambdaExpression::named_object() const {
     return named_object_;
   }
   return lambda_function_;
+}
+
+std::unique_ptr<Expression> LambdaExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<LambdaExpression>(
+      scope_, lambda_function_, lambda_group_));
 }
 
 std::string LambdaExpression::DebugString() const {
@@ -1098,6 +1267,13 @@ std::string DotAccessExpression::DebugString() const {
   return absl::StrCat(children_.front()->DebugString(), ".", name_.name());
 }
 
+std::unique_ptr<Expression> DotAccessExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return CopyTypeInfo(std::make_unique<DotAccessExpression>(
+      scope_, children_.front()->Clone(clone_override), name_, object_));
+}
+
 absl::StatusOr<const TypeSpec*> DotAccessExpression::NegotiateType(
     absl::optional<const TypeSpec*> type_hint) {
   return object_->type_spec();
@@ -1135,6 +1311,31 @@ absl::optional<Expression*> FunctionCallExpression::left_expression() const {
 }
 
 bool FunctionCallExpression::is_method_call() const { return is_method_call_; }
+
+std::unique_ptr<Expression> FunctionCallExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  std::vector<std::unique_ptr<Expression>> argument_expressions;
+  auto binding_clone =
+      function_binding_->Clone(clone_override, &argument_expressions);
+  std::unique_ptr<Expression> left;
+  if (left_expression_) {
+    left = left_expression_->Clone(clone_override);
+  }
+  return CopyTypeInfo(std::make_unique<FunctionCallExpression>(
+      scope_, std::move(binding_clone), std::move(left),
+      std::move(argument_expressions), is_method_call_));
+}
+
+bool FunctionCallExpression::VisitExpressions(ExpressionVisitor* visitor) {
+  if (!Expression::VisitExpressions(visitor)) {
+    return false;
+  }
+  if (left_expression_) {
+    visitor->Visit(left_expression_.get());
+  }
+  return true;
+}
 
 pb::ExpressionSpec FunctionCallExpression::ToProto() const {
   pb::ExpressionSpec proto;
@@ -1253,6 +1454,13 @@ pb::ExpressionSpec ImportStatementExpression::ToProto() const {
   return proto;
 }
 
+std::unique_ptr<Expression> ImportStatementExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return std::make_unique<ImportStatementExpression>(scope_, local_name_,
+                                                     is_alias_, module_);
+}
+
 FunctionDefinitionExpression::FunctionDefinitionExpression(
     Scope* scope, Function* def_function)
     : Expression(scope), def_function_(CHECK_NOTNULL(def_function)) {}
@@ -1286,6 +1494,12 @@ pb::ExpressionSpec FunctionDefinitionExpression::ToProto() const {
   auto proto = Expression::ToProto();
   *proto.mutable_function_spec() = def_function_->ToProto();
   return proto;
+}
+
+std::unique_ptr<Expression> FunctionDefinitionExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return std::make_unique<FunctionDefinitionExpression>(scope_, def_function_);
 }
 
 SchemaDefinitionExpression::SchemaDefinitionExpression(Scope* scope,
@@ -1326,6 +1540,12 @@ std::string SchemaDefinitionExpression::DebugString() const {
                       absl::StrJoin(elements, "\n"), "\n}\n");
 }
 
+std::unique_ptr<Expression> SchemaDefinitionExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return std::make_unique<SchemaDefinitionExpression>(scope_, def_schema_);
+}
+
 TypeDefinitionExpression::TypeDefinitionExpression(
     Scope* scope, absl::string_view type_name,
     const TypeSpec* defined_type_spec)
@@ -1362,6 +1582,13 @@ pb::ExpressionSpec TypeDefinitionExpression::ToProto() const {
     *proto.mutable_type_spec() = defined_type_spec_->ToProto();
   }
   return proto;
+}
+
+std::unique_ptr<Expression> TypeDefinitionExpression::Clone(
+    const CloneOverride& clone_override) const {
+  RETURN_IF_OVERRIDDEN(clone_override, this);
+  return std::make_unique<TypeDefinitionExpression>(scope_, type_name_,
+                                                    defined_type_spec_);
 }
 
 }  // namespace analysis

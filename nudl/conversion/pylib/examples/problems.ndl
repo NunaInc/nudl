@@ -11,4 +11,27 @@ schema Foo = {
   b: String;
 }
 
-main = range(0, 10).map(n => Foo(a=n, b="foo")).map(p => print(p)).to_array()
+// main = range(0, 10).map(n => Foo(a=n, b="foo")).map(p => print(p)).to_array()
+import dataset
+import dataset_pandas
+
+
+schema Left = {
+  l_id : Int;
+  left : String;
+}
+
+schema Right = {
+  l_id : Int;
+  r_id : Int;
+  right : String;
+}
+
+left = dataset.read_parquet(Left(), "/tmp/jointest/Left_00000-of-00001.parquet")
+right = dataset.read_parquet(Right(), "/tmp/jointest/Right_00000-of-00001.parquet");
+src = left.join_left(
+    l => l.l_id,
+    //  Various join possibilities:
+    {right_simple = right.join_by(r => r.l_id),
+     right_multi = right.join_multi_by(r => r.l_id % 500 + 1),
+      right_multi_array = [right, right].join_multi_by(r => r.l_id % 500 + 1)})

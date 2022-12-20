@@ -21,6 +21,7 @@ This is an implementation of dataset interface using spark.
 import collections.abc
 import dataclasses
 from dataschema import schema2pyspark
+import logging
 import nudl.dataset
 import pyspark
 import pyspark.sql
@@ -32,6 +33,9 @@ import uuid
 
 
 def pyspark_schema(step: nudl.dataset.DatasetStep):
+    column_names = [column.name() for column in step.schema.columns]
+    logging.info("Schema for step %s: %s. Columns: %s", step,
+                 step.schema.name(), column_names)
     return schema2pyspark.ConvertTable(step.schema)
 
 
@@ -41,7 +45,7 @@ class SparkDataset:
                  dataframe: pyspark.sql.DataFrame):
         self.step = step
         self.dataframe = dataframe
-        print(f"SparkDataset created for {step} - {step.seed}")
+        logging.info("SparkDataset created for %s", step)
 
     def rdd(self) -> pyspark.RDD:
         return self.dataframe.rdd
@@ -171,25 +175,16 @@ class SparkPipeline:
         self.steps[step.step_id] = dataset
         return dataset
 
-    def _convert_step(self, step):
+    def _convert_step(self, step: nudl.dataset.DatasetStep) -> SparkDataset:
         if isinstance(step, nudl.dataset.EmptyStep):
             return SparkDataset.from_rdd(step,
                                          self.session.sparkContext.emptyRDD())
         elif isinstance(step, nudl.dataset.ReadCsvStep):
-            return SparkDataset(
-                step,
-                self.session.read.csv(step.filespec,
-                                      schema=pyspark_schema(step)))
+            return self._read_csv(step)
         elif isinstance(step, nudl.dataset.ReadParquetStep):
-            return SparkDataset(
-                step,
-                self.session.read.format("parquet").schema(
-                    pyspark_schema(step)).load(step.filespec))
+            return self._read_parquet(step)
         elif isinstance(step, nudl.dataset.FilterStep):
-            assert step.source is not None
-            return SparkDataset.from_rdd(
-                step,
-                self.step_dataset(step.source).rdd().filter(step.fun))
+            return self._filter(step)
         elif isinstance(step, nudl.dataset.MapStep):
             assert step.source is not None
             return SparkDataset.from_rdd(
@@ -211,6 +206,40 @@ class SparkPipeline:
             return self._join_left(step)
         raise ValueError(f"Unknown dataset step kind: {step}")
 
+    def _read_csv(self, step: nudl.dataset.ReadCsvStep) -> SparkDataset:
+        fields = step.used_fields()
+        if fields is not None:
+            logging.info("Restricting CSV read %s columns to: %s", step, fields)
+        df = self.session.read.csv(step.filespec, schema=pyspark_schema(step))
+        if fields is not None:
+            df = df.select(*fields)
+        return SparkDataset(step, df)
+
+    def _read_parquet(self, step: nudl.dataset.ReadParquetStep) -> SparkDataset:
+        fields = step.used_fields()
+        if fields is not None:
+            logging.info("Restricting Parquet read %s columns to: %s", step,
+                         fields)
+        df = self.session.read.format("parquet").schema(
+            pyspark_schema(step)).load(step.filespec)
+        if fields is not None:
+            df = df.select(*fields)
+        return SparkDataset(step, df)
+
+    def _filter(self, step: nudl.dataset.FilterStep) -> SparkDataset:
+        assert step.source is not None
+        src = self.step_dataset(step.source)
+        try:
+            condition = step.fun(src.dataframe)
+            logging.info("Using native Spark dataframe filter for %s", step)
+            return SparkDataset(step, src.dataframe.filter(condition))
+        except Exception:
+            pass
+        logging.info("Using RDD based function filter for %s", step)
+        return SparkDataset.from_rdd(
+            step,
+            self.step_dataset(step.source).rdd().filter(step.fun))
+
     def _aggregate(self, step: nudl.dataset.AggregateStep):
         assert step.source is not None
         src = self.step_dataset(step.source)
@@ -227,13 +256,19 @@ class SparkPipeline:
     def _join_left(self, step: nudl.dataset.JoinLeftStep):
         assert step.source is not None
         left_src = self.step_dataset(step.source)
-        if not step.right_spec:
+        right_join_fields = step.right_join_fields()
+        if not step.right_spec or not right_join_fields:
+            logging.info("Skiping join left for %s, per no joins needed", step)
             return left_src
         left_join = left_src.dataframe.rdd.map(lambda l, left_key=step.left_key:
                                                (left_key(l), l))
         builder = _join_builder_base
         for right in step.right_spec:
             spec = nudl.dataset.JoinSpecDecoder(right)
+            if spec.field_name not in right_join_fields:
+                logging.info("In %s, skiping join column: %s as it is unused",
+                             step, spec.field_name)
+                continue
             if spec.join_spec == "right_multi_array":
                 if not spec.spec_src:
                     continue
@@ -276,4 +311,8 @@ class SparkEngineImpl(nudl.dataset.DatasetEngine):
     def collect(self,
                 step: nudl.dataset.DatasetStep) -> typing.List[typing.Any]:
         pipeline = SparkPipeline(self.session)
+        collector = nudl.dataset.FieldUsageCollector()
+        step.update_field_usage(collector, True)
+        updater = nudl.dataset.SchemaFieldsUpdater()
+        step.update_schema_fields(updater)
         return pipeline.step_dataset(step).dataframe.collect()

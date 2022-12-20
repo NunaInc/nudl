@@ -48,7 +48,7 @@ class BeamDataset:
                  pcollection: apache_beam.pvalue.PValue):
         self.step = step
         self.pcollection = pcollection
-        print(f"BeamDataset created for {step} - {step.seed} w/ {pcollection}")
+        logging.info("BeamDataset created for %s w/ %s", step, pcollection)
 
 
 class _CsvConvert(apache_beam.DoFn):
@@ -74,7 +74,6 @@ class _CsvConvert(apache_beam.DoFn):
                 field: val for field, val in zip(self._fields,
                                                  list(csv.reader([elem]))[0])
             }
-            print(f"---- Reading row: {row}")
             yield self._reader._process_row(row)
         except Exception:
             self.num_parse_errors.inc()
@@ -291,9 +290,14 @@ class BeamPipeline:
         # TODO(catalin): no filter support in this reader, may want to define
         #   another reader w/ proper pushdown filter support.
         # TODO(catalin): want to reshuffle ?
+        used_fields = step.used_fields()
+        if used_fields is not None:
+            logging.info("Restricting Parquet read %s columns to: %s", step,
+                         used_fields)
         return BeamDataset(
             step, self.pipeline | self._step_label(step, "Read") >>
-            apache_beam.io.parquetio.ReadFromParquet(step.filespec) |
+            apache_beam.io.parquetio.ReadFromParquet(step.filespec,
+                                                     columns=used_fields) |
             self._step_label(step, "Convert") >> apache_beam.ParDo(
                 _ParquetConvert(step.seed_type())))
 
@@ -347,7 +351,9 @@ class BeamPipeline:
     def _join_left(self, step: nudl.dataset.JoinLeftStep) -> BeamDataset:
         assert step.source is not None
         left_src = self.step_dataset(step.source)
-        if not step.right_spec:
+        right_join_fields = step.right_join_fields()
+        if not step.right_spec or not right_join_fields:
+            logging.info("Skiping join left for %s, per no joins needed", step)
             return left_src
         fields = []
         pcollections = []
@@ -358,6 +364,10 @@ class BeamPipeline:
         pcollections.append(left_join)
         for right in step.right_spec:
             spec = nudl.dataset.JoinSpecDecoder(right)
+            if spec.field_name not in right_join_fields:
+                logging.info("In %s, skiping join column: %s as it is unused",
+                             step, spec.field_name)
+                continue
             label = self._step_label(
                 step, f"Prejoin map {spec.join_spec} {spec.field_name}")
             if spec.join_spec == "right_multi_array":
@@ -415,6 +425,8 @@ class BeamEngineImpl(nudl.dataset.DatasetEngine):
             raise ValueError(
                 "Cannot collect(..) on non interactive beam engine")
         pipeline = BeamPipeline(self.runner, self.options)
+        collector = nudl.dataset.FieldUsageCollector()
+        step.update_field_usage(collector, True)
         interactive_beam.watch({'pipeline': pipeline.pipeline})
         dataset = pipeline.step_dataset(step)
         interactive_environment.current_env().track_user_pipelines()

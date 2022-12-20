@@ -50,5 +50,5 @@ pip_parse(
 )
 
 load("@pip_interactive_deps//:requirements.bzl",
-     instal_interactive_deps = "install_deps")
-instal_interactive_deps()
+     install_interactive_deps = "install_deps")
+install_interactive_deps()
