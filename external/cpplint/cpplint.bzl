@@ -54,7 +54,7 @@ def _add_linter_rules(source_labels, source_filenames, name, data = None):
         tags = tags,
     )
 
-def cpplint(data = None, extra_srcs = None):
+def cpplint(data = None, extra_srcs = None, skip = None):
     """For every rule in the BUILD file so far, adds a test rule that runs
     cpplint over the C++ sources listed in that rule.  Thus, BUILD file authors
     should call this function at the *end* of every C++-related BUILD file.
@@ -63,6 +63,9 @@ def cpplint(data = None, extra_srcs = None):
     Sources that are not discoverable through the "sources so far" heuristic can
     be passed in as extra_srcs=[].
     """
+    skip_srcs = []
+    if skip != None:
+        skip_srcs = skip
 
     # Iterate over all rules.
     for rule in native.existing_rules().values():
@@ -74,7 +77,7 @@ def cpplint(data = None, extra_srcs = None):
         source_labels = [
             label
             for label in candidate_labels
-            if _is_source_label(label)
+            if _is_source_label(label) and label not in skip_srcs
         ]
         source_filenames = ["$(location %s)" % x for x in source_labels]
 

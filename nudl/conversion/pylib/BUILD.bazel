@@ -55,7 +55,7 @@ py_library(
         "nudl/dataset_beam.py",
         "nudl/dataset_pandas.py",
         "nudl/dataset_spark.py",
-        "nudl/flags.py"
+        "nudl/flags.py",
     ],
     imports = ["."],
     visibility = ["//visibility:public"],
@@ -65,13 +65,12 @@ py_library(
 pyright_test(
     name = "nudl_pyright_test",
     srcs = [":nudl"],
-    deps = nudl_deps + beam_interactive_deps,
-    imports = ["."],
     extra_pyright_args = """{
       "pythonVersion": "3.9"
     }""",
+    imports = ["."],
+    deps = nudl_deps + beam_interactive_deps,
 )
-
 
 py_test(
     name = "nudl_import_test",
@@ -81,20 +80,27 @@ py_test(
     ],
 )
 
+nudl_base_files = [
+    "dataproc.ndl",
+    "dataset.ndl",
+    "dataset_beam.ndl",
+    "dataset_pandas.ndl",
+    "dataset_spark.ndl",
+    "flags.ndl",
+    "nudl_builtins.ndl",
+    "nudl_datetime.ndl",
+]
+
 nudl_py_library(
     name = "nudl_base",
-    srcs = [
-        "dataproc.ndl",
-        "dataset.ndl",
-        "dataset_beam.ndl",
-        "dataset_pandas.ndl",
-        "dataset_spark.ndl",
-        "flags.ndl",
-        "nudl_builtins.ndl",
-        "nudl_datetime.ndl",
-    ],
+    srcs = nudl_base_files,
     imports = ["nudl/conversion/pylib/"],
     visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "nudl_base_ndl",
+    srcs = nudl_base_files,
 )
 
 nudl_py_library(

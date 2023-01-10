@@ -127,4 +127,12 @@ def nuna_nudl_load_workspace():
         urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.6.1/rules_nodejs-4.6.1.tar.gz"],
     )
 
+    http_archive(
+        name = "cython",
+        build_file = "@nuna_nudl//external:cython.BUILD",
+        sha256 = "3f53fbe1398666e77fd4ce388f939309a11efd273d16f20f58f0df7b03d6b4cc",
+        strip_prefix = "cython-0.29.32",
+        urls = ["https://github.com/cython/cython/archive/refs/tags/0.29.32.tar.gz"],
+    )
+
     cpplint()

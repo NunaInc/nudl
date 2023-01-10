@@ -15,7 +15,8 @@
 #
 package(default_visibility = ["//visibility:public"])
 
-load("//external/cpplint:cpplint.bzl", "cpplint")
+load("@nuna_nudl//external/cpplint:cpplint.bzl", "cpplint")
+load("@nuna_nudl//bazel:cython.bzl", "pyx_library")
 
 cc_library(
     name = "conversion",
@@ -88,4 +89,29 @@ cc_binary(
     ],
 )
 
-cpplint()
+pyx_library(
+    name = "_convert_nudl",
+    srcs = ["_convert_nudl.pyx"],
+    data = ["//nudl/conversion/pylib:nudl_base_ndl"],
+    py_deps = [
+        "//nudl/conversion/pylib:nudl",
+        "//nudl/conversion/pylib:nudl_base",
+    ],
+    deps = [":convert_tool"],
+)
+
+py_library(
+    name = "convert_nudl",
+    srcs = ["convert_nudl.py"],
+    imports = ["."],
+    deps = [":_convert_nudl"],
+)
+
+py_test(
+    name = "convert_nudl_test",
+    srcs = ["convert_nudl_test.py"],
+    imports = ["@nuna_nudl//"],
+    deps = [":convert_nudl"],
+)
+
+cpplint(skip = [":_convert_nudl.cpp"])

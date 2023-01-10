@@ -16,14 +16,14 @@
 workspace(name = "nuna_nudl")
 
 load(
-    "@nuna_nudl//:external/workspace_load.bzl",
+    "@nuna_nudl//external:workspace_load.bzl",
     "nuna_nudl_load_workspace",
 )
 
 nuna_nudl_load_workspace()
 
 load(
-    "@nuna_nudl//:external/workspace_setup.bzl",
+    "@nuna_nudl//external:workspace_setup.bzl",
     "nuna_nudl_setup_workspace",
 )
 
@@ -42,13 +42,15 @@ load("@pip_deps//:requirements.bzl", "install_deps")
 
 install_deps()
 
-
 pip_parse(
     name = "pip_interactive_deps",
     python_interpreter_target = interpreter,
     requirements_lock = "@nuna_nudl//:requirements_interactive_lock.txt",
 )
 
-load("@pip_interactive_deps//:requirements.bzl",
-     install_interactive_deps = "install_deps")
+load(
+    "@pip_interactive_deps//:requirements.bzl",
+    install_interactive_deps = "install_deps",
+)
+
 install_interactive_deps()

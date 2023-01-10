@@ -196,8 +196,9 @@ def _apply_flat_map(row, fun):
 
 class PandasPipeline:
 
-    def __init__(self):
+    def __init__(self, collect_options: nudl.dataset.CollectOptions):
         self.steps = {}
+        self.collect_options = collect_options
 
     def step_dataset(self, step: nudl.dataset.DatasetStep) -> PandasDataset:
         if step.step_id in self.steps:
@@ -248,7 +249,9 @@ class PandasPipeline:
     def _read_parquet(self,
                       step: nudl.dataset.ReadParquetStep) -> PandasDataset:
         schema = schema2pandas.ConvertTable(step.schema)
-        used_fields = step.used_fields()
+        used_fields = None
+        if not self.collect_options.disable_column_prunning:
+            used_fields = step.used_fields()
         if used_fields is not None:
             logging.info("Restricting Parquet read %s columns to: %s", step,
                          used_fields)
@@ -318,7 +321,8 @@ class PandasPipeline:
     def _join_left(self, step: nudl.dataset.JoinLeftStep) -> PandasDataset:
         assert step.source is not None
         left_src = self.step_dataset(step.source)
-        right_join_fields = step.right_join_fields()
+        right_join_fields = step.right_join_fields(
+            self.collect_options.disable_column_prunning)
         if not step.right_spec or not right_join_fields:
             logging.info("Skiping join left for %s, per no joins needed", step)
             return left_src
@@ -373,9 +377,10 @@ class PandasEngineImpl(nudl.dataset.DatasetEngine):
     def __init__(self):
         super().__init__("Pandas")
 
-    def collect(self,
-                step: nudl.dataset.DatasetStep) -> typing.List[typing.Any]:
-        pipeline = PandasPipeline()
+    def collect(
+            self, step: nudl.dataset.DatasetStep,
+            options: nudl.dataset.CollectOptions) -> typing.List[typing.Any]:
+        pipeline = PandasPipeline(options)
         collector = nudl.dataset.FieldUsageCollector()
         step.update_field_usage(collector, True)
         return pipeline.step_dataset(step).collect()

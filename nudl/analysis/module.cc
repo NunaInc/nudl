@@ -181,6 +181,21 @@ void ModuleStore::set_module_code(absl::string_view module_name,
   module_code_.emplace(module_name, module_code);
 }
 
+absl::StatusOr<Module*> ModuleStore::ImportFromString(
+    absl::string_view module_name, absl::string_view code) {
+  std::vector<std::string> local_chain;
+  ModuleFileReader::ModuleReadResult module_info{
+    std::string(module_name), {}, {}, false, std::string(code)};
+  auto module_result =
+      Module::ParseAndImport(std::move(module_info), this, &local_chain);
+  if (!module_result.ok()) {
+    return module_result.status();
+  }
+  auto module = std::move(module_result).value();
+  modules_.emplace(std::string(module_name), module);
+  return module;
+}
+
 absl::StatusOr<Module*> ModuleStore::ImportModule(
     absl::string_view module_name, std::vector<std::string>* import_chain) {
   std::vector<std::string> local_chain;

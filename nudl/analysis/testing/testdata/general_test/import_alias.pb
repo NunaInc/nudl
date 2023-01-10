@@ -134,7 +134,7 @@ expression {
             }
           }
           binding_type {
-            name: "Function<HumanName(use: Null, family: Null, given: Null, prefix: Array<String>, suffix: Array<String>)>"
+            name: "Function<HumanName(use: Nullable<String>, family: Nullable<String>, given: Nullable<String>, prefix: Array<String>, suffix: Array<String>)>"
           }
         }
       }

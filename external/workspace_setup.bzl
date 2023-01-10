@@ -24,6 +24,7 @@ load("@rules_antlr//antlr:lang.bzl", "CPP", "PYTHON")
 load("@rules_antlr//antlr:repositories.bzl", "rules_antlr_dependencies")
 load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+load("@nuna_nudl//external/py:python_configure.bzl", "python_configure")
 
 def nuna_nudl_setup_workspace():
     rules_cc_dependencies()
@@ -40,4 +41,9 @@ def nuna_nudl_setup_workspace():
     python_register_toolchains(
         name = "python3_9",
         python_version = "3.9",
+    )
+    python_configure(name = "local_config_python")
+    native.bind(
+        name = "python_headers",
+        actual = "@local_config_python//:python_headers",
     )

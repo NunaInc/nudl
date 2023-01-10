@@ -1,0 +1,67 @@
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "codeutil",
+    srcs = ["codeutil.py"],
+    srcs_version = "PY3",
+    deps = [
+        "@pip_deps_astunparse//:pkg",
+        "@pip_deps_yapf//:pkg",
+    ],
+)
+
+py_library(
+    name = "livy_session",
+    srcs = [
+        "livy_session.py",
+    ],
+    srcs_version = "PY3",
+    deps = [
+        ":codeutil",
+        "@pip_deps_livy//:pkg",
+        "@pip_deps_requests//:pkg",
+    ],
+)
+
+py_library(
+    name = "livy_test_server",
+    srcs = [
+        "livy_test_server.py",
+    ],
+    srcs_version = "PY3",
+    deps = [
+        "@pip_deps_pyspark//:pkg",
+    ],
+)
+
+py_binary(
+    name = "run_livy_test_server",
+    srcs = [
+        "run_livy_test_server.py",
+    ],
+    srcs_version = "PY3",
+    deps = [
+        ":livy_test_server",
+        "@pip_deps_absl_py//:pkg",
+    ],
+)
+
+py_test(
+    name = "codeutil_test",
+    srcs = ["codeutil_test.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":codeutil",
+    ],
+)
+
+py_test(
+    name = "livy_session_test",
+    srcs = ["livy_session_test.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":livy_session",
+        ":livy_test_server",
+        "@pip_deps_livy//:pkg",
+    ],
+)

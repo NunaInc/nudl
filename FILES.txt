@@ -10,6 +10,7 @@ WORKSPACE
 analyze.sh
 bazel
 external
+jupyter
 nudl
 requirements.txt
 requirements_lock.txt

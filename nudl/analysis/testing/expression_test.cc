@@ -453,7 +453,7 @@ TEST_F(AnalysisTest, DotExpression) {
                         kind: EXPR_FUNCTION_CALL
                         type_spec { name: "String" }
                         call_spec {
-                          call_name { full_name: "ensure__i2__bind_1" }
+                          call_name { full_name: "ensure__i2" }
                           argument {
                             name: "x"
                             value {
@@ -469,7 +469,7 @@ TEST_F(AnalysisTest, DotExpression) {
                             }
                           }
                           binding_type {
-                            name: "Function<String(x: String, val: String*)>"
+                            name: "Function<String(x: Nullable<String>, val: String*)>"
                           }
                         }
                       }

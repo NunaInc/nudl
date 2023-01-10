@@ -51,12 +51,15 @@ class ConvertTool {
   absl::Status Prepare();
   void AddBuiltinModule();
   absl::Status LoadModule(absl::string_view module_name);
+  absl::Status LoadModuleFromString(absl::string_view module_name,
+                                    absl::string_view code);
   absl::Status WritePythonOutput(
       absl::string_view output_path, absl::string_view py_path,
       bool direct_output,
       const absl::flat_hash_map<std::string, std::string>& output_dirs);
   absl::Status WriteConversionToStdout();
   void WriteTimingInfoToStdout();
+  absl::StatusOr<std::string> ConvertToString();
 
  private:
   static void PythonPreparePath(const std_filesystem::path& file_path,
@@ -112,6 +115,18 @@ struct ConvertToolOptions {
 };
 
 absl::Status RunConvertTool(const ConvertToolOptions& options);
+
+// This conversion function is to be wrapped in Cython for ad-hoc
+// conversion of Nudl snippets.
+// If errors occur, we place them in errors, and return an empty
+// string.
+std::string ConvertPythonSource(
+    const std::string& module_name,
+    const std::string& code,
+    const std::string& builtin_path,
+    const std::vector<std::string>& search_paths,
+    std::vector<std::string>* errors);
+
 
 }  // namespace nudl
 

@@ -149,9 +149,14 @@ bool TypeUtils::IsNamedTupleType(const TypeSpec& type_spec) {
   return static_cast<const TypeTuple&>(type_spec).is_named();
 }
 
-bool TypeUtils::IsNullableType(const TypeSpec& type_spec) {
+bool TypeUtils::IsNullLikeType(const TypeSpec& type_spec) {
   const size_t type_id = type_spec.type_id();
   return (type_id == pb::TypeId::NULL_ID || type_id == pb::TypeId::NULLABLE_ID);
+}
+
+bool TypeUtils::IsNullableType(const TypeSpec& type_spec) {
+  const size_t type_id = type_spec.type_id();
+  return type_id == pb::TypeId::NULLABLE_ID;
 }
 
 bool TypeUtils::IsFunctionType(const TypeSpec& type_spec) {

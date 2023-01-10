@@ -306,6 +306,9 @@ class LocalNamesRebinder {
  private:
   absl::Status RecordLocalName(const TypeSpec* src_param,
                                const TypeSpec* type_spec);
+  // Used to rebuild types when src_param is nullable.
+  absl::StatusOr<const TypeSpec*> RebuildNullable(
+      const TypeSpec* src_param, const TypeSpec* type_spec);
 
   absl::flat_hash_map<std::string, const TypeSpec*> local_types_;
 };

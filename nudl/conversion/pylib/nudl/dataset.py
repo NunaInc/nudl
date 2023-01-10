@@ -38,6 +38,18 @@ class StepKind(enum.Enum):
     LIMIT = 8
 
 
+@dataclasses.dataclass
+class CollectOptions:
+    disable_column_prunning: bool = False
+
+    @classmethod
+    def from_native_object(cls, obj: typing.Optional[typing.Any]):
+        """This hides the native nudl structure."""
+        if obj is None:
+            return cls()
+        return cls(getattr(obj, "disable_column_prunning", False))
+
+
 _DATASET_STEP_ID = 0
 
 
@@ -405,7 +417,7 @@ class JoinLeftStep(DatasetStep):
             else:
                 spec.spec_src.update_field_usage(collector, direct_collect)
 
-    def right_join_fields(self) -> typing.Set[str]:
+    def right_join_fields(self, disable_prunning=False) -> typing.Set[str]:
         """Returns the right side fields to be joined based on the
         used fields."""
         right_join_fields = set()
@@ -415,7 +427,8 @@ class JoinLeftStep(DatasetStep):
         # Check if we need to do any joins at all based on used fields:
         for right in self.right_spec:
             spec = JoinSpecDecoder(right)
-            if used_fields is None or spec.field_name in used_fields:
+            if (disable_prunning or used_fields is None or
+                    spec.field_name in used_fields):
                 right_join_fields.add(spec.field_name)
         return right_join_fields
 
@@ -454,5 +467,18 @@ class DatasetEngine:
     def __init__(self, name):
         self.name = name
 
-    def collect(self, step: DatasetStep) -> typing.List[typing.Any]:
+    def collect(self, step: DatasetStep,
+                options: CollectOptions) -> typing.List[typing.Any]:
         raise NotImplementedError(f"`collect` not implemented for {self.name}")
+
+
+_DEFAULT_ENGINE = DatasetEngine("Uninitialized Engine")
+
+
+def default_engine() -> DatasetEngine:
+    return _DEFAULT_ENGINE
+
+
+def set_default_engine(engine: DatasetEngine):
+    global _DEFAULT_ENGINE
+    _DEFAULT_ENGINE = engine

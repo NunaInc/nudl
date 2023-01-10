@@ -119,6 +119,10 @@ class ModuleStore {
       absl::string_view module_name,
       std::vector<std::string>* import_chain = nullptr);
 
+  // Imports a `module` from the code string.
+  absl::StatusOr<Module*> ImportFromString(
+      absl::string_view module_name, absl::string_view code);
+
   // Accessors:
   ModuleFileReader* reader() const;
   Scope* built_in_scope() const;
