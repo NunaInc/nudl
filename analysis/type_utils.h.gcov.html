@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-12-20 23:08:20</td>
+            <td class="headerValue">2023-01-10 20:44:49</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">1</td>
@@ -140,10 +140,10 @@
 <a name="78"><span class="lineNum">      78 </span>            : </a>
 <a name="79"><span class="lineNum">      79 </span>            : class BaseTypesStore : public ScopeTypeStore {</a>
 <a name="80"><span class="lineNum">      80 </span>            :  public:</a>
-<a name="81"><span class="lineNum">      81 </span><span class="lineCov">         60 :   explicit BaseTypesStore(GlobalTypeStore* global_store)</span></a>
-<a name="82"><span class="lineNum">      82 </span><span class="lineCov">         60 :       : ScopeTypeStore(absl::make_unique&lt;ScopeName&gt;(), global_store) {</span></a>
-<a name="83"><span class="lineNum">      83 </span><span class="lineCov">         60 :     CreateBaseTypes();</span></a>
-<a name="84"><span class="lineNum">      84 </span><span class="lineCov">         60 :   }</span></a>
+<a name="81"><span class="lineNum">      81 </span><span class="lineCov">         61 :   explicit BaseTypesStore(GlobalTypeStore* global_store)</span></a>
+<a name="82"><span class="lineNum">      82 </span><span class="lineCov">         61 :       : ScopeTypeStore(absl::make_unique&lt;ScopeName&gt;(), global_store) {</span></a>
+<a name="83"><span class="lineNum">      83 </span><span class="lineCov">         61 :     CreateBaseTypes();</span></a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineCov">         61 :   }</span></a>
 <a name="85"><span class="lineNum">      85 </span>            : </a>
 <a name="86"><span class="lineNum">      86 </span>            :  private:</a>
 <a name="87"><span class="lineNum">      87 </span>            :   void CreateBaseTypes();</a>
@@ -175,37 +175,38 @@
 <a name="113"><span class="lineNum">     113 </span>            :   static bool IsFloatType(const TypeSpec&amp; type_spec);</a>
 <a name="114"><span class="lineNum">     114 </span>            :   static bool IsNullType(const TypeSpec&amp; type_spec);</a>
 <a name="115"><span class="lineNum">     115 </span>            :   static bool IsNullableType(const TypeSpec&amp; type_spec);</a>
-<a name="116"><span class="lineNum">     116 </span>            :   static bool IsAnyType(const TypeSpec&amp; type_spec);</a>
-<a name="117"><span class="lineNum">     117 </span>            :   static bool IsTupleType(const TypeSpec&amp; type_spec);</a>
-<a name="118"><span class="lineNum">     118 </span>            :   static bool IsNamedTupleType(const TypeSpec&amp; type_spec);</a>
-<a name="119"><span class="lineNum">     119 </span>            :   static bool IsTupleJoinType(const TypeSpec&amp; type_spec);</a>
-<a name="120"><span class="lineNum">     120 </span>            :   static bool IsFunctionType(const TypeSpec&amp; type_spec);</a>
-<a name="121"><span class="lineNum">     121 </span>            :   static bool IsStructType(const TypeSpec&amp; type_spec);</a>
-<a name="122"><span class="lineNum">     122 </span>            :   static bool IsDatasetType(const TypeSpec&amp; type_spec);</a>
-<a name="123"><span class="lineNum">     123 </span>            :   static bool IsArrayType(const TypeSpec&amp; type_spec);</a>
-<a name="124"><span class="lineNum">     124 </span>            : </a>
-<a name="125"><span class="lineNum">     125 </span>            :   // If this type when passed as an arg to a function, cannot yield</a>
-<a name="126"><span class="lineNum">     126 </span>            :   // us much information, and would mostly fail the function if</a>
-<a name="127"><span class="lineNum">     127 </span>            :   // we try to parse its expressions.</a>
-<a name="128"><span class="lineNum">     128 </span>            :   static bool IsUndefinedArgType(const TypeSpec* arg_type);</a>
-<a name="129"><span class="lineNum">     129 </span>            : </a>
-<a name="130"><span class="lineNum">     130 </span>            :   // Builds and returns a union of int and uint.</a>
-<a name="131"><span class="lineNum">     131 </span>            :   // This expects the provided store to be fully built and initialized</a>
-<a name="132"><span class="lineNum">     132 </span>            :   // with the standard types, else check fails.</a>
-<a name="133"><span class="lineNum">     133 </span>            :   static std::unique_ptr&lt;TypeSpec&gt; IntIndexType(TypeStore* type_store);</a>
-<a name="134"><span class="lineNum">     134 </span>            :   // Builds and returns a nullable of provided type.</a>
-<a name="135"><span class="lineNum">     135 </span>            :   // This expects the provided store to be fully built and initialized</a>
-<a name="136"><span class="lineNum">     136 </span>            :   // with the standard types, else check fails.</a>
-<a name="137"><span class="lineNum">     137 </span>            :   static std::unique_ptr&lt;TypeSpec&gt; NullableType(TypeStore* type_store,</a>
-<a name="138"><span class="lineNum">     138 </span>            :                                                 const TypeSpec* type_spec);</a>
-<a name="139"><span class="lineNum">     139 </span>            :   // Checks if the provided type is a function, or it is bound.</a>
-<a name="140"><span class="lineNum">     140 </span>            :   static absl::Status CheckFunctionTypeIsBound(const TypeSpec* type_spec);</a>
-<a name="141"><span class="lineNum">     141 </span>            : };</a>
-<a name="142"><span class="lineNum">     142 </span>            : </a>
-<a name="143"><span class="lineNum">     143 </span>            : }  // namespace analysis</a>
-<a name="144"><span class="lineNum">     144 </span>            : }  // namespace nudl</a>
-<a name="145"><span class="lineNum">     145 </span>            : </a>
-<a name="146"><span class="lineNum">     146 </span>            : #endif  // NUDL_ANALYSIS_TYPE_UTILS_H__</a>
+<a name="116"><span class="lineNum">     116 </span>            :   static bool IsNullLikeType(const TypeSpec&amp; type_spec);  // Null or Nullable</a>
+<a name="117"><span class="lineNum">     117 </span>            :   static bool IsAnyType(const TypeSpec&amp; type_spec);</a>
+<a name="118"><span class="lineNum">     118 </span>            :   static bool IsTupleType(const TypeSpec&amp; type_spec);</a>
+<a name="119"><span class="lineNum">     119 </span>            :   static bool IsNamedTupleType(const TypeSpec&amp; type_spec);</a>
+<a name="120"><span class="lineNum">     120 </span>            :   static bool IsTupleJoinType(const TypeSpec&amp; type_spec);</a>
+<a name="121"><span class="lineNum">     121 </span>            :   static bool IsFunctionType(const TypeSpec&amp; type_spec);</a>
+<a name="122"><span class="lineNum">     122 </span>            :   static bool IsStructType(const TypeSpec&amp; type_spec);</a>
+<a name="123"><span class="lineNum">     123 </span>            :   static bool IsDatasetType(const TypeSpec&amp; type_spec);</a>
+<a name="124"><span class="lineNum">     124 </span>            :   static bool IsArrayType(const TypeSpec&amp; type_spec);</a>
+<a name="125"><span class="lineNum">     125 </span>            : </a>
+<a name="126"><span class="lineNum">     126 </span>            :   // If this type when passed as an arg to a function, cannot yield</a>
+<a name="127"><span class="lineNum">     127 </span>            :   // us much information, and would mostly fail the function if</a>
+<a name="128"><span class="lineNum">     128 </span>            :   // we try to parse its expressions.</a>
+<a name="129"><span class="lineNum">     129 </span>            :   static bool IsUndefinedArgType(const TypeSpec* arg_type);</a>
+<a name="130"><span class="lineNum">     130 </span>            : </a>
+<a name="131"><span class="lineNum">     131 </span>            :   // Builds and returns a union of int and uint.</a>
+<a name="132"><span class="lineNum">     132 </span>            :   // This expects the provided store to be fully built and initialized</a>
+<a name="133"><span class="lineNum">     133 </span>            :   // with the standard types, else check fails.</a>
+<a name="134"><span class="lineNum">     134 </span>            :   static std::unique_ptr&lt;TypeSpec&gt; IntIndexType(TypeStore* type_store);</a>
+<a name="135"><span class="lineNum">     135 </span>            :   // Builds and returns a nullable of provided type.</a>
+<a name="136"><span class="lineNum">     136 </span>            :   // This expects the provided store to be fully built and initialized</a>
+<a name="137"><span class="lineNum">     137 </span>            :   // with the standard types, else check fails.</a>
+<a name="138"><span class="lineNum">     138 </span>            :   static std::unique_ptr&lt;TypeSpec&gt; NullableType(TypeStore* type_store,</a>
+<a name="139"><span class="lineNum">     139 </span>            :                                                 const TypeSpec* type_spec);</a>
+<a name="140"><span class="lineNum">     140 </span>            :   // Checks if the provided type is a function, or it is bound.</a>
+<a name="141"><span class="lineNum">     141 </span>            :   static absl::Status CheckFunctionTypeIsBound(const TypeSpec* type_spec);</a>
+<a name="142"><span class="lineNum">     142 </span>            : };</a>
+<a name="143"><span class="lineNum">     143 </span>            : </a>
+<a name="144"><span class="lineNum">     144 </span>            : }  // namespace analysis</a>
+<a name="145"><span class="lineNum">     145 </span>            : }  // namespace nudl</a>
+<a name="146"><span class="lineNum">     146 </span>            : </a>
+<a name="147"><span class="lineNum">     147 </span>            : #endif  // NUDL_ANALYSIS_TYPE_UTILS_H__</a>
 </pre>
       </td>
     </tr>

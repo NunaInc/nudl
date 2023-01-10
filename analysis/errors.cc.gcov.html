@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-12-20 23:08:20</td>
+            <td class="headerValue">2023-01-10 20:44:49</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">6</td>
@@ -97,16 +97,16 @@
 <a name="35"><span class="lineNum">      35 </span><span class="lineCov">        187 :   return info;</span></a>
 <a name="36"><span class="lineNum">      36 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="37"><span class="lineNum">      37 </span>            : </a>
-<a name="38"><span class="lineNum">      38 </span><span class="lineCov">       5743 : absl::Status&amp; CodeContext::AppendErrorToStatus(</span></a>
+<a name="38"><span class="lineNum">      38 </span><span class="lineCov">       5916 : absl::Status&amp; CodeContext::AppendErrorToStatus(</span></a>
 <a name="39"><span class="lineNum">      39 </span>            :     absl::Status&amp; status,  // NOLINT</a>
 <a name="40"><span class="lineNum">      40 </span>            :     absl::string_view message) const {</a>
-<a name="41"><span class="lineNum">      41 </span><span class="lineCov">       5743 :   if (!status.ok()) {</span></a>
+<a name="41"><span class="lineNum">      41 </span><span class="lineCov">       5916 :   if (!status.ok()) {</span></a>
 <a name="42"><span class="lineNum">      42 </span><span class="lineCov">          5 :     status.SetPayload(</span></a>
 <a name="43"><span class="lineNum">      43 </span><span class="lineCov">         10 :         absl::StrCat(grammar::kParseErrorUrl, &quot;/&quot;, 0),</span></a>
 <a name="44"><span class="lineNum">      44 </span><span class="lineCov">         20 :         absl::Cord(ToErrorInfo(absl::StrCat(message, &quot;: &quot;, status.message()))</span></a>
 <a name="45"><span class="lineNum">      45 </span><span class="lineCov">         10 :                        .SerializeAsString()));</span></a>
 <a name="46"><span class="lineNum">      46 </span>            :   }</a>
-<a name="47"><span class="lineNum">      47 </span><span class="lineCov">       5743 :   return status;</span></a>
+<a name="47"><span class="lineNum">      47 </span><span class="lineCov">       5916 :   return status;</span></a>
 <a name="48"><span class="lineNum">      48 </span>            : }</a>
 <a name="49"><span class="lineNum">      49 </span>            : </a>
 <a name="50"><span class="lineNum">      50 </span><span class="lineCov">         89 : std::vector&lt;std::string&gt; ExtractErrorLines(const absl::Status&amp; status) {</span></a>

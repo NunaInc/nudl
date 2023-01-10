@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-12-20 23:08:20</td>
+            <td class="headerValue">2023-01-10 20:44:49</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">82</td>
@@ -96,20 +96,20 @@
 <a name="34"><span class="lineNum">      34 </span>            : namespace nudl {</a>
 <a name="35"><span class="lineNum">      35 </span>            : namespace conversion {</a>
 <a name="36"><span class="lineNum">      36 </span>            : </a>
-<a name="37"><span class="lineNum">      37 </span><span class="lineCov">        206 : std::string PythonFileName(analysis::Module* module,</span></a>
+<a name="37"><span class="lineNum">      37 </span><span class="lineCov">        207 : std::string PythonFileName(analysis::Module* module,</span></a>
 <a name="38"><span class="lineNum">      38 </span>            :                            absl::string_view termination = &quot;.py&quot;) {</a>
-<a name="39"><span class="lineNum">      39 </span><span class="lineCov">        206 :   if (module-&gt;built_in_scope() == module) {</span></a>
+<a name="39"><span class="lineNum">      39 </span><span class="lineCov">        207 :   if (module-&gt;built_in_scope() == module) {</span></a>
 <a name="40"><span class="lineNum">      40 </span><span class="lineNoCov">          0 :     return absl::StrCat(&quot;nudl_builtins&quot;, termination);</span></a>
-<a name="41"><span class="lineNum">      41 </span><span class="lineCov">        206 :   } else if (module-&gt;is_init_module()) {</span></a>
+<a name="41"><span class="lineNum">      41 </span><span class="lineCov">        207 :   } else if (module-&gt;is_init_module()) {</span></a>
 <a name="42"><span class="lineNum">      42 </span>            :     return absl::StrCat(</a>
 <a name="43"><span class="lineNum">      43 </span><span class="lineNoCov">          0 :         analysis::ModuleFileReader::ModuleNameToPath(</span></a>
 <a name="44"><span class="lineNum">      44 </span><span class="lineNoCov">          0 :             conversion::PythonSafeName(module-&gt;module_name(), module)),</span></a>
 <a name="45"><span class="lineNum">      45 </span><span class="lineNoCov">          0 :         &quot;__init__&quot;, termination);</span></a>
 <a name="46"><span class="lineNum">      46 </span>            :   } else {</a>
 <a name="47"><span class="lineNum">      47 </span>            :     return absl::StrCat(</a>
-<a name="48"><span class="lineNum">      48 </span><span class="lineCov">        206 :         analysis::ModuleFileReader::ModuleNameToPath(</span></a>
-<a name="49"><span class="lineNum">      49 </span><span class="lineCov">        412 :             conversion::PythonSafeName(module-&gt;module_name(), module)),</span></a>
-<a name="50"><span class="lineNum">      50 </span><span class="lineCov">        618 :         termination);</span></a>
+<a name="48"><span class="lineNum">      48 </span><span class="lineCov">        207 :         analysis::ModuleFileReader::ModuleNameToPath(</span></a>
+<a name="49"><span class="lineNum">      49 </span><span class="lineCov">        414 :             conversion::PythonSafeName(module-&gt;module_name(), module)),</span></a>
+<a name="50"><span class="lineNum">      50 </span><span class="lineCov">        621 :         termination);</span></a>
 <a name="51"><span class="lineNum">      51 </span>            :   }</a>
 <a name="52"><span class="lineNum">      52 </span>            : }</a>
 <a name="53"><span class="lineNum">      53 </span>            : </a>
@@ -204,26 +204,26 @@
 <a name="142"><span class="lineNum">     142 </span>            :   bool is_inline_ = true;</a>
 <a name="143"><span class="lineNum">     143 </span>            : };</a>
 <a name="144"><span class="lineNum">     144 </span>            : </a>
-<a name="145"><span class="lineNum">     145 </span><span class="lineCov">        412 : PythonConvertState::PythonConvertState(analysis::Module* module,</span></a>
-<a name="146"><span class="lineNum">     146 </span><span class="lineCov">        412 :                                        bool should_inline, size_t indent_delta)</span></a>
+<a name="145"><span class="lineNum">     145 </span><span class="lineCov">        414 : PythonConvertState::PythonConvertState(analysis::Module* module,</span></a>
+<a name="146"><span class="lineNum">     146 </span><span class="lineCov">        414 :                                        bool should_inline, size_t indent_delta)</span></a>
 <a name="147"><span class="lineNum">     147 </span>            :     : ConvertState(module),</a>
-<a name="148"><span class="lineNum">     148 </span><span class="lineCov">        412 :       should_inline_(should_inline),</span></a>
-<a name="149"><span class="lineNum">     149 </span><span class="lineCov">        412 :       indent_delta_(indent_delta) {}</span></a>
+<a name="148"><span class="lineNum">     148 </span><span class="lineCov">        414 :       should_inline_(should_inline),</span></a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineCov">        414 :       indent_delta_(indent_delta) {}</span></a>
 <a name="150"><span class="lineNum">     150 </span>            : </a>
-<a name="151"><span class="lineNum">     151 </span><span class="lineCov">       2337 : PythonConvertState::PythonConvertState(PythonConvertState* superstate,</span></a>
-<a name="152"><span class="lineNum">     152 </span><span class="lineCov">       2337 :                                        bool should_inline)</span></a>
+<a name="151"><span class="lineNum">     151 </span><span class="lineCov">       2342 : PythonConvertState::PythonConvertState(PythonConvertState* superstate,</span></a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">       2342 :                                        bool should_inline)</span></a>
 <a name="153"><span class="lineNum">     153 </span>            :     : ConvertState(superstate-&gt;module()),</a>
-<a name="154"><span class="lineNum">     154 </span><span class="lineCov">       2337 :       superstate_(superstate),</span></a>
-<a name="155"><span class="lineNum">     155 </span><span class="lineCov">       2337 :       should_inline_(should_inline),</span></a>
-<a name="156"><span class="lineNum">     156 </span><span class="lineCov">       2337 :       indent_delta_(superstate-&gt;indent_delta_) {}</span></a>
+<a name="154"><span class="lineNum">     154 </span><span class="lineCov">       2342 :       superstate_(superstate),</span></a>
+<a name="155"><span class="lineNum">     155 </span><span class="lineCov">       2342 :       should_inline_(should_inline),</span></a>
+<a name="156"><span class="lineNum">     156 </span><span class="lineCov">       2342 :       indent_delta_(superstate-&gt;indent_delta_) {}</span></a>
 <a name="157"><span class="lineNum">     157 </span>            : </a>
-<a name="158"><span class="lineNum">     158 </span><span class="lineCov">       2955 : PythonConvertState::~PythonConvertState() {}</span></a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">       2963 : PythonConvertState::~PythonConvertState() {}</span></a>
 <a name="159"><span class="lineNum">     159 </span>            : </a>
 <a name="160"><span class="lineNum">     160 </span><span class="lineCov">       1387 : const std::string&amp; PythonConvertState::indent() const { return indent_str_; }</span></a>
 <a name="161"><span class="lineNum">     161 </span>            : </a>
-<a name="162"><span class="lineNum">     162 </span><span class="lineCov">       9667 : std::stringstream&amp; PythonConvertState::out() { return out_; }</span></a>
+<a name="162"><span class="lineNum">     162 </span><span class="lineCov">       9681 : std::stringstream&amp; PythonConvertState::out() { return out_; }</span></a>
 <a name="163"><span class="lineNum">     163 </span>            : </a>
-<a name="164"><span class="lineNum">     164 </span><span class="lineCov">       2854 : std::string PythonConvertState::out_str() const { return out_.str(); }</span></a>
+<a name="164"><span class="lineNum">     164 </span><span class="lineCov">       2861 : std::string PythonConvertState::out_str() const { return out_.str(); }</span></a>
 <a name="165"><span class="lineNum">     165 </span>            : </a>
 <a name="166"><span class="lineNum">     166 </span><span class="lineCov">       1057 : void PythonConvertState::inc_indent(size_t count) {</span></a>
 <a name="167"><span class="lineNum">     167 </span><span class="lineCov">       1057 :   indent_ += indent_delta_ * count;</span></a>
@@ -236,38 +236,38 @@
 <a name="174"><span class="lineNum">     174 </span><span class="lineCov">       1060 :   indent_str_ = std::string(indent_, ' ');</span></a>
 <a name="175"><span class="lineNum">     175 </span><span class="lineCov">       1060 : }</span></a>
 <a name="176"><span class="lineNum">     176 </span>            : </a>
-<a name="177"><span class="lineNum">     177 </span><span class="lineCov">       2825 : bool PythonConvertState::is_inline() const { return is_inline_; }</span></a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">       2832 : bool PythonConvertState::is_inline() const { return is_inline_; }</span></a>
 <a name="178"><span class="lineNum">     178 </span>            : </a>
-<a name="179"><span class="lineNum">     179 </span><span class="lineCov">        712 : void PythonConvertState::clear_inline() { is_inline_ = false; }</span></a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">        714 : void PythonConvertState::clear_inline() { is_inline_ = false; }</span></a>
 <a name="180"><span class="lineNum">     180 </span>            : </a>
-<a name="181"><span class="lineNum">     181 </span><span class="lineCov">       1276 : bool PythonConvertState::should_inline() const { return should_inline_; }</span></a>
+<a name="181"><span class="lineNum">     181 </span><span class="lineCov">       1278 : bool PythonConvertState::should_inline() const { return should_inline_; }</span></a>
 <a name="182"><span class="lineNum">     182 </span>            : </a>
-<a name="183"><span class="lineNum">     183 </span><span class="lineCov">       5086 : const absl::flat_hash_set&lt;std::string&gt;&amp; PythonConvertState::imports() const {</span></a>
-<a name="184"><span class="lineNum">     184 </span><span class="lineCov">       5086 :   return imports_;</span></a>
+<a name="183"><span class="lineNum">     183 </span><span class="lineCov">       5098 : const absl::flat_hash_set&lt;std::string&gt;&amp; PythonConvertState::imports() const {</span></a>
+<a name="184"><span class="lineNum">     184 </span><span class="lineCov">       5098 :   return imports_;</span></a>
 <a name="185"><span class="lineNum">     185 </span>            : }</a>
 <a name="186"><span class="lineNum">     186 </span>            : </a>
-<a name="187"><span class="lineNum">     187 </span><span class="lineCov">        898 : void PythonConvertState::add_import(absl::string_view import_stmt) {</span></a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">        900 : void PythonConvertState::add_import(absl::string_view import_stmt) {</span></a>
 <a name="188"><span class="lineNum">     188 </span>            :   // TODO(catalin): add a small RE check on this - just in case..</a>
-<a name="189"><span class="lineNum">     189 </span><span class="lineCov">        898 :   imports_.insert(std::string(import_stmt));</span></a>
-<a name="190"><span class="lineNum">     190 </span><span class="lineCov">        898 : }</span></a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">        900 :   imports_.insert(std::string(import_stmt));</span></a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineCov">        900 : }</span></a>
 <a name="191"><span class="lineNum">     191 </span>            : </a>
-<a name="192"><span class="lineNum">     192 </span><span class="lineCov">       2604 : PythonConvertState* PythonConvertState::superstate() const {</span></a>
-<a name="193"><span class="lineNum">     193 </span><span class="lineCov">       2604 :   return superstate_;</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">       2607 : PythonConvertState* PythonConvertState::superstate() const {</span></a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">       2607 :   return superstate_;</span></a>
 <a name="194"><span class="lineNum">     194 </span>            : }</a>
 <a name="195"><span class="lineNum">     195 </span>            : </a>
-<a name="196"><span class="lineNum">     196 </span><span class="lineCov">       1348 : PythonConvertState* PythonConvertState::top_superstate() const {</span></a>
-<a name="197"><span class="lineNum">     197 </span><span class="lineCov">       1348 :   PythonConvertState* s = superstate_;</span></a>
-<a name="198"><span class="lineNum">     198 </span><span class="lineCov">       1976 :   while (s) {</span></a>
-<a name="199"><span class="lineNum">     199 </span><span class="lineCov">       1976 :     if (!s-&gt;superstate()) {</span></a>
-<a name="200"><span class="lineNum">     200 </span><span class="lineCov">       1348 :       return s;</span></a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineCov">       1349 : PythonConvertState* PythonConvertState::top_superstate() const {</span></a>
+<a name="197"><span class="lineNum">     197 </span><span class="lineCov">       1349 :   PythonConvertState* s = superstate_;</span></a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineCov">       1978 :   while (s) {</span></a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineCov">       1978 :     if (!s-&gt;superstate()) {</span></a>
+<a name="200"><span class="lineNum">     200 </span><span class="lineCov">       1349 :       return s;</span></a>
 <a name="201"><span class="lineNum">     201 </span>            :     }</a>
-<a name="202"><span class="lineNum">     202 </span><span class="lineCov">        628 :     s = s-&gt;superstate();</span></a>
+<a name="202"><span class="lineNum">     202 </span><span class="lineCov">        629 :     s = s-&gt;superstate();</span></a>
 <a name="203"><span class="lineNum">     203 </span>            :   }</a>
 <a name="204"><span class="lineNum">     204 </span><span class="lineNoCov">          0 :   return nullptr;</span></a>
 <a name="205"><span class="lineNum">     205 </span>            : }</a>
 <a name="206"><span class="lineNum">     206 </span>            : </a>
-<a name="207"><span class="lineNum">     207 </span><span class="lineCov">       1010 : bool PythonConvertState::RegisterFunction(analysis::Function* fun) {</span></a>
-<a name="208"><span class="lineNum">     208 </span><span class="lineCov">       1010 :   return converted_functions_.emplace(fun).second;</span></a>
+<a name="207"><span class="lineNum">     207 </span><span class="lineCov">       1011 : bool PythonConvertState::RegisterFunction(analysis::Function* fun) {</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">       1011 :   return converted_functions_.emplace(fun).second;</span></a>
 <a name="209"><span class="lineNum">     209 </span>            : }</a>
 <a name="210"><span class="lineNum">     210 </span>            : </a>
 <a name="211"><span class="lineNum">     211 </span><span class="lineCov">        255 : bool PythonConvertState::RegisterFunctionGroup(analysis::FunctionGroup* group) {</span></a>
@@ -278,14 +278,14 @@
 <a name="216"><span class="lineNum">     216 </span><span class="lineCov">         83 :   return converted_structs_.emplace(ts-&gt;name()).second;</span></a>
 <a name="217"><span class="lineNum">     217 </span>            : }</a>
 <a name="218"><span class="lineNum">     218 </span>            : </a>
-<a name="219"><span class="lineNum">     219 </span><span class="lineCov">       1457 : absl::Status PythonConvertState::CheckInline(</span></a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">       1460 : absl::Status PythonConvertState::CheckInline(</span></a>
 <a name="220"><span class="lineNum">     220 </span>            :     const analysis::Expression&amp; expression) const {</a>
-<a name="221"><span class="lineNum">     221 </span><span class="lineCov">       1457 :   if (!is_inline()) {</span></a>
+<a name="221"><span class="lineNum">     221 </span><span class="lineCov">       1460 :   if (!is_inline()) {</span></a>
 <a name="222"><span class="lineNum">     222 </span><span class="lineNoCov">          0 :     return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="223"><span class="lineNum">     223 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot;Expression produces non inline output:\n&quot;</span></a>
 <a name="224"><span class="lineNum">     224 </span><span class="lineNoCov">          0 :            &lt;&lt; out_.str() &lt;&lt; &quot;\nFor: &quot; &lt;&lt; expression.DebugString();</span></a>
 <a name="225"><span class="lineNum">     225 </span>            :   }</a>
-<a name="226"><span class="lineNum">     226 </span><span class="lineCov">       1457 :   return absl::OkStatus();</span></a>
+<a name="226"><span class="lineNum">     226 </span><span class="lineCov">       1460 :   return absl::OkStatus();</span></a>
 <a name="227"><span class="lineNum">     227 </span>            : }</a>
 <a name="228"><span class="lineNum">     228 </span>            : </a>
 <a name="229"><span class="lineNum">     229 </span><span class="lineNoCov">          0 : absl::optional&lt;std::string&gt; PythonConvertState::main_module_content() const {</span></a>
@@ -296,28 +296,28 @@
 <a name="234"><span class="lineNum">     234 </span><span class="lineNoCov">          0 :   main_module_content_ = std::move(content);</span></a>
 <a name="235"><span class="lineNum">     235 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="236"><span class="lineNum">     236 </span>            : </a>
-<a name="237"><span class="lineNum">     237 </span><span class="lineCov">       1368 : absl::Status PythonConvertState::AddState(const PythonConvertState&amp; state) {</span></a>
-<a name="238"><span class="lineNum">     238 </span><span class="lineCov">       1368 :   AddImports(state);</span></a>
-<a name="239"><span class="lineNum">     239 </span><span class="lineCov">       1368 :   if (!state.is_inline() &amp;&amp; should_inline()) {</span></a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">       1372 : absl::Status PythonConvertState::AddState(const PythonConvertState&amp; state) {</span></a>
+<a name="238"><span class="lineNum">     238 </span><span class="lineCov">       1372 :   AddImports(state);</span></a>
+<a name="239"><span class="lineNum">     239 </span><span class="lineCov">       1372 :   if (!state.is_inline() &amp;&amp; should_inline()) {</span></a>
 <a name="240"><span class="lineNum">     240 </span><span class="lineNoCov">          0 :     return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="241"><span class="lineNum">     241 </span>            :            &lt;&lt; &quot;Cannot add code produced in a non-inline state &quot;</a>
 <a name="242"><span class="lineNum">     242 </span><span class="lineNoCov">          0 :               &quot;to a state that requires inline code. Faulty code: \n&quot;</span></a>
 <a name="243"><span class="lineNum">     243 </span><span class="lineNoCov">          0 :            &lt;&lt; state.out_str();</span></a>
 <a name="244"><span class="lineNum">     244 </span>            :   }</a>
-<a name="245"><span class="lineNum">     245 </span><span class="lineCov">       1368 :   out() &lt;&lt; state.out_str();</span></a>
-<a name="246"><span class="lineNum">     246 </span><span class="lineCov">       1368 :   return absl::OkStatus();</span></a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineCov">       1372 :   out() &lt;&lt; state.out_str();</span></a>
+<a name="246"><span class="lineNum">     246 </span><span class="lineCov">       1372 :   return absl::OkStatus();</span></a>
 <a name="247"><span class="lineNum">     247 </span>            : }</a>
 <a name="248"><span class="lineNum">     248 </span>            : </a>
 <a name="249"><span class="lineNum">     249 </span>            : // Add just the imports from state into this one.</a>
-<a name="250"><span class="lineNum">     250 </span><span class="lineCov">       2337 : void PythonConvertState::AddImports(const PythonConvertState&amp; state) {</span></a>
-<a name="251"><span class="lineNum">     251 </span><span class="lineCov">       2337 :   imports_.insert(state.imports().begin(), state.imports().end());</span></a>
-<a name="252"><span class="lineNum">     252 </span><span class="lineCov">       2337 : }</span></a>
+<a name="250"><span class="lineNum">     250 </span><span class="lineCov">       2342 : void PythonConvertState::AddImports(const PythonConvertState&amp; state) {</span></a>
+<a name="251"><span class="lineNum">     251 </span><span class="lineCov">       2342 :   imports_.insert(state.imports().begin(), state.imports().end());</span></a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineCov">       2342 : }</span></a>
 <a name="253"><span class="lineNum">     253 </span>            : </a>
 <a name="254"><span class="lineNum">     254 </span>            : namespace {</a>
-<a name="255"><span class="lineNum">     255 </span><span class="lineCov">        708 : std::string scope_name(const analysis::ScopeName&amp; name,</span></a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">        711 : std::string scope_name(const analysis::ScopeName&amp; name,</span></a>
 <a name="256"><span class="lineNum">     256 </span>            :                        bool with_final_dot = false) {</a>
-<a name="257"><span class="lineNum">     257 </span><span class="lineCov">        708 :   if (name.empty()) {</span></a>
-<a name="258"><span class="lineNum">     258 </span><span class="lineCov">        601 :     return &quot;&quot;;</span></a>
+<a name="257"><span class="lineNum">     257 </span><span class="lineCov">        711 :   if (name.empty()) {</span></a>
+<a name="258"><span class="lineNum">     258 </span><span class="lineCov">        604 :     return &quot;&quot;;</span></a>
 <a name="259"><span class="lineNum">     259 </span>            :   }</a>
 <a name="260"><span class="lineNum">     260 </span><span class="lineCov">        107 :   std::vector&lt;std::string&gt; names;</span></a>
 <a name="261"><span class="lineNum">     261 </span><span class="lineCov">        107 :   names.reserve(name.size() + 1);</span></a>
@@ -328,20 +328,20 @@
 <a name="266"><span class="lineNum">     266 </span><span class="lineCov">        107 :   return absl::StrCat(absl::StrJoin(names, &quot;.&quot;), (with_final_dot ? &quot;.&quot; : &quot;&quot;));</span></a>
 <a name="267"><span class="lineNum">     267 </span><span class="lineCov">        107 : }</span></a>
 <a name="268"><span class="lineNum">     268 </span>            : </a>
-<a name="269"><span class="lineNum">     269 </span><span class="lineCov">        656 : std::string scoped_name(const analysis::ScopedName&amp; name) {</span></a>
-<a name="270"><span class="lineNum">     270 </span><span class="lineCov">        656 :   if (name.name().empty()) {</span></a>
+<a name="269"><span class="lineNum">     269 </span><span class="lineCov">        659 : std::string scoped_name(const analysis::ScopedName&amp; name) {</span></a>
+<a name="270"><span class="lineNum">     270 </span><span class="lineCov">        659 :   if (name.name().empty()) {</span></a>
 <a name="271"><span class="lineNum">     271 </span><span class="lineNoCov">          0 :     return scope_name(name.scope_name());</span></a>
 <a name="272"><span class="lineNum">     272 </span>            :   }</a>
-<a name="273"><span class="lineNum">     273 </span><span class="lineCov">        656 :   return absl::StrCat(scope_name(name.scope_name(), true), name.name());</span></a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineCov">        659 :   return absl::StrCat(scope_name(name.scope_name(), true), name.name());</span></a>
 <a name="274"><span class="lineNum">     274 </span>            : }</a>
 <a name="275"><span class="lineNum">     275 </span>            : }  // namespace</a>
 <a name="276"><span class="lineNum">     276 </span>            : </a>
-<a name="277"><span class="lineNum">     277 </span><span class="lineCov">       2132 : analysis::Function* PythonConvertState::in_function_call() const {</span></a>
-<a name="278"><span class="lineNum">     278 </span><span class="lineCov">       2132 :   if (in_function_call_.empty()) {</span></a>
-<a name="279"><span class="lineNum">     279 </span><span class="lineCov">       1966 :     if (superstate_) {</span></a>
-<a name="280"><span class="lineNum">     280 </span><span class="lineCov">       1525 :       return superstate_-&gt;in_function_call();</span></a>
+<a name="277"><span class="lineNum">     277 </span><span class="lineCov">       2136 : analysis::Function* PythonConvertState::in_function_call() const {</span></a>
+<a name="278"><span class="lineNum">     278 </span><span class="lineCov">       2136 :   if (in_function_call_.empty()) {</span></a>
+<a name="279"><span class="lineNum">     279 </span><span class="lineCov">       1970 :     if (superstate_) {</span></a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineCov">       1528 :       return superstate_-&gt;in_function_call();</span></a>
 <a name="281"><span class="lineNum">     281 </span>            :     }</a>
-<a name="282"><span class="lineNum">     282 </span><span class="lineCov">        441 :     return nullptr;</span></a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineCov">        442 :     return nullptr;</span></a>
 <a name="283"><span class="lineNum">     283 </span>            :   }</a>
 <a name="284"><span class="lineNum">     284 </span><span class="lineCov">        166 :   return in_function_call_.back();</span></a>
 <a name="285"><span class="lineNum">     285 </span>            : }</a>
@@ -356,57 +356,57 @@
 <a name="294"><span class="lineNum">     294 </span><span class="lineCov">         83 :   in_function_call_.pop_back();</span></a>
 <a name="295"><span class="lineNum">     295 </span><span class="lineCov">         83 : }</span></a>
 <a name="296"><span class="lineNum">     296 </span>            : </a>
-<a name="297"><span class="lineNum">     297 </span><span class="lineCov">        206 : PythonConverter::PythonConverter(bool bindings_on_use)</span></a>
-<a name="298"><span class="lineNum">     298 </span><span class="lineCov">        206 :     : Converter(), bindings_on_use_(bindings_on_use) {}</span></a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">        207 : PythonConverter::PythonConverter(bool bindings_on_use)</span></a>
+<a name="298"><span class="lineNum">     298 </span><span class="lineCov">        207 :     : Converter(), bindings_on_use_(bindings_on_use) {}</span></a>
 <a name="299"><span class="lineNum">     299 </span>            : </a>
-<a name="300"><span class="lineNum">     300 </span><span class="lineCov">        206 : absl::StatusOr&lt;std::unique_ptr&lt;ConvertState&gt;&gt; PythonConverter::BeginModule(</span></a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineCov">        207 : absl::StatusOr&lt;std::unique_ptr&lt;ConvertState&gt;&gt; PythonConverter::BeginModule(</span></a>
 <a name="301"><span class="lineNum">     301 </span>            :     analysis::Module* module) const {</a>
-<a name="302"><span class="lineNum">     302 </span><span class="lineCov">        412 :   return std::make_unique&lt;PythonConvertState&gt;(module);</span></a>
+<a name="302"><span class="lineNum">     302 </span><span class="lineCov">        414 :   return std::make_unique&lt;PythonConvertState&gt;(module);</span></a>
 <a name="303"><span class="lineNum">     303 </span>            : }</a>
 <a name="304"><span class="lineNum">     304 </span>            : </a>
-<a name="305"><span class="lineNum">     305 </span><span class="lineCov">        206 : absl::StatusOr&lt;ConversionResult&gt; PythonConverter::FinishModule(</span></a>
+<a name="305"><span class="lineNum">     305 </span><span class="lineCov">        207 : absl::StatusOr&lt;ConversionResult&gt; PythonConverter::FinishModule(</span></a>
 <a name="306"><span class="lineNum">     306 </span>            :     analysis::Module* module, std::unique_ptr&lt;ConvertState&gt; state) const {</a>
-<a name="307"><span class="lineNum">     307 </span><span class="lineCov">        206 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state.get());</span></a>
-<a name="308"><span class="lineNum">     308 </span><span class="lineCov">        206 :   ConversionResult result;</span></a>
-<a name="309"><span class="lineNum">     309 </span><span class="lineCov">        206 :   if (module-&gt;main_function().has_value()) {</span></a>
+<a name="307"><span class="lineNum">     307 </span><span class="lineCov">        207 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state.get());</span></a>
+<a name="308"><span class="lineNum">     308 </span><span class="lineCov">        207 :   ConversionResult result;</span></a>
+<a name="309"><span class="lineNum">     309 </span><span class="lineCov">        207 :   if (module-&gt;main_function().has_value()) {</span></a>
 <a name="310"><span class="lineNum">     310 </span><span class="lineNoCov">          0 :     RET_CHECK(bstate-&gt;main_module_content().has_value());</span></a>
 <a name="311"><span class="lineNum">     311 </span><span class="lineNoCov">          0 :     result.files.emplace_back(ConversionResult::ConvertedFile{</span></a>
 <a name="312"><span class="lineNum">     312 </span><span class="lineNoCov">          0 :         PythonFileName(state-&gt;module(), &quot;_main.py&quot;),</span></a>
 <a name="313"><span class="lineNum">     313 </span><span class="lineNoCov">          0 :         bstate-&gt;main_module_content().value()});</span></a>
 <a name="314"><span class="lineNum">     314 </span>            :   }</a>
-<a name="315"><span class="lineNum">     315 </span><span class="lineCov">        206 :   result.files.emplace_back(ConversionResult::ConvertedFile{</span></a>
-<a name="316"><span class="lineNum">     316 </span><span class="lineCov">        206 :       PythonFileName(state-&gt;module()), bstate-&gt;out_str()});</span></a>
-<a name="317"><span class="lineNum">     317 </span><span class="lineCov">        206 :   return {std::move(result)};</span></a>
-<a name="318"><span class="lineNum">     318 </span><span class="lineCov">        206 : }</span></a>
+<a name="315"><span class="lineNum">     315 </span><span class="lineCov">        207 :   result.files.emplace_back(ConversionResult::ConvertedFile{</span></a>
+<a name="316"><span class="lineNum">     316 </span><span class="lineCov">        207 :       PythonFileName(state-&gt;module()), bstate-&gt;out_str()});</span></a>
+<a name="317"><span class="lineNum">     317 </span><span class="lineCov">        207 :   return {std::move(result)};</span></a>
+<a name="318"><span class="lineNum">     318 </span><span class="lineCov">        207 : }</span></a>
 <a name="319"><span class="lineNum">     319 </span>            : </a>
-<a name="320"><span class="lineNum">     320 </span><span class="lineCov">        926 : absl::Status PythonConverter::ConvertInlineExpression(</span></a>
+<a name="320"><span class="lineNum">     320 </span><span class="lineCov">        928 : absl::Status PythonConverter::ConvertInlineExpression(</span></a>
 <a name="321"><span class="lineNum">     321 </span>            :     const analysis::Expression&amp; expression, PythonConvertState* state,</a>
 <a name="322"><span class="lineNum">     322 </span>            :     std::optional&lt;std::string*&gt; str) const {</a>
-<a name="323"><span class="lineNum">     323 </span><span class="lineCov">        926 :   PythonConvertState expression_state(state, true);</span></a>
-<a name="324"><span class="lineNum">     324 </span><span class="lineCov">        926 :   RETURN_IF_ERROR(ConvertExpression(expression, &amp;expression_state));</span></a>
-<a name="325"><span class="lineNum">     325 </span><span class="lineCov">        926 :   RETURN_IF_ERROR(expression_state.CheckInline(expression));</span></a>
-<a name="326"><span class="lineNum">     326 </span><span class="lineCov">        926 :   if (str.has_value()) {</span></a>
+<a name="323"><span class="lineNum">     323 </span><span class="lineCov">        928 :   PythonConvertState expression_state(state, true);</span></a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineCov">        928 :   RETURN_IF_ERROR(ConvertExpression(expression, &amp;expression_state));</span></a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineCov">        928 :   RETURN_IF_ERROR(expression_state.CheckInline(expression));</span></a>
+<a name="326"><span class="lineNum">     326 </span><span class="lineCov">        928 :   if (str.has_value()) {</span></a>
 <a name="327"><span class="lineNum">     327 </span><span class="lineCov">        105 :     *str.value() = expression_state.out_str();</span></a>
 <a name="328"><span class="lineNum">     328 </span>            :   }</a>
-<a name="329"><span class="lineNum">     329 </span><span class="lineCov">        926 :   RETURN_IF_ERROR(state-&gt;AddState(expression_state));</span></a>
-<a name="330"><span class="lineNum">     330 </span><span class="lineCov">        926 :   return absl::OkStatus();</span></a>
-<a name="331"><span class="lineNum">     331 </span><span class="lineCov">        926 : }</span></a>
+<a name="329"><span class="lineNum">     329 </span><span class="lineCov">        928 :   RETURN_IF_ERROR(state-&gt;AddState(expression_state));</span></a>
+<a name="330"><span class="lineNum">     330 </span><span class="lineCov">        928 :   return absl::OkStatus();</span></a>
+<a name="331"><span class="lineNum">     331 </span><span class="lineCov">        928 : }</span></a>
 <a name="332"><span class="lineNum">     332 </span>            : </a>
-<a name="333"><span class="lineNum">     333 </span><span class="lineCov">        206 : absl::Status PythonConverter::ProcessModule(analysis::Module* module,</span></a>
+<a name="333"><span class="lineNum">     333 </span><span class="lineCov">        207 : absl::Status PythonConverter::ProcessModule(analysis::Module* module,</span></a>
 <a name="334"><span class="lineNum">     334 </span>            :                                             ConvertState* state) const {</a>
-<a name="335"><span class="lineNum">     335 </span><span class="lineCov">        206 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
-<a name="336"><span class="lineNum">     336 </span><span class="lineCov">        206 :   PythonConvertState local_state(module);</span></a>
-<a name="337"><span class="lineNum">     337 </span><span class="lineCov">        206 :   local_state.add_import(&quot;import nudl&quot;);</span></a>
+<a name="335"><span class="lineNum">     335 </span><span class="lineCov">        207 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
+<a name="336"><span class="lineNum">     336 </span><span class="lineCov">        207 :   PythonConvertState local_state(module);</span></a>
+<a name="337"><span class="lineNum">     337 </span><span class="lineCov">        207 :   local_state.add_import(&quot;import nudl&quot;);</span></a>
 <a name="338"><span class="lineNum">     338 </span>            :   // TODO(catalin) : to see here how we do exactly for name overloading..</a>
-<a name="339"><span class="lineNum">     339 </span><span class="lineCov">        206 :   if (module-&gt;built_in_scope() != module) {</span></a>
-<a name="340"><span class="lineNum">     340 </span><span class="lineCov">        206 :     local_state.add_import(&quot;from nudl_builtins import *&quot;);</span></a>
+<a name="339"><span class="lineNum">     339 </span><span class="lineCov">        207 :   if (module-&gt;built_in_scope() != module) {</span></a>
+<a name="340"><span class="lineNum">     340 </span><span class="lineCov">        207 :     local_state.add_import(&quot;from nudl_builtins import *&quot;);</span></a>
 <a name="341"><span class="lineNum">     341 </span>            :   }</a>
-<a name="342"><span class="lineNum">     342 </span><span class="lineCov">        648 :   for (const auto&amp; expression : module-&gt;expressions()) {</span></a>
-<a name="343"><span class="lineNum">     343 </span><span class="lineCov">        442 :     PythonConvertState expression_state(&amp;local_state);</span></a>
-<a name="344"><span class="lineNum">     344 </span><span class="lineCov">        442 :     RETURN_IF_ERROR(ConvertExpression(*expression.get(), &amp;expression_state));</span></a>
-<a name="345"><span class="lineNum">     345 </span><span class="lineCov">        442 :     RETURN_IF_ERROR(local_state.AddState(expression_state));</span></a>
-<a name="346"><span class="lineNum">     346 </span><span class="lineCov">        442 :   }</span></a>
-<a name="347"><span class="lineNum">     347 </span><span class="lineCov">        206 :   if (module-&gt;main_function().has_value()) {</span></a>
+<a name="342"><span class="lineNum">     342 </span><span class="lineCov">        651 :   for (const auto&amp; expression : module-&gt;expressions()) {</span></a>
+<a name="343"><span class="lineNum">     343 </span><span class="lineCov">        444 :     PythonConvertState expression_state(&amp;local_state);</span></a>
+<a name="344"><span class="lineNum">     344 </span><span class="lineCov">        444 :     RETURN_IF_ERROR(ConvertExpression(*expression.get(), &amp;expression_state));</span></a>
+<a name="345"><span class="lineNum">     345 </span><span class="lineCov">        444 :     RETURN_IF_ERROR(local_state.AddState(expression_state));</span></a>
+<a name="346"><span class="lineNum">     346 </span><span class="lineCov">        444 :   }</span></a>
+<a name="347"><span class="lineNum">     347 </span><span class="lineCov">        207 :   if (module-&gt;main_function().has_value()) {</span></a>
 <a name="348"><span class="lineNum">     348 </span><span class="lineNoCov">          0 :     PythonConvertState expression_state(&amp;local_state);</span></a>
 <a name="349"><span class="lineNum">     349 </span><span class="lineNoCov">          0 :     ASSIGN_OR_RETURN(std::string main_module,</span></a>
 <a name="350"><span class="lineNum">     350 </span>            :                      ConvertMainFunction(module-&gt;main_function().value(),</a>
@@ -414,24 +414,24 @@
 <a name="352"><span class="lineNum">     352 </span><span class="lineNoCov">          0 :     bstate-&gt;set_main_module_content(std::move(main_module));</span></a>
 <a name="353"><span class="lineNum">     353 </span><span class="lineNoCov">          0 :     RETURN_IF_ERROR(local_state.AddState(expression_state));</span></a>
 <a name="354"><span class="lineNum">     354 </span><span class="lineNoCov">          0 :   }</span></a>
-<a name="355"><span class="lineNum">     355 </span><span class="lineCov">        206 :   std::vector&lt;std::string&gt; imports(local_state.imports().begin(),</span></a>
-<a name="356"><span class="lineNum">     356 </span><span class="lineCov">        412 :                                    local_state.imports().end());</span></a>
-<a name="357"><span class="lineNum">     357 </span><span class="lineCov">        206 :   std::sort(imports.begin(), imports.end());</span></a>
-<a name="358"><span class="lineNum">     358 </span><span class="lineCov">        206 :   bstate-&gt;out() &lt;&lt; &quot;''' ------- NuDL autogenerated module:&quot; &lt;&lt; std::endl</span></a>
-<a name="359"><span class="lineNum">     359 </span><span class="lineCov">        206 :                 &lt;&lt; &quot;  Module Name: &quot; &lt;&lt; module-&gt;module_name() &lt;&lt; std::endl</span></a>
-<a name="360"><span class="lineNum">     360 </span><span class="lineCov">        206 :                 &lt;&lt; &quot;  Module File: &quot; &lt;&lt; module-&gt;file_path().native()</span></a>
-<a name="361"><span class="lineNum">     361 </span><span class="lineCov">        206 :                 &lt;&lt; std::endl</span></a>
-<a name="362"><span class="lineNum">     362 </span><span class="lineCov">        206 :                 &lt;&lt; &quot;  Parse Duration: &quot; &lt;&lt; module-&gt;parse_duration() &lt;&lt; std::endl</span></a>
-<a name="363"><span class="lineNum">     363 </span><span class="lineCov">        206 :                 &lt;&lt; &quot;  Analysis Duration: &quot; &lt;&lt; module-&gt;analysis_duration()</span></a>
-<a name="364"><span class="lineNum">     364 </span><span class="lineCov">        206 :                 &lt;&lt; std::endl</span></a>
-<a name="365"><span class="lineNum">     365 </span><span class="lineCov">        206 :                 &lt;&lt; &quot;-----'''&quot; &lt;&lt; std::endl</span></a>
-<a name="366"><span class="lineNum">     366 </span><span class="lineCov">        206 :                 &lt;&lt; std::endl</span></a>
-<a name="367"><span class="lineNum">     367 </span><span class="lineCov">        206 :                 &lt;&lt; absl::StrJoin(imports, &quot;\n&quot;) &lt;&lt; std::endl</span></a>
-<a name="368"><span class="lineNum">     368 </span><span class="lineCov">        206 :                 &lt;&lt; std::endl</span></a>
-<a name="369"><span class="lineNum">     369 </span><span class="lineCov">        206 :                 &lt;&lt; local_state.out_str() &lt;&lt; std::endl;</span></a>
+<a name="355"><span class="lineNum">     355 </span><span class="lineCov">        207 :   std::vector&lt;std::string&gt; imports(local_state.imports().begin(),</span></a>
+<a name="356"><span class="lineNum">     356 </span><span class="lineCov">        414 :                                    local_state.imports().end());</span></a>
+<a name="357"><span class="lineNum">     357 </span><span class="lineCov">        207 :   std::sort(imports.begin(), imports.end());</span></a>
+<a name="358"><span class="lineNum">     358 </span><span class="lineCov">        207 :   bstate-&gt;out() &lt;&lt; &quot;''' ------- NuDL autogenerated module:&quot; &lt;&lt; std::endl</span></a>
+<a name="359"><span class="lineNum">     359 </span><span class="lineCov">        207 :                 &lt;&lt; &quot;  Module Name: &quot; &lt;&lt; module-&gt;module_name() &lt;&lt; std::endl</span></a>
+<a name="360"><span class="lineNum">     360 </span><span class="lineCov">        207 :                 &lt;&lt; &quot;  Module File: &quot; &lt;&lt; module-&gt;file_path().native()</span></a>
+<a name="361"><span class="lineNum">     361 </span><span class="lineCov">        207 :                 &lt;&lt; std::endl</span></a>
+<a name="362"><span class="lineNum">     362 </span><span class="lineCov">        207 :                 &lt;&lt; &quot;  Parse Duration: &quot; &lt;&lt; module-&gt;parse_duration() &lt;&lt; std::endl</span></a>
+<a name="363"><span class="lineNum">     363 </span><span class="lineCov">        207 :                 &lt;&lt; &quot;  Analysis Duration: &quot; &lt;&lt; module-&gt;analysis_duration()</span></a>
+<a name="364"><span class="lineNum">     364 </span><span class="lineCov">        207 :                 &lt;&lt; std::endl</span></a>
+<a name="365"><span class="lineNum">     365 </span><span class="lineCov">        207 :                 &lt;&lt; &quot;-----'''&quot; &lt;&lt; std::endl</span></a>
+<a name="366"><span class="lineNum">     366 </span><span class="lineCov">        207 :                 &lt;&lt; std::endl</span></a>
+<a name="367"><span class="lineNum">     367 </span><span class="lineCov">        207 :                 &lt;&lt; absl::StrJoin(imports, &quot;\n&quot;) &lt;&lt; std::endl</span></a>
+<a name="368"><span class="lineNum">     368 </span><span class="lineCov">        207 :                 &lt;&lt; std::endl</span></a>
+<a name="369"><span class="lineNum">     369 </span><span class="lineCov">        207 :                 &lt;&lt; local_state.out_str() &lt;&lt; std::endl;</span></a>
 <a name="370"><span class="lineNum">     370 </span>            : </a>
-<a name="371"><span class="lineNum">     371 </span><span class="lineCov">        206 :   return absl::OkStatus();</span></a>
-<a name="372"><span class="lineNum">     372 </span><span class="lineCov">        206 : }</span></a>
+<a name="371"><span class="lineNum">     371 </span><span class="lineCov">        207 :   return absl::OkStatus();</span></a>
+<a name="372"><span class="lineNum">     372 </span><span class="lineCov">        207 : }</span></a>
 <a name="373"><span class="lineNum">     373 </span>            : namespace {</a>
 <a name="374"><span class="lineNum">     374 </span><span class="lineCov">       1270 : absl::optional&lt;std::pair&lt;std::string, std::string&gt;&gt; PythonTypeName(</span></a>
 <a name="375"><span class="lineNum">     375 </span>            :     int type_id) {</a>
@@ -602,27 +602,27 @@
 <a name="540"><span class="lineNum">     540 </span><span class="lineCov">        343 :   return absl::OkStatus();</span></a>
 <a name="541"><span class="lineNum">     541 </span><span class="lineCov">       1270 : }</span></a>
 <a name="542"><span class="lineNum">     542 </span>            : </a>
-<a name="543"><span class="lineNum">     543 </span><span class="lineCov">        177 : absl::Status PythonConverter::ConvertAssignment(</span></a>
+<a name="543"><span class="lineNum">     543 </span><span class="lineCov">        179 : absl::Status PythonConverter::ConvertAssignment(</span></a>
 <a name="544"><span class="lineNum">     544 </span>            :     const analysis::Assignment&amp; expression, ConvertState* state) const {</a>
 <a name="545"><span class="lineNum">     545 </span>            :   // TODO(catalin): See the param setting - needs `global` setting or</a>
 <a name="546"><span class="lineNum">     546 </span>            :   // setter function automatically defined.</a>
-<a name="547"><span class="lineNum">     547 </span><span class="lineCov">        177 :   RET_CHECK(!expression.children().empty());</span></a>
-<a name="548"><span class="lineNum">     548 </span><span class="lineCov">        177 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
-<a name="549"><span class="lineNum">     549 </span><span class="lineCov">        531 :   bstate-&gt;out() &lt;&lt; PythonSafeName(scoped_name(expression.name()),</span></a>
-<a name="550"><span class="lineNum">     550 </span><span class="lineCov">        354 :                                   expression.named_object());</span></a>
-<a name="551"><span class="lineNum">     551 </span><span class="lineCov">        177 :   if (expression.has_type_spec()) {</span></a>
+<a name="547"><span class="lineNum">     547 </span><span class="lineCov">        179 :   RET_CHECK(!expression.children().empty());</span></a>
+<a name="548"><span class="lineNum">     548 </span><span class="lineCov">        179 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
+<a name="549"><span class="lineNum">     549 </span><span class="lineCov">        537 :   bstate-&gt;out() &lt;&lt; PythonSafeName(scoped_name(expression.name()),</span></a>
+<a name="550"><span class="lineNum">     550 </span><span class="lineCov">        358 :                                   expression.named_object());</span></a>
+<a name="551"><span class="lineNum">     551 </span><span class="lineCov">        179 :   if (expression.has_type_spec()) {</span></a>
 <a name="552"><span class="lineNum">     552 </span><span class="lineCov">         70 :     bstate-&gt;out() &lt;&lt; &quot; : &quot;;</span></a>
 <a name="553"><span class="lineNum">     553 </span><span class="lineCov">         70 :     RETURN_IF_ERROR(</span></a>
 <a name="554"><span class="lineNum">     554 </span>            :         AddTypeName(expression.var()-&gt;converted_type(), false, bstate));</a>
 <a name="555"><span class="lineNum">     555 </span><span class="lineCov">         70 :   }</span></a>
-<a name="556"><span class="lineNum">     556 </span><span class="lineCov">        177 :   bstate-&gt;out() &lt;&lt; &quot; = &quot;;</span></a>
-<a name="557"><span class="lineNum">     557 </span><span class="lineCov">        177 :   RETURN_IF_ERROR(</span></a>
+<a name="556"><span class="lineNum">     556 </span><span class="lineCov">        179 :   bstate-&gt;out() &lt;&lt; &quot; = &quot;;</span></a>
+<a name="557"><span class="lineNum">     557 </span><span class="lineCov">        179 :   RETURN_IF_ERROR(</span></a>
 <a name="558"><span class="lineNum">     558 </span>            :       ConvertInlineExpression(*expression.children().front(), bstate))</a>
 <a name="559"><span class="lineNum">     559 </span><span class="lineNoCov">          0 :       &lt;&lt; &quot;In assignment&quot;;</span></a>
-<a name="560"><span class="lineNum">     560 </span><span class="lineCov">        177 :   bstate-&gt;out() &lt;&lt; std::endl;</span></a>
-<a name="561"><span class="lineNum">     561 </span><span class="lineCov">        177 :   bstate-&gt;clear_inline();</span></a>
-<a name="562"><span class="lineNum">     562 </span><span class="lineCov">        177 :   return absl::OkStatus();</span></a>
-<a name="563"><span class="lineNum">     563 </span><span class="lineCov">        177 : }</span></a>
+<a name="560"><span class="lineNum">     560 </span><span class="lineCov">        179 :   bstate-&gt;out() &lt;&lt; std::endl;</span></a>
+<a name="561"><span class="lineNum">     561 </span><span class="lineCov">        179 :   bstate-&gt;clear_inline();</span></a>
+<a name="562"><span class="lineNum">     562 </span><span class="lineCov">        179 :   return absl::OkStatus();</span></a>
+<a name="563"><span class="lineNum">     563 </span><span class="lineCov">        179 : }</span></a>
 <a name="564"><span class="lineNum">     564 </span><span class="lineCov">          6 : absl::Status PythonConverter::ConvertEmptyStruct(</span></a>
 <a name="565"><span class="lineNum">     565 </span>            :     const analysis::EmptyStruct&amp; expression, ConvertState* state) const {</a>
 <a name="566"><span class="lineNum">     566 </span><span class="lineCov">          6 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
@@ -636,16 +636,16 @@
 <a name="574"><span class="lineNum">     574 </span><span class="lineCov">          6 :   return absl::OkStatus();</span></a>
 <a name="575"><span class="lineNum">     575 </span>            : }</a>
 <a name="576"><span class="lineNum">     576 </span>            : </a>
-<a name="577"><span class="lineNum">     577 </span><span class="lineCov">        416 : absl::Status PythonConverter::ConvertLiteral(</span></a>
+<a name="577"><span class="lineNum">     577 </span><span class="lineCov">        417 : absl::Status PythonConverter::ConvertLiteral(</span></a>
 <a name="578"><span class="lineNum">     578 </span>            :     const analysis::Literal&amp; expression, ConvertState* state) const {</a>
-<a name="579"><span class="lineNum">     579 </span><span class="lineCov">        416 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
-<a name="580"><span class="lineNum">     580 </span><span class="lineCov">        416 :   switch (expression.build_type_spec()-&gt;type_id()) {</span></a>
+<a name="579"><span class="lineNum">     579 </span><span class="lineCov">        417 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
+<a name="580"><span class="lineNum">     580 </span><span class="lineCov">        417 :   switch (expression.build_type_spec()-&gt;type_id()) {</span></a>
 <a name="581"><span class="lineNum">     581 </span><span class="lineCov">         28 :     case pb::TypeId::NULL_ID:</span></a>
 <a name="582"><span class="lineNum">     582 </span><span class="lineCov">         28 :       bstate-&gt;out() &lt;&lt; &quot;None&quot;;</span></a>
 <a name="583"><span class="lineNum">     583 </span><span class="lineCov">         28 :       break;</span></a>
-<a name="584"><span class="lineNum">     584 </span><span class="lineCov">        263 :     case pb::TypeId::INT_ID:</span></a>
-<a name="585"><span class="lineNum">     585 </span><span class="lineCov">        263 :       bstate-&gt;out() &lt;&lt; absl::StrCat(std::any_cast&lt;int64_t&gt;(expression.value()));</span></a>
-<a name="586"><span class="lineNum">     586 </span><span class="lineCov">        263 :       break;</span></a>
+<a name="584"><span class="lineNum">     584 </span><span class="lineCov">        264 :     case pb::TypeId::INT_ID:</span></a>
+<a name="585"><span class="lineNum">     585 </span><span class="lineCov">        264 :       bstate-&gt;out() &lt;&lt; absl::StrCat(std::any_cast&lt;int64_t&gt;(expression.value()));</span></a>
+<a name="586"><span class="lineNum">     586 </span><span class="lineCov">        264 :       break;</span></a>
 <a name="587"><span class="lineNum">     587 </span><span class="lineCov">         14 :     case pb::TypeId::UINT_ID:</span></a>
 <a name="588"><span class="lineNum">     588 </span><span class="lineCov">         42 :       bstate-&gt;out() &lt;&lt; absl::StrCat(</span></a>
 <a name="589"><span class="lineNum">     589 </span><span class="lineCov">         28 :           std::any_cast&lt;uint64_t&gt;(expression.value()));</span></a>
@@ -690,15 +690,15 @@
 <a name="628"><span class="lineNum">     628 </span><span class="lineNoCov">          0 :              &lt;&lt; expression.build_type_spec()-&gt;full_name()</span></a>
 <a name="629"><span class="lineNum">     629 </span><span class="lineNoCov">          0 :              &lt;&lt; analysis::kBugNotice;</span></a>
 <a name="630"><span class="lineNum">     630 </span>            :   }</a>
-<a name="631"><span class="lineNum">     631 </span><span class="lineCov">        416 :   return absl::OkStatus();</span></a>
+<a name="631"><span class="lineNum">     631 </span><span class="lineCov">        417 :   return absl::OkStatus();</span></a>
 <a name="632"><span class="lineNum">     632 </span>            : }</a>
 <a name="633"><span class="lineNum">     633 </span>            : </a>
 <a name="634"><span class="lineNum">     634 </span>            : namespace {</a>
-<a name="635"><span class="lineNum">     635 </span><span class="lineCov">        524 : absl::optional&lt;analysis::Function*&gt; GetFunctionBinding(</span></a>
+<a name="635"><span class="lineNum">     635 </span><span class="lineCov">        525 : absl::optional&lt;analysis::Function*&gt; GetFunctionBinding(</span></a>
 <a name="636"><span class="lineNum">     636 </span>            :     const analysis::Expression&amp; expression, PythonConvertState* state) {</a>
-<a name="637"><span class="lineNum">     637 </span><span class="lineCov">        524 :   analysis::Function* check_fun = state-&gt;in_function_call();</span></a>
-<a name="638"><span class="lineNum">     638 </span><span class="lineCov">        524 :   if (!check_fun) {</span></a>
-<a name="639"><span class="lineNum">     639 </span><span class="lineCov">        441 :     return {};</span></a>
+<a name="637"><span class="lineNum">     637 </span><span class="lineCov">        525 :   analysis::Function* check_fun = state-&gt;in_function_call();</span></a>
+<a name="638"><span class="lineNum">     638 </span><span class="lineCov">        525 :   if (!check_fun) {</span></a>
+<a name="639"><span class="lineNum">     639 </span><span class="lineCov">        442 :     return {};</span></a>
 <a name="640"><span class="lineNum">     640 </span>            :   }</a>
 <a name="641"><span class="lineNum">     641 </span><span class="lineCov">         83 :   auto named_obj = expression.named_object();</span></a>
 <a name="642"><span class="lineNum">     642 </span><span class="lineCov">         83 :   if (!named_obj.has_value()) {</span></a>
@@ -719,11 +719,11 @@
 <a name="657"><span class="lineNum">     657 </span>            : }</a>
 <a name="658"><span class="lineNum">     658 </span>            : }  // namespace</a>
 <a name="659"><span class="lineNum">     659 </span>            : </a>
-<a name="660"><span class="lineNum">     660 </span><span class="lineCov">        516 : absl::Status PythonConverter::ConvertIdentifier(</span></a>
+<a name="660"><span class="lineNum">     660 </span><span class="lineCov">        517 : absl::Status PythonConverter::ConvertIdentifier(</span></a>
 <a name="661"><span class="lineNum">     661 </span>            :     const analysis::Identifier&amp; expression, ConvertState* state) const {</a>
-<a name="662"><span class="lineNum">     662 </span><span class="lineCov">        516 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
-<a name="663"><span class="lineNum">     663 </span><span class="lineCov">        516 :   auto binding = GetFunctionBinding(expression, bstate);</span></a>
-<a name="664"><span class="lineNum">     664 </span><span class="lineCov">        516 :   if (binding.has_value()) {</span></a>
+<a name="662"><span class="lineNum">     662 </span><span class="lineCov">        517 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
+<a name="663"><span class="lineNum">     663 </span><span class="lineCov">        517 :   auto binding = GetFunctionBinding(expression, bstate);</span></a>
+<a name="664"><span class="lineNum">     664 </span><span class="lineCov">        517 :   if (binding.has_value()) {</span></a>
 <a name="665"><span class="lineNum">     665 </span><span class="lineCov">         83 :     if (bindings_on_use_) {</span></a>
 <a name="666"><span class="lineNum">     666 </span><span class="lineCov">         40 :       ASSIGN_OR_RETURN(auto name,</span></a>
 <a name="667"><span class="lineNum">     667 </span>            :                        LocalFunctionName(binding.value(), true, state));</a>
@@ -740,21 +740,21 @@
 <a name="678"><span class="lineNum">     678 </span><span class="lineCov">         43 :       bstate-&gt;out() &lt;&lt; PythonSafeName(scoped_name(local_name), binding.value());</span></a>
 <a name="679"><span class="lineNum">     679 </span><span class="lineCov">         43 :     }</span></a>
 <a name="680"><span class="lineNum">     680 </span>            :   } else {</a>
-<a name="681"><span class="lineNum">     681 </span><span class="lineCov">        433 :     auto object = expression.named_object();</span></a>
-<a name="682"><span class="lineNum">     682 </span><span class="lineCov">        866 :     if (!object.has_value() ||</span></a>
-<a name="683"><span class="lineNum">     683 </span><span class="lineCov">        433 :         !analysis::Function::IsFunctionKind(*object.value())) {</span></a>
-<a name="684"><span class="lineNum">     684 </span><span class="lineCov">        431 :       std::string object_prefix = scoped_name(expression.scoped_name());</span></a>
+<a name="681"><span class="lineNum">     681 </span><span class="lineCov">        434 :     auto object = expression.named_object();</span></a>
+<a name="682"><span class="lineNum">     682 </span><span class="lineCov">        868 :     if (!object.has_value() ||</span></a>
+<a name="683"><span class="lineNum">     683 </span><span class="lineCov">        434 :         !analysis::Function::IsFunctionKind(*object.value())) {</span></a>
+<a name="684"><span class="lineNum">     684 </span><span class="lineCov">        432 :       std::string object_prefix = scoped_name(expression.scoped_name());</span></a>
 <a name="685"><span class="lineNum">     685 </span>            :       // This takes care of the case in which an external function that</a>
 <a name="686"><span class="lineNum">     686 </span>            :       // uses an external top level variable or related object is used in</a>
 <a name="687"><span class="lineNum">     687 </span>            :       // the locally bound function.</a>
-<a name="688"><span class="lineNum">     688 </span><span class="lineCov">        633 :       if (bindings_on_use_ &amp;&amp; object.has_value() &amp;&amp;</span></a>
-<a name="689"><span class="lineNum">     689 </span><span class="lineCov">        202 :           analysis::VarBase::IsVarKind(*object.value())) {</span></a>
+<a name="688"><span class="lineNum">     688 </span><span class="lineCov">        635 :       if (bindings_on_use_ &amp;&amp; object.has_value() &amp;&amp;</span></a>
+<a name="689"><span class="lineNum">     689 </span><span class="lineCov">        203 :           analysis::VarBase::IsVarKind(*object.value())) {</span></a>
 <a name="690"><span class="lineNum">     690 </span>            :         auto obj =</a>
-<a name="691"><span class="lineNum">     691 </span><span class="lineCov">        194 :             static_cast&lt;analysis::VarBase*&gt;(object.value())-&gt;GetRootVar();</span></a>
-<a name="692"><span class="lineNum">     692 </span><span class="lineCov">        194 :         if (obj-&gt;parent_store().has_value()) {</span></a>
-<a name="693"><span class="lineNum">     693 </span><span class="lineCov">        194 :           auto parent_store = obj-&gt;parent_store().value();</span></a>
-<a name="694"><span class="lineNum">     694 </span><span class="lineCov">        208 :           if (parent_store-&gt;kind() == pb::ObjectKind::OBJ_MODULE &amp;&amp;</span></a>
-<a name="695"><span class="lineNum">     695 </span><span class="lineCov">         14 :               parent_store != state-&gt;module()) {</span></a>
+<a name="691"><span class="lineNum">     691 </span><span class="lineCov">        195 :             static_cast&lt;analysis::VarBase*&gt;(object.value())-&gt;GetRootVar();</span></a>
+<a name="692"><span class="lineNum">     692 </span><span class="lineCov">        195 :         if (obj-&gt;parent_store().has_value()) {</span></a>
+<a name="693"><span class="lineNum">     693 </span><span class="lineCov">        195 :           auto parent_store = obj-&gt;parent_store().value();</span></a>
+<a name="694"><span class="lineNum">     694 </span><span class="lineCov">        210 :           if (parent_store-&gt;kind() == pb::ObjectKind::OBJ_MODULE &amp;&amp;</span></a>
+<a name="695"><span class="lineNum">     695 </span><span class="lineCov">         15 :               parent_store != state-&gt;module()) {</span></a>
 <a name="696"><span class="lineNum">     696 </span><span class="lineCov">          3 :             auto parent_module = static_cast&lt;analysis::Module*&gt;(parent_store);</span></a>
 <a name="697"><span class="lineNum">     697 </span>            :             std::string external_prefix =</a>
 <a name="698"><span class="lineNum">     698 </span><span class="lineCov">          3 :                 absl::StrCat(parent_module-&gt;scope_name().name(), &quot;.&quot;);</span></a>
@@ -764,8 +764,8 @@
 <a name="702"><span class="lineNum">     702 </span><span class="lineCov">          3 :           }</span></a>
 <a name="703"><span class="lineNum">     703 </span>            :         }</a>
 <a name="704"><span class="lineNum">     704 </span>            :       }</a>
-<a name="705"><span class="lineNum">     705 </span><span class="lineCov">        431 :       bstate-&gt;out() &lt;&lt; PythonSafeName(object_prefix, object);</span></a>
-<a name="706"><span class="lineNum">     706 </span><span class="lineCov">        431 :     } else {</span></a>
+<a name="705"><span class="lineNum">     705 </span><span class="lineCov">        432 :       bstate-&gt;out() &lt;&lt; PythonSafeName(object_prefix, object);</span></a>
+<a name="706"><span class="lineNum">     706 </span><span class="lineCov">        432 :     } else {</span></a>
 <a name="707"><span class="lineNum">     707 </span>            :       analysis::ScopedName fun_scoped_name(</a>
 <a name="708"><span class="lineNum">     708 </span><span class="lineCov">          2 :           expression.scoped_name().scope_name_ptr(),</span></a>
 <a name="709"><span class="lineNum">     709 </span><span class="lineCov">          6 :           static_cast&lt;const analysis::Function*&gt;(object.value())-&gt;call_name());</span></a>
@@ -773,7 +773,7 @@
 <a name="711"><span class="lineNum">     711 </span><span class="lineCov">          4 :                                       expression.named_object());</span></a>
 <a name="712"><span class="lineNum">     712 </span><span class="lineCov">          2 :     }</span></a>
 <a name="713"><span class="lineNum">     713 </span>            :   }</a>
-<a name="714"><span class="lineNum">     714 </span><span class="lineCov">        516 :   return absl::OkStatus();</span></a>
+<a name="714"><span class="lineNum">     714 </span><span class="lineCov">        517 :   return absl::OkStatus();</span></a>
 <a name="715"><span class="lineNum">     715 </span>            : }</a>
 <a name="716"><span class="lineNum">     716 </span>            : </a>
 <a name="717"><span class="lineNum">     717 </span><span class="lineCov">         44 : absl::Status PythonConverter::ConvertFunctionResult(</span></a>
@@ -1087,33 +1087,33 @@
 <a name="1025"><span class="lineNum">    1025 </span><span class="lineCov">          8 : }</span></a>
 <a name="1026"><span class="lineNum">    1026 </span>            : </a>
 <a name="1027"><span class="lineNum">    1027 </span>            : struct NativeConvert {</a>
-<a name="1028"><span class="lineNum">    1028 </span><span class="lineCov">        373 :   NativeConvert(analysis::Function* fun, PythonConvertState* state)</span></a>
-<a name="1029"><span class="lineNum">    1029 </span><span class="lineCov">        373 :       : fun(fun), state(state) {}</span></a>
+<a name="1028"><span class="lineNum">    1028 </span><span class="lineCov">        374 :   NativeConvert(analysis::Function* fun, PythonConvertState* state)</span></a>
+<a name="1029"><span class="lineNum">    1029 </span><span class="lineCov">        374 :       : fun(fun), state(state) {}</span></a>
 <a name="1030"><span class="lineNum">    1030 </span>            : </a>
-<a name="1031"><span class="lineNum">    1031 </span><span class="lineCov">        373 :   absl::flat_hash_set&lt;std::string&gt; FindMacros() const {</span></a>
-<a name="1032"><span class="lineNum">    1032 </span><span class="lineCov">        373 :     re2::StringPiece input(code);</span></a>
-<a name="1033"><span class="lineNum">    1033 </span><span class="lineCov">        373 :     absl::flat_hash_set&lt;std::string&gt; macros;</span></a>
-<a name="1034"><span class="lineNum">    1034 </span><span class="lineCov">        373 :     std::string token;</span></a>
-<a name="1035"><span class="lineNum">    1035 </span><span class="lineCov">        373 :     while (re2::RE2::FindAndConsume(&amp;input, R&quot;(\${{(\w+)}})&quot;, &amp;token)) {</span></a>
+<a name="1031"><span class="lineNum">    1031 </span><span class="lineCov">        374 :   absl::flat_hash_set&lt;std::string&gt; FindMacros() const {</span></a>
+<a name="1032"><span class="lineNum">    1032 </span><span class="lineCov">        374 :     re2::StringPiece input(code);</span></a>
+<a name="1033"><span class="lineNum">    1033 </span><span class="lineCov">        374 :     absl::flat_hash_set&lt;std::string&gt; macros;</span></a>
+<a name="1034"><span class="lineNum">    1034 </span><span class="lineCov">        374 :     std::string token;</span></a>
+<a name="1035"><span class="lineNum">    1035 </span><span class="lineCov">        374 :     while (re2::RE2::FindAndConsume(&amp;input, R&quot;(\${{(\w+)}})&quot;, &amp;token)) {</span></a>
 <a name="1036"><span class="lineNum">    1036 </span><span class="lineNoCov">          0 :       macros.insert(token);</span></a>
 <a name="1037"><span class="lineNum">    1037 </span>            :     }</a>
-<a name="1038"><span class="lineNum">    1038 </span><span class="lineCov">        746 :     return macros;</span></a>
-<a name="1039"><span class="lineNum">    1039 </span><span class="lineCov">        373 :   }</span></a>
-<a name="1040"><span class="lineNum">    1040 </span><span class="lineCov">        373 :   void PrepareMacros(</span></a>
+<a name="1038"><span class="lineNum">    1038 </span><span class="lineCov">        748 :     return macros;</span></a>
+<a name="1039"><span class="lineNum">    1039 </span><span class="lineCov">        374 :   }</span></a>
+<a name="1040"><span class="lineNum">    1040 </span><span class="lineCov">        374 :   void PrepareMacros(</span></a>
 <a name="1041"><span class="lineNum">    1041 </span>            :       const absl::flat_hash_map&lt;std::string, std::unique_ptr&lt;ConvertState&gt;&gt;&amp;</a>
 <a name="1042"><span class="lineNum">    1042 </span>            :           expansions) {</a>
-<a name="1043"><span class="lineNum">    1043 </span><span class="lineCov">        373 :     for (const auto&amp; it : expansions) {</span></a>
+<a name="1043"><span class="lineNum">    1043 </span><span class="lineCov">        374 :     for (const auto&amp; it : expansions) {</span></a>
 <a name="1044"><span class="lineNum">    1044 </span><span class="lineNoCov">          0 :       auto bstate = static_cast&lt;PythonConvertState*&gt;(it.second.get());</span></a>
 <a name="1045"><span class="lineNum">    1045 </span><span class="lineNoCov">          0 :       state-&gt;AddImports(*bstate);</span></a>
 <a name="1046"><span class="lineNum">    1046 </span><span class="lineNoCov">          0 :       arguments.emplace(absl::StrCat(&quot;${{&quot;, it.first, &quot;}}&quot;), bstate-&gt;out_str());</span></a>
 <a name="1047"><span class="lineNum">    1047 </span>            :     }</a>
-<a name="1048"><span class="lineNum">    1048 </span><span class="lineCov">        373 :   }</span></a>
+<a name="1048"><span class="lineNum">    1048 </span><span class="lineCov">        374 :   }</span></a>
 <a name="1049"><span class="lineNum">    1049 </span>            : </a>
-<a name="1050"><span class="lineNum">    1050 </span><span class="lineCov">        373 :   absl::StatusOr&lt;std::string&gt; Replace() {</span></a>
-<a name="1051"><span class="lineNum">    1051 </span><span class="lineCov">        373 :     PrepareStructConstructor();</span></a>
+<a name="1050"><span class="lineNum">    1050 </span><span class="lineCov">        374 :   absl::StatusOr&lt;std::string&gt; Replace() {</span></a>
+<a name="1051"><span class="lineNum">    1051 </span><span class="lineCov">        374 :     PrepareStructConstructor();</span></a>
 <a name="1052"><span class="lineNum">    1052 </span>            :     std::string replaced =</a>
-<a name="1053"><span class="lineNum">    1053 </span><span class="lineCov">        373 :         absl::StrReplaceAll(absl::StripAsciiWhitespace(code), arguments);</span></a>
-<a name="1054"><span class="lineNum">    1054 </span><span class="lineCov">        373 :     for (const auto&amp; s : skipped) {</span></a>
+<a name="1053"><span class="lineNum">    1053 </span><span class="lineCov">        374 :         absl::StrReplaceAll(absl::StripAsciiWhitespace(code), arguments);</span></a>
+<a name="1054"><span class="lineNum">    1054 </span><span class="lineCov">        374 :     for (const auto&amp; s : skipped) {</span></a>
 <a name="1055"><span class="lineNum">    1055 </span><span class="lineNoCov">          0 :       if (absl::StrContains(replaced, s)) {</span></a>
 <a name="1056"><span class="lineNum">    1056 </span><span class="lineNoCov">          0 :         return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="1057"><span class="lineNum">    1057 </span><span class="lineNoCov">          0 :                &lt;&lt; &quot;Argument: &quot; &lt;&lt; s</span></a>
@@ -1123,46 +1123,46 @@
 <a name="1061"><span class="lineNum">    1061 </span><span class="lineNoCov">          0 :                &lt;&lt; &quot;`&quot;;</span></a>
 <a name="1062"><span class="lineNum">    1062 </span>            :       }</a>
 <a name="1063"><span class="lineNum">    1063 </span>            :     }</a>
-<a name="1064"><span class="lineNum">    1064 </span><span class="lineCov">        373 :     return replaced;</span></a>
-<a name="1065"><span class="lineNum">    1065 </span><span class="lineCov">        373 :   }</span></a>
-<a name="1066"><span class="lineNum">    1066 </span><span class="lineCov">        630 :   std::string arg_escaped(absl::string_view arg_name) const {</span></a>
-<a name="1067"><span class="lineNum">    1067 </span><span class="lineCov">        630 :     return absl::StrCat(&quot;${&quot;, arg_name, &quot;}&quot;);</span></a>
+<a name="1064"><span class="lineNum">    1064 </span><span class="lineCov">        374 :     return replaced;</span></a>
+<a name="1065"><span class="lineNum">    1065 </span><span class="lineCov">        374 :   }</span></a>
+<a name="1066"><span class="lineNum">    1066 </span><span class="lineCov">        631 :   std::string arg_escaped(absl::string_view arg_name) const {</span></a>
+<a name="1067"><span class="lineNum">    1067 </span><span class="lineCov">        631 :     return absl::StrCat(&quot;${&quot;, arg_name, &quot;}&quot;);</span></a>
 <a name="1068"><span class="lineNum">    1068 </span>            :   }</a>
 <a name="1069"><span class="lineNum">    1069 </span><span class="lineNoCov">          0 :   void add_skipped(absl::string_view arg_name) {</span></a>
 <a name="1070"><span class="lineNum">    1070 </span><span class="lineNoCov">          0 :     skipped.emplace(arg_escaped(arg_name));</span></a>
 <a name="1071"><span class="lineNum">    1071 </span><span class="lineNoCov">          0 :   }</span></a>
-<a name="1072"><span class="lineNum">    1072 </span><span class="lineCov">        587 :   void add_arg(absl::string_view arg_name, std::string value) {</span></a>
-<a name="1073"><span class="lineNum">    1073 </span><span class="lineCov">        587 :     arguments_ordered.emplace_back(arg_name);</span></a>
-<a name="1074"><span class="lineNum">    1074 </span><span class="lineCov">        587 :     arguments.emplace(arg_escaped(arg_name), std::move(value));</span></a>
-<a name="1075"><span class="lineNum">    1075 </span><span class="lineCov">        587 :   }</span></a>
+<a name="1072"><span class="lineNum">    1072 </span><span class="lineCov">        588 :   void add_arg(absl::string_view arg_name, std::string value) {</span></a>
+<a name="1073"><span class="lineNum">    1073 </span><span class="lineCov">        588 :     arguments_ordered.emplace_back(arg_name);</span></a>
+<a name="1074"><span class="lineNum">    1074 </span><span class="lineCov">        588 :     arguments.emplace(arg_escaped(arg_name), std::move(value));</span></a>
+<a name="1075"><span class="lineNum">    1075 </span><span class="lineCov">        588 :   }</span></a>
 <a name="1076"><span class="lineNum">    1076 </span>            : </a>
-<a name="1077"><span class="lineNum">    1077 </span><span class="lineCov">        373 :   absl::Status Prepare() {</span></a>
-<a name="1078"><span class="lineNum">    1078 </span><span class="lineCov">        373 :     RET_CHECK(fun-&gt;is_native());</span></a>
-<a name="1079"><span class="lineNum">    1079 </span><span class="lineCov">        373 :     if (SetStructConstructor()) {</span></a>
+<a name="1077"><span class="lineNum">    1077 </span><span class="lineCov">        374 :   absl::Status Prepare() {</span></a>
+<a name="1078"><span class="lineNum">    1078 </span><span class="lineCov">        374 :     RET_CHECK(fun-&gt;is_native());</span></a>
+<a name="1079"><span class="lineNum">    1079 </span><span class="lineCov">        374 :     if (SetStructConstructor()) {</span></a>
 <a name="1080"><span class="lineNum">    1080 </span><span class="lineCov">         27 :       return absl::OkStatus();  // will be prepared later</span></a>
 <a name="1081"><span class="lineNum">    1081 </span>            :     }</a>
-<a name="1082"><span class="lineNum">    1082 </span><span class="lineCov">        346 :     auto py_inline_it = fun-&gt;native_impl().find(&quot;pyinline&quot;);</span></a>
-<a name="1083"><span class="lineNum">    1083 </span><span class="lineCov">        346 :     if (py_inline_it == fun-&gt;native_impl().end()) {</span></a>
+<a name="1082"><span class="lineNum">    1082 </span><span class="lineCov">        347 :     auto py_inline_it = fun-&gt;native_impl().find(&quot;pyinline&quot;);</span></a>
+<a name="1083"><span class="lineNum">    1083 </span><span class="lineCov">        347 :     if (py_inline_it == fun-&gt;native_impl().end()) {</span></a>
 <a name="1084"><span class="lineNum">    1084 </span><span class="lineNoCov">          0 :       return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="1085"><span class="lineNum">    1085 </span><span class="lineNoCov">          0 :              &lt;&lt; &quot;No native implementation under `pyinline` for function: &quot;</span></a>
 <a name="1086"><span class="lineNum">    1086 </span><span class="lineNoCov">          0 :              &lt;&lt; fun-&gt;name();</span></a>
 <a name="1087"><span class="lineNum">    1087 </span>            :     }</a>
-<a name="1088"><span class="lineNum">    1088 </span><span class="lineCov">        346 :     auto py_import_it = fun-&gt;native_impl().find(&quot;pyimport&quot;);</span></a>
-<a name="1089"><span class="lineNum">    1089 </span><span class="lineCov">        346 :     if (py_import_it != fun-&gt;native_impl().end()) {</span></a>
+<a name="1088"><span class="lineNum">    1088 </span><span class="lineCov">        347 :     auto py_import_it = fun-&gt;native_impl().find(&quot;pyimport&quot;);</span></a>
+<a name="1089"><span class="lineNum">    1089 </span><span class="lineCov">        347 :     if (py_import_it != fun-&gt;native_impl().end()) {</span></a>
 <a name="1090"><span class="lineNum">    1090 </span><span class="lineCov">          3 :       state-&gt;add_import(absl::StripAsciiWhitespace(py_import_it-&gt;second));</span></a>
 <a name="1091"><span class="lineNum">    1091 </span>            :     }</a>
-<a name="1092"><span class="lineNum">    1092 </span><span class="lineCov">        346 :     code = py_inline_it-&gt;second;</span></a>
-<a name="1093"><span class="lineNum">    1093 </span><span class="lineCov">        346 :     return absl::OkStatus();</span></a>
+<a name="1092"><span class="lineNum">    1092 </span><span class="lineCov">        347 :     code = py_inline_it-&gt;second;</span></a>
+<a name="1093"><span class="lineNum">    1093 </span><span class="lineCov">        347 :     return absl::OkStatus();</span></a>
 <a name="1094"><span class="lineNum">    1094 </span>            :   }</a>
 <a name="1095"><span class="lineNum">    1095 </span>            : </a>
 <a name="1096"><span class="lineNum">    1096 </span>            :  private:</a>
 <a name="1097"><span class="lineNum">    1097 </span>            :   enum StructConstructor { None, Copy, Build };</a>
-<a name="1098"><span class="lineNum">    1098 </span><span class="lineCov">        373 :   bool SetStructConstructor() {</span></a>
-<a name="1099"><span class="lineNum">    1099 </span><span class="lineCov">        373 :     auto it = fun-&gt;native_impl().find(analysis::kStructObjectConstructor);</span></a>
-<a name="1100"><span class="lineNum">    1100 </span><span class="lineCov">        373 :     if (it == fun-&gt;native_impl().end()) {</span></a>
-<a name="1101"><span class="lineNum">    1101 </span><span class="lineCov">        356 :       it = fun-&gt;native_impl().find(analysis::kStructCopyConstructor);</span></a>
-<a name="1102"><span class="lineNum">    1102 </span><span class="lineCov">        356 :       if (it == fun-&gt;native_impl().end()) {</span></a>
-<a name="1103"><span class="lineNum">    1103 </span><span class="lineCov">        346 :         return false;</span></a>
+<a name="1098"><span class="lineNum">    1098 </span><span class="lineCov">        374 :   bool SetStructConstructor() {</span></a>
+<a name="1099"><span class="lineNum">    1099 </span><span class="lineCov">        374 :     auto it = fun-&gt;native_impl().find(analysis::kStructObjectConstructor);</span></a>
+<a name="1100"><span class="lineNum">    1100 </span><span class="lineCov">        374 :     if (it == fun-&gt;native_impl().end()) {</span></a>
+<a name="1101"><span class="lineNum">    1101 </span><span class="lineCov">        357 :       it = fun-&gt;native_impl().find(analysis::kStructCopyConstructor);</span></a>
+<a name="1102"><span class="lineNum">    1102 </span><span class="lineCov">        357 :       if (it == fun-&gt;native_impl().end()) {</span></a>
+<a name="1103"><span class="lineNum">    1103 </span><span class="lineCov">        347 :         return false;</span></a>
 <a name="1104"><span class="lineNum">    1104 </span>            :       }</a>
 <a name="1105"><span class="lineNum">    1105 </span><span class="lineCov">         10 :       struct_construct = StructConstructor::Copy;</span></a>
 <a name="1106"><span class="lineNum">    1106 </span>            :     } else {</a>
@@ -1171,10 +1171,10 @@
 <a name="1109"><span class="lineNum">    1109 </span>            :     }</a>
 <a name="1110"><span class="lineNum">    1110 </span><span class="lineCov">         27 :     return true;</span></a>
 <a name="1111"><span class="lineNum">    1111 </span>            :   }</a>
-<a name="1112"><span class="lineNum">    1112 </span><span class="lineCov">        373 :   void PrepareStructConstructor() {</span></a>
-<a name="1113"><span class="lineNum">    1113 </span><span class="lineCov">        373 :     switch (struct_construct) {</span></a>
-<a name="1114"><span class="lineNum">    1114 </span><span class="lineCov">        346 :       case StructConstructor::None:</span></a>
-<a name="1115"><span class="lineNum">    1115 </span><span class="lineCov">        346 :         return;</span></a>
+<a name="1112"><span class="lineNum">    1112 </span><span class="lineCov">        374 :   void PrepareStructConstructor() {</span></a>
+<a name="1113"><span class="lineNum">    1113 </span><span class="lineCov">        374 :     switch (struct_construct) {</span></a>
+<a name="1114"><span class="lineNum">    1114 </span><span class="lineCov">        347 :       case StructConstructor::None:</span></a>
+<a name="1115"><span class="lineNum">    1115 </span><span class="lineCov">        347 :         return;</span></a>
 <a name="1116"><span class="lineNum">    1116 </span><span class="lineCov">         10 :       case StructConstructor::Copy: {</span></a>
 <a name="1117"><span class="lineNum">    1117 </span>            :         const std::string args_str =</a>
 <a name="1118"><span class="lineNum">    1118 </span><span class="lineCov">         20 :             absl::StrJoin(arguments_ordered, &quot;, &quot;,</span></a>
@@ -1217,15 +1217,15 @@
 <a name="1155"><span class="lineNum">    1155 </span>            : };</a>
 <a name="1156"><span class="lineNum">    1156 </span>            : </a>
 <a name="1157"><span class="lineNum">    1157 </span>            : namespace {</a>
-<a name="1158"><span class="lineNum">    1158 </span><span class="lineCov">        683 : void ConvertArgumentSubBinding(</span></a>
+<a name="1158"><span class="lineNum">    1158 </span><span class="lineCov">        684 : void ConvertArgumentSubBinding(</span></a>
 <a name="1159"><span class="lineNum">    1159 </span>            :     absl::string_view function_name, const analysis::Expression* call_binding,</a>
 <a name="1160"><span class="lineNum">    1160 </span>            :     analysis::TypeBindingArg type_spec,</a>
 <a name="1161"><span class="lineNum">    1161 </span>            :     std::optional&lt;analysis::FunctionBinding*&gt; sub_binding,</a>
 <a name="1162"><span class="lineNum">    1162 </span>            :     PythonConvertState* state) {</a>
-<a name="1163"><span class="lineNum">    1163 </span><span class="lineCov">        683 :   auto obj = call_binding-&gt;named_object();</span></a>
-<a name="1164"><span class="lineNum">    1164 </span><span class="lineCov">       1036 :   if (!obj.has_value() ||</span></a>
-<a name="1165"><span class="lineNum">    1165 </span><span class="lineCov">        353 :       !analysis::FunctionGroup::IsFunctionGroup(*obj.value())) {</span></a>
-<a name="1166"><span class="lineNum">    1166 </span><span class="lineCov">        672 :     return;</span></a>
+<a name="1163"><span class="lineNum">    1163 </span><span class="lineCov">        684 :   auto obj = call_binding-&gt;named_object();</span></a>
+<a name="1164"><span class="lineNum">    1164 </span><span class="lineCov">       1038 :   if (!obj.has_value() ||</span></a>
+<a name="1165"><span class="lineNum">    1165 </span><span class="lineCov">        354 :       !analysis::FunctionGroup::IsFunctionGroup(*obj.value())) {</span></a>
+<a name="1166"><span class="lineNum">    1166 </span><span class="lineCov">        673 :     return;</span></a>
 <a name="1167"><span class="lineNum">    1167 </span>            :   }</a>
 <a name="1168"><span class="lineNum">    1168 </span><span class="lineCov">         16 :   std::string signature;</span></a>
 <a name="1169"><span class="lineNum">    1169 </span><span class="lineCov">         16 :   if (sub_binding.has_value()) {</span></a>
@@ -1243,43 +1243,43 @@
 <a name="1181"><span class="lineNum">    1181 </span><span class="lineCov">         16 : }</span></a>
 <a name="1182"><span class="lineNum">    1182 </span>            : }  // namespace</a>
 <a name="1183"><span class="lineNum">    1183 </span>            : </a>
-<a name="1184"><span class="lineNum">    1184 </span><span class="lineCov">        326 : absl::Status PythonConverter::ConvertNativeFunctionCallExpression(</span></a>
+<a name="1184"><span class="lineNum">    1184 </span><span class="lineCov">        327 : absl::Status PythonConverter::ConvertNativeFunctionCallExpression(</span></a>
 <a name="1185"><span class="lineNum">    1185 </span>            :     const analysis::FunctionCallExpression&amp; expression, analysis::Function* fun,</a>
 <a name="1186"><span class="lineNum">    1186 </span>            :     PythonConvertState* state) const {</a>
-<a name="1187"><span class="lineNum">    1187 </span><span class="lineCov">        326 :   NativeConvert convert(fun, state);</span></a>
-<a name="1188"><span class="lineNum">    1188 </span><span class="lineCov">        326 :   RETURN_IF_ERROR(convert.Prepare());</span></a>
-<a name="1189"><span class="lineNum">    1189 </span><span class="lineCov">        326 :   ASSIGN_OR_RETURN(</span></a>
+<a name="1187"><span class="lineNum">    1187 </span><span class="lineCov">        327 :   NativeConvert convert(fun, state);</span></a>
+<a name="1188"><span class="lineNum">    1188 </span><span class="lineCov">        327 :   RETURN_IF_ERROR(convert.Prepare());</span></a>
+<a name="1189"><span class="lineNum">    1189 </span><span class="lineCov">        327 :   ASSIGN_OR_RETURN(</span></a>
 <a name="1190"><span class="lineNum">    1190 </span>            :       auto macros,</a>
 <a name="1191"><span class="lineNum">    1191 </span>            :       ProcessMacros(convert.FindMacros(), expression.scope(),</a>
 <a name="1192"><span class="lineNum">    1192 </span>            :                     expression.function_binding(), fun, state),</a>
 <a name="1193"><span class="lineNum">    1193 </span>            :       _ &lt;&lt; &quot;Processing macros in function call of: &quot; &lt;&lt; fun-&gt;full_name());</a>
-<a name="1194"><span class="lineNum">    1194 </span><span class="lineCov">        326 :   convert.PrepareMacros(macros);</span></a>
-<a name="1195"><span class="lineNum">    1195 </span><span class="lineCov">        326 :   RET_CHECK(expression.function_binding()-&gt;call_expressions.size() ==</span></a>
+<a name="1194"><span class="lineNum">    1194 </span><span class="lineCov">        327 :   convert.PrepareMacros(macros);</span></a>
+<a name="1195"><span class="lineNum">    1195 </span><span class="lineCov">        327 :   RET_CHECK(expression.function_binding()-&gt;call_expressions.size() ==</span></a>
 <a name="1196"><span class="lineNum">    1196 </span>            :             expression.function_binding()-&gt;names.size());</a>
-<a name="1197"><span class="lineNum">    1197 </span><span class="lineCov">        857 :   for (size_t i = 0; i &lt; expression.function_binding()-&gt;names.size(); ++i) {</span></a>
-<a name="1198"><span class="lineNum">    1198 </span><span class="lineCov">        531 :     absl::string_view arg_name = expression.function_binding()-&gt;names[i];</span></a>
-<a name="1199"><span class="lineNum">    1199 </span><span class="lineCov">        531 :     const auto&amp; expr = expression.function_binding()-&gt;call_expressions[i];</span></a>
-<a name="1200"><span class="lineNum">    1200 </span><span class="lineCov">        531 :     if (!expr.has_value()) {</span></a>
+<a name="1197"><span class="lineNum">    1197 </span><span class="lineCov">        859 :   for (size_t i = 0; i &lt; expression.function_binding()-&gt;names.size(); ++i) {</span></a>
+<a name="1198"><span class="lineNum">    1198 </span><span class="lineCov">        532 :     absl::string_view arg_name = expression.function_binding()-&gt;names[i];</span></a>
+<a name="1199"><span class="lineNum">    1199 </span><span class="lineCov">        532 :     const auto&amp; expr = expression.function_binding()-&gt;call_expressions[i];</span></a>
+<a name="1200"><span class="lineNum">    1200 </span><span class="lineCov">        532 :     if (!expr.has_value()) {</span></a>
 <a name="1201"><span class="lineNum">    1201 </span><span class="lineNoCov">          0 :       convert.add_skipped(arg_name);</span></a>
 <a name="1202"><span class="lineNum">    1202 </span><span class="lineNoCov">          0 :       continue;</span></a>
 <a name="1203"><span class="lineNum">    1203 </span>            :     }</a>
-<a name="1204"><span class="lineNum">    1204 </span><span class="lineCov">        531 :     PythonConvertState expression_state(state, true);</span></a>
-<a name="1205"><span class="lineNum">    1205 </span><span class="lineCov">        531 :     RETURN_IF_ERROR(ConvertExpression(*expr.value(), &amp;expression_state));</span></a>
-<a name="1206"><span class="lineNum">    1206 </span><span class="lineCov">        531 :     RETURN_IF_ERROR(expression_state.CheckInline(expression))</span></a>
+<a name="1204"><span class="lineNum">    1204 </span><span class="lineCov">        532 :     PythonConvertState expression_state(state, true);</span></a>
+<a name="1205"><span class="lineNum">    1205 </span><span class="lineCov">        532 :     RETURN_IF_ERROR(ConvertExpression(*expr.value(), &amp;expression_state));</span></a>
+<a name="1206"><span class="lineNum">    1206 </span><span class="lineCov">        532 :     RETURN_IF_ERROR(expression_state.CheckInline(expression))</span></a>
 <a name="1207"><span class="lineNum">    1207 </span><span class="lineNoCov">          0 :         &lt;&lt; &quot;For argument &quot; &lt;&lt; i &lt;&lt; &quot; : &quot; &lt;&lt; arg_name</span></a>
 <a name="1208"><span class="lineNum">    1208 </span><span class="lineNoCov">          0 :         &lt;&lt; &quot; of inline native function &quot; &lt;&lt; fun-&gt;call_name();</span></a>
-<a name="1209"><span class="lineNum">    1209 </span><span class="lineCov">        531 :     state-&gt;AddImports(expression_state);</span></a>
-<a name="1210"><span class="lineNum">    1210 </span><span class="lineCov">        531 :     CHECK_LT(i, expression.function_binding()-&gt;call_sub_bindings.size());</span></a>
-<a name="1211"><span class="lineNum">    1211 </span><span class="lineCov">        531 :     ConvertArgumentSubBinding(</span></a>
-<a name="1212"><span class="lineNum">    1212 </span><span class="lineCov">       1062 :         fun-&gt;call_name(), expr.value(),</span></a>
-<a name="1213"><span class="lineNum">    1213 </span><span class="lineCov">        531 :         expression.function_binding()-&gt;type_arguments[i],</span></a>
-<a name="1214"><span class="lineNum">    1214 </span><span class="lineCov">        531 :         expression.function_binding()-&gt;call_sub_bindings[i], &amp;expression_state);</span></a>
-<a name="1215"><span class="lineNum">    1215 </span><span class="lineCov">        531 :     convert.add_arg(arg_name, expression_state.out_str());</span></a>
-<a name="1216"><span class="lineNum">    1216 </span><span class="lineCov">        531 :   }</span></a>
-<a name="1217"><span class="lineNum">    1217 </span><span class="lineCov">        326 :   ASSIGN_OR_RETURN(std::string replaced, convert.Replace());</span></a>
-<a name="1218"><span class="lineNum">    1218 </span><span class="lineCov">        326 :   state-&gt;out() &lt;&lt; &quot;(&quot; &lt;&lt; replaced &lt;&lt; &quot;)&quot;;</span></a>
-<a name="1219"><span class="lineNum">    1219 </span><span class="lineCov">        326 :   return absl::OkStatus();</span></a>
-<a name="1220"><span class="lineNum">    1220 </span><span class="lineCov">        326 : }</span></a>
+<a name="1209"><span class="lineNum">    1209 </span><span class="lineCov">        532 :     state-&gt;AddImports(expression_state);</span></a>
+<a name="1210"><span class="lineNum">    1210 </span><span class="lineCov">        532 :     CHECK_LT(i, expression.function_binding()-&gt;call_sub_bindings.size());</span></a>
+<a name="1211"><span class="lineNum">    1211 </span><span class="lineCov">        532 :     ConvertArgumentSubBinding(</span></a>
+<a name="1212"><span class="lineNum">    1212 </span><span class="lineCov">       1064 :         fun-&gt;call_name(), expr.value(),</span></a>
+<a name="1213"><span class="lineNum">    1213 </span><span class="lineCov">        532 :         expression.function_binding()-&gt;type_arguments[i],</span></a>
+<a name="1214"><span class="lineNum">    1214 </span><span class="lineCov">        532 :         expression.function_binding()-&gt;call_sub_bindings[i], &amp;expression_state);</span></a>
+<a name="1215"><span class="lineNum">    1215 </span><span class="lineCov">        532 :     convert.add_arg(arg_name, expression_state.out_str());</span></a>
+<a name="1216"><span class="lineNum">    1216 </span><span class="lineCov">        532 :   }</span></a>
+<a name="1217"><span class="lineNum">    1217 </span><span class="lineCov">        327 :   ASSIGN_OR_RETURN(std::string replaced, convert.Replace());</span></a>
+<a name="1218"><span class="lineNum">    1218 </span><span class="lineCov">        327 :   state-&gt;out() &lt;&lt; &quot;(&quot; &lt;&lt; replaced &lt;&lt; &quot;)&quot;;</span></a>
+<a name="1219"><span class="lineNum">    1219 </span><span class="lineCov">        327 :   return absl::OkStatus();</span></a>
+<a name="1220"><span class="lineNum">    1220 </span><span class="lineCov">        327 : }</span></a>
 <a name="1221"><span class="lineNum">    1221 </span>            : </a>
 <a name="1222"><span class="lineNum">    1222 </span>            : namespace {</a>
 <a name="1223"><span class="lineNum">    1223 </span>            : </a>
@@ -1300,16 +1300,16 @@
 <a name="1238"><span class="lineNum">    1238 </span>            : }</a>
 <a name="1239"><span class="lineNum">    1239 </span>            : }  // namespace</a>
 <a name="1240"><span class="lineNum">    1240 </span>            : </a>
-<a name="1241"><span class="lineNum">    1241 </span><span class="lineCov">        447 : absl::Status PythonConverter::ConvertFunctionCallExpression(</span></a>
+<a name="1241"><span class="lineNum">    1241 </span><span class="lineCov">        448 : absl::Status PythonConverter::ConvertFunctionCallExpression(</span></a>
 <a name="1242"><span class="lineNum">    1242 </span>            :     const analysis::FunctionCallExpression&amp; expression,</a>
 <a name="1243"><span class="lineNum">    1243 </span>            :     ConvertState* state) const {</a>
-<a name="1244"><span class="lineNum">    1244 </span><span class="lineCov">        447 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
-<a name="1245"><span class="lineNum">    1245 </span><span class="lineCov">        447 :   auto binding = expression.function_binding();  // shortcut</span></a>
-<a name="1246"><span class="lineNum">    1246 </span><span class="lineCov">        447 :   if (bindings_on_use_) {</span></a>
-<a name="1247"><span class="lineNum">    1247 </span><span class="lineCov">        220 :     if (binding-&gt;fun.has_value()) {</span></a>
-<a name="1248"><span class="lineNum">    1248 </span><span class="lineCov">        428 :       RETURN_IF_ERROR(</span></a>
+<a name="1244"><span class="lineNum">    1244 </span><span class="lineCov">        448 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
+<a name="1245"><span class="lineNum">    1245 </span><span class="lineCov">        448 :   auto binding = expression.function_binding();  // shortcut</span></a>
+<a name="1246"><span class="lineNum">    1246 </span><span class="lineCov">        448 :   if (bindings_on_use_) {</span></a>
+<a name="1247"><span class="lineNum">    1247 </span><span class="lineCov">        221 :     if (binding-&gt;fun.has_value()) {</span></a>
+<a name="1248"><span class="lineNum">    1248 </span><span class="lineCov">        430 :       RETURN_IF_ERROR(</span></a>
 <a name="1249"><span class="lineNum">    1249 </span>            :           ConvertFunction(binding-&gt;fun.value(), true, bstate).status());</a>
-<a name="1250"><span class="lineNum">    1250 </span><span class="lineCov">        220 :     } else if (analysis::TypeUtils::IsFunctionType(*binding-&gt;type_spec)) {</span></a>
+<a name="1250"><span class="lineNum">    1250 </span><span class="lineCov">        221 :     } else if (analysis::TypeUtils::IsFunctionType(*binding-&gt;type_spec)) {</span></a>
 <a name="1251"><span class="lineNum">    1251 </span><span class="lineCov">          6 :       auto fun_type =</span></a>
 <a name="1252"><span class="lineNum">    1252 </span>            :           static_cast&lt;const analysis::TypeFunction*&gt;(binding-&gt;type_spec);</a>
 <a name="1253"><span class="lineNum">    1253 </span><span class="lineCov">         10 :       for (auto fun : fun_type-&gt;function_instances()) {</span></a>
@@ -1317,11 +1317,11 @@
 <a name="1255"><span class="lineNum">    1255 </span><span class="lineCov">          4 :       }</span></a>
 <a name="1256"><span class="lineNum">    1256 </span>            :     }</a>
 <a name="1257"><span class="lineNum">    1257 </span>            :   }</a>
-<a name="1258"><span class="lineNum">    1258 </span><span class="lineCov">        447 :   if (binding-&gt;fun.has_value() &amp;&amp; binding-&gt;fun.value()-&gt;is_native()) {</span></a>
-<a name="1259"><span class="lineNum">    1259 </span><span class="lineCov">        326 :     RETURN_IF_ERROR(ConvertNativeFunctionCallExpression(</span></a>
+<a name="1258"><span class="lineNum">    1258 </span><span class="lineCov">        448 :   if (binding-&gt;fun.has_value() &amp;&amp; binding-&gt;fun.value()-&gt;is_native()) {</span></a>
+<a name="1259"><span class="lineNum">    1259 </span><span class="lineCov">        327 :     RETURN_IF_ERROR(ConvertNativeFunctionCallExpression(</span></a>
 <a name="1260"><span class="lineNum">    1260 </span>            :         expression, binding-&gt;fun.value(), bstate));</a>
-<a name="1261"><span class="lineNum">    1261 </span><span class="lineCov">        326 :     return absl::OkStatus();</span></a>
-<a name="1262"><span class="lineNum">    1262 </span><span class="lineCov">        326 :   }</span></a>
+<a name="1261"><span class="lineNum">    1261 </span><span class="lineCov">        327 :     return absl::OkStatus();</span></a>
+<a name="1262"><span class="lineNum">    1262 </span><span class="lineCov">        327 :   }</span></a>
 <a name="1263"><span class="lineNum">    1263 </span><span class="lineCov">        121 :   bool add_signature = false;</span></a>
 <a name="1264"><span class="lineNum">    1264 </span><span class="lineCov">        121 :   std::string function_name;</span></a>
 <a name="1265"><span class="lineNum">    1265 </span><span class="lineCov">        242 :   if (expression.left_expression().has_value() &amp;&amp;</span></a>
@@ -1633,26 +1633,26 @@
 <a name="1571"><span class="lineNum">    1571 </span><span class="lineCov">        357 :   return has_converted;</span></a>
 <a name="1572"><span class="lineNum">    1572 </span>            : }</a>
 <a name="1573"><span class="lineNum">    1573 </span>            : </a>
-<a name="1574"><span class="lineNum">    1574 </span><span class="lineCov">       1130 : absl::StatusOr&lt;bool&gt; PythonConverter::ConvertFunction(</span></a>
+<a name="1574"><span class="lineNum">    1574 </span><span class="lineCov">       1131 : absl::StatusOr&lt;bool&gt; PythonConverter::ConvertFunction(</span></a>
 <a name="1575"><span class="lineNum">    1575 </span>            :     analysis::Function* fun, bool is_on_use, ConvertState* state) const {</a>
-<a name="1576"><span class="lineNum">    1576 </span><span class="lineCov">       1130 :   const bool is_lambda = fun-&gt;kind() == pb::ObjectKind::OBJ_LAMBDA;</span></a>
-<a name="1577"><span class="lineNum">    1577 </span><span class="lineCov">       1130 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
-<a name="1578"><span class="lineNum">    1578 </span><span class="lineCov">       1130 :   if (!fun-&gt;is_native() &amp;&amp; fun-&gt;expressions().empty()) {</span></a>
+<a name="1576"><span class="lineNum">    1576 </span><span class="lineCov">       1131 :   const bool is_lambda = fun-&gt;kind() == pb::ObjectKind::OBJ_LAMBDA;</span></a>
+<a name="1577"><span class="lineNum">    1577 </span><span class="lineCov">       1131 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
+<a name="1578"><span class="lineNum">    1578 </span><span class="lineCov">       1131 :   if (!fun-&gt;is_native() &amp;&amp; fun-&gt;expressions().empty()) {</span></a>
 <a name="1579"><span class="lineNum">    1579 </span><span class="lineCov">         92 :     if (bindings_on_use_) {</span></a>
 <a name="1580"><span class="lineNum">    1580 </span><span class="lineCov">         32 :       RET_CHECK(!is_on_use) &lt;&lt; stacktrace::ToString();</span></a>
 <a name="1581"><span class="lineNum">    1581 </span><span class="lineCov">         32 :       return true;</span></a>
 <a name="1582"><span class="lineNum">    1582 </span>            :     }</a>
 <a name="1583"><span class="lineNum">    1583 </span><span class="lineCov">         60 :     return ConvertBindings(fun, bstate);  // Untyped and unused function.</span></a>
 <a name="1584"><span class="lineNum">    1584 </span>            :   }</a>
-<a name="1585"><span class="lineNum">    1585 </span><span class="lineCov">       1038 :   if (bindings_on_use_ &amp;&amp; fun-&gt;binding_parent().has_value() &amp;&amp; !is_on_use) {</span></a>
+<a name="1585"><span class="lineNum">    1585 </span><span class="lineCov">       1039 :   if (bindings_on_use_ &amp;&amp; fun-&gt;binding_parent().has_value() &amp;&amp; !is_on_use) {</span></a>
 <a name="1586"><span class="lineNum">    1586 </span><span class="lineCov">         28 :     return true;</span></a>
 <a name="1587"><span class="lineNum">    1587 </span>            :   }</a>
-<a name="1588"><span class="lineNum">    1588 </span><span class="lineCov">       1010 :   auto superstate = bstate-&gt;top_superstate();</span></a>
-<a name="1589"><span class="lineNum">    1589 </span><span class="lineCov">       1010 :   if (!superstate-&gt;RegisterFunction(fun)) {</span></a>
+<a name="1588"><span class="lineNum">    1588 </span><span class="lineCov">       1011 :   auto superstate = bstate-&gt;top_superstate();</span></a>
+<a name="1589"><span class="lineNum">    1589 </span><span class="lineCov">       1011 :   if (!superstate-&gt;RegisterFunction(fun)) {</span></a>
 <a name="1590"><span class="lineNum">    1590 </span><span class="lineCov">        609 :     return true;  // Already converted</span></a>
 <a name="1591"><span class="lineNum">    1591 </span>            :   }</a>
-<a name="1592"><span class="lineNum">    1592 </span><span class="lineCov">        401 :   if (fun-&gt;is_skip_conversion()) {</span></a>
-<a name="1593"><span class="lineNum">    1593 </span><span class="lineCov">        104 :     return true;  // No need to convert this one</span></a>
+<a name="1592"><span class="lineNum">    1592 </span><span class="lineCov">        402 :   if (fun-&gt;is_skip_conversion()) {</span></a>
+<a name="1593"><span class="lineNum">    1593 </span><span class="lineCov">        105 :     return true;  // No need to convert this one</span></a>
 <a name="1594"><span class="lineNum">    1594 </span>            :   }</a>
 <a name="1595"><span class="lineNum">    1595 </span>            :   const bool is_pure_native =</a>
 <a name="1596"><span class="lineNum">    1596 </span><span class="lineCov">        297 :       (fun-&gt;is_native() &amp;&amp; !fun-&gt;is_struct_constructor());</span></a>
@@ -1824,21 +1824,21 @@
 <a name="1762"><span class="lineNum">    1762 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="1763"><span class="lineNum">    1763 </span>            : </a>
 <a name="1764"><span class="lineNum">    1764 </span>            : absl::StatusOr&lt;absl::flat_hash_map&lt;std::string, std::unique_ptr&lt;ConvertState&gt;&gt;&gt;</a>
-<a name="1765"><span class="lineNum">    1765 </span><span class="lineCov">        373 : PythonConverter::ProcessMacros(const absl::flat_hash_set&lt;std::string&gt;&amp; macros,</span></a>
+<a name="1765"><span class="lineNum">    1765 </span><span class="lineCov">        374 : PythonConverter::ProcessMacros(const absl::flat_hash_set&lt;std::string&gt;&amp; macros,</span></a>
 <a name="1766"><span class="lineNum">    1766 </span>            :                                analysis::Scope* scope,</a>
 <a name="1767"><span class="lineNum">    1767 </span>            :                                analysis::FunctionBinding* binding,</a>
 <a name="1768"><span class="lineNum">    1768 </span>            :                                analysis::Function* fun,</a>
 <a name="1769"><span class="lineNum">    1769 </span>            :                                ConvertState* state) const {</a>
 <a name="1770"><span class="lineNum">    1770 </span>            :   const analysis::TypeSpec* result_type =</a>
-<a name="1771"><span class="lineNum">    1771 </span><span class="lineCov">        373 :       (binding ? binding-&gt;type_spec-&gt;ResultType() : fun-&gt;result_type());</span></a>
-<a name="1772"><span class="lineNum">    1772 </span><span class="lineCov">        373 :   if (!result_type) {</span></a>
+<a name="1771"><span class="lineNum">    1771 </span><span class="lineCov">        374 :       (binding ? binding-&gt;type_spec-&gt;ResultType() : fun-&gt;result_type());</span></a>
+<a name="1772"><span class="lineNum">    1772 </span><span class="lineCov">        374 :   if (!result_type) {</span></a>
 <a name="1773"><span class="lineNum">    1773 </span><span class="lineNoCov">          0 :     return status::InvalidArgumentErrorBuilder()</span></a>
 <a name="1774"><span class="lineNum">    1774 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot;Function: &quot; &lt;&lt; fun-&gt;function_name()</span></a>
 <a name="1775"><span class="lineNum">    1775 </span><span class="lineNoCov">          0 :            &lt;&lt; &quot; has not a result type defined.&quot;;</span></a>
 <a name="1776"><span class="lineNum">    1776 </span>            :   }</a>
-<a name="1777"><span class="lineNum">    1777 </span><span class="lineCov">        373 :   absl::flat_hash_map&lt;std::string, std::unique_ptr&lt;ConvertState&gt;&gt; result;</span></a>
-<a name="1778"><span class="lineNum">    1778 </span><span class="lineCov">        373 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
-<a name="1779"><span class="lineNum">    1779 </span><span class="lineCov">        373 :   for (const auto&amp; macro : macros) {</span></a>
+<a name="1777"><span class="lineNum">    1777 </span><span class="lineCov">        374 :   absl::flat_hash_map&lt;std::string, std::unique_ptr&lt;ConvertState&gt;&gt; result;</span></a>
+<a name="1778"><span class="lineNum">    1778 </span><span class="lineCov">        374 :   auto bstate = static_cast&lt;PythonConvertState*&gt;(state);</span></a>
+<a name="1779"><span class="lineNum">    1779 </span><span class="lineCov">        374 :   for (const auto&amp; macro : macros) {</span></a>
 <a name="1780"><span class="lineNum">    1780 </span><span class="lineNoCov">          0 :     auto sub_state = std::make_unique&lt;PythonConvertState&gt;(bstate, true);</span></a>
 <a name="1781"><span class="lineNum">    1781 </span><span class="lineNoCov">          0 :     if (macro == &quot;result_type&quot;) {</span></a>
 <a name="1782"><span class="lineNum">    1782 </span><span class="lineNoCov">          0 :       RETURN_IF_ERROR(AddTypeName(result_type, true, sub_state.get()))</span></a>
@@ -1855,8 +1855,8 @@
 <a name="1793"><span class="lineNum">    1793 </span>            :     }</a>
 <a name="1794"><span class="lineNum">    1794 </span><span class="lineNoCov">          0 :     result.emplace(macro, std::move(sub_state));</span></a>
 <a name="1795"><span class="lineNum">    1795 </span><span class="lineNoCov">          0 :   }</span></a>
-<a name="1796"><span class="lineNum">    1796 </span><span class="lineCov">        373 :   return {std::move(result)};</span></a>
-<a name="1797"><span class="lineNum">    1797 </span><span class="lineCov">        373 : }</span></a>
+<a name="1796"><span class="lineNum">    1796 </span><span class="lineCov">        374 :   return {std::move(result)};</span></a>
+<a name="1797"><span class="lineNum">    1797 </span><span class="lineCov">        374 : }</span></a>
 <a name="1798"><span class="lineNum">    1798 </span>            : </a>
 <a name="1799"><span class="lineNum">    1799 </span>            : }  // namespace conversion</a>
 <a name="1800"><span class="lineNum">    1800 </span>            : }  // namespace nudl</a>

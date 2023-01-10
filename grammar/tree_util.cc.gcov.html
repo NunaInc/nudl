@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2022-12-20 23:08:20</td>
+            <td class="headerValue">2023-01-10 20:44:49</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">30</td>
@@ -100,11 +100,11 @@
 <a name="38"><span class="lineNum">      38 </span>            : }</a>
 <a name="39"><span class="lineNum">      39 </span>            : </a>
 <a name="40"><span class="lineNum">      40 </span>            : // If pt is a terminal node, return the corresponding token, else null.</a>
-<a name="41"><span class="lineNum">      41 </span><span class="lineCov">      72782 : const antlr4::Token* TreeUtil::GetToken(const antlr4::tree::ParseTree&amp; pt) {</span></a>
-<a name="42"><span class="lineNum">      42 </span><span class="lineCov">      72782 :   if (antlr4::tree::TerminalNode::is(&amp;pt)) {</span></a>
-<a name="43"><span class="lineNum">      43 </span><span class="lineCov">      66807 :     return static_cast&lt;const antlr4::tree::TerminalNode&amp;&gt;(pt).getSymbol();</span></a>
+<a name="41"><span class="lineNum">      41 </span><span class="lineCov">      74589 : const antlr4::Token* TreeUtil::GetToken(const antlr4::tree::ParseTree&amp; pt) {</span></a>
+<a name="42"><span class="lineNum">      42 </span><span class="lineCov">      74589 :   if (antlr4::tree::TerminalNode::is(&amp;pt)) {</span></a>
+<a name="43"><span class="lineNum">      43 </span><span class="lineCov">      68598 :     return static_cast&lt;const antlr4::tree::TerminalNode&amp;&gt;(pt).getSymbol();</span></a>
 <a name="44"><span class="lineNum">      44 </span>            :   }</a>
-<a name="45"><span class="lineNum">      45 </span><span class="lineCov">       5975 :   return nullptr;</span></a>
+<a name="45"><span class="lineNum">      45 </span><span class="lineCov">       5991 :   return nullptr;</span></a>
 <a name="46"><span class="lineNum">      46 </span>            : }</a>
 <a name="47"><span class="lineNum">      47 </span>            : </a>
 <a name="48"><span class="lineNum">      48 </span><span class="lineCov">         28 : std::string TreeUtil::TreeTypeString(const antlr4::tree::ParseTree&amp; pt,</span></a>
@@ -264,51 +264,51 @@
 <a name="202"><span class="lineNum">     202 </span><span class="lineCov">         93 :   return ToShortStringImpl(pt, parser, &quot;&quot;, 75);</span></a>
 <a name="203"><span class="lineNum">     203 </span>            : }</a>
 <a name="204"><span class="lineNum">     204 </span>            : </a>
-<a name="205"><span class="lineNum">     205 </span><span class="lineCov">       9197 : pb::CodeLocation GetTokenBeginLocation(const antlr4::Token&amp; token) {</span></a>
-<a name="206"><span class="lineNum">     206 </span><span class="lineCov">       9197 :   pb::CodeLocation location;</span></a>
-<a name="207"><span class="lineNum">     207 </span><span class="lineCov">       9197 :   location.set_position(token.getStartIndex());</span></a>
-<a name="208"><span class="lineNum">     208 </span><span class="lineCov">       9197 :   location.set_line(token.getLine());</span></a>
-<a name="209"><span class="lineNum">     209 </span><span class="lineCov">       9197 :   location.set_column(token.getCharPositionInLine());</span></a>
-<a name="210"><span class="lineNum">     210 </span><span class="lineCov">       9197 :   return location;</span></a>
+<a name="205"><span class="lineNum">     205 </span><span class="lineCov">       9440 : pb::CodeLocation GetTokenBeginLocation(const antlr4::Token&amp; token) {</span></a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">       9440 :   pb::CodeLocation location;</span></a>
+<a name="207"><span class="lineNum">     207 </span><span class="lineCov">       9440 :   location.set_position(token.getStartIndex());</span></a>
+<a name="208"><span class="lineNum">     208 </span><span class="lineCov">       9440 :   location.set_line(token.getLine());</span></a>
+<a name="209"><span class="lineNum">     209 </span><span class="lineCov">       9440 :   location.set_column(token.getCharPositionInLine());</span></a>
+<a name="210"><span class="lineNum">     210 </span><span class="lineCov">       9440 :   return location;</span></a>
 <a name="211"><span class="lineNum">     211 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="212"><span class="lineNum">     212 </span>            : </a>
-<a name="213"><span class="lineNum">     213 </span><span class="lineCov">       9186 : pb::CodeLocation GetTokenEndLocation(const antlr4::Token&amp; token) {</span></a>
-<a name="214"><span class="lineNum">     214 </span><span class="lineCov">       9186 :   pb::CodeLocation location;</span></a>
-<a name="215"><span class="lineNum">     215 </span><span class="lineCov">       9186 :   location.set_position(token.getStopIndex() + 1);</span></a>
-<a name="216"><span class="lineNum">     216 </span><span class="lineCov">       9186 :   location.set_line(token.getLine());</span></a>
-<a name="217"><span class="lineNum">     217 </span><span class="lineCov">       9186 :   location.set_column(token.getCharPositionInLine() + token.getText().size());</span></a>
-<a name="218"><span class="lineNum">     218 </span><span class="lineCov">       9186 :   return location;</span></a>
+<a name="213"><span class="lineNum">     213 </span><span class="lineCov">       9429 : pb::CodeLocation GetTokenEndLocation(const antlr4::Token&amp; token) {</span></a>
+<a name="214"><span class="lineNum">     214 </span><span class="lineCov">       9429 :   pb::CodeLocation location;</span></a>
+<a name="215"><span class="lineNum">     215 </span><span class="lineCov">       9429 :   location.set_position(token.getStopIndex() + 1);</span></a>
+<a name="216"><span class="lineNum">     216 </span><span class="lineCov">       9429 :   location.set_line(token.getLine());</span></a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">       9429 :   location.set_column(token.getCharPositionInLine() + token.getText().size());</span></a>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">       9429 :   return location;</span></a>
 <a name="219"><span class="lineNum">     219 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="220"><span class="lineNum">     220 </span>            : </a>
-<a name="221"><span class="lineNum">     221 </span><span class="lineCov">      33361 : pb::CodeLocation TreeUtil::GetBeginLocation(const antlr4::tree::ParseTree&amp; pt) {</span></a>
-<a name="222"><span class="lineNum">     222 </span><span class="lineCov">      33361 :   if (!pt.children.empty()) {</span></a>
-<a name="223"><span class="lineNum">     223 </span><span class="lineCov">      24167 :     return GetBeginLocation(*pt.children.front());</span></a>
+<a name="221"><span class="lineNum">     221 </span><span class="lineCov">      34257 : pb::CodeLocation TreeUtil::GetBeginLocation(const antlr4::tree::ParseTree&amp; pt) {</span></a>
+<a name="222"><span class="lineNum">     222 </span><span class="lineCov">      34257 :   if (!pt.children.empty()) {</span></a>
+<a name="223"><span class="lineNum">     223 </span><span class="lineCov">      24820 :     return GetBeginLocation(*pt.children.front());</span></a>
 <a name="224"><span class="lineNum">     224 </span>            :   }</a>
-<a name="225"><span class="lineNum">     225 </span><span class="lineCov">       9194 :   pb::CodeLocation location;</span></a>
-<a name="226"><span class="lineNum">     226 </span><span class="lineCov">       9194 :   auto token = GetToken(pt);</span></a>
-<a name="227"><span class="lineNum">     227 </span><span class="lineCov">       9194 :   if (token) {</span></a>
-<a name="228"><span class="lineNum">     228 </span><span class="lineCov">       9194 :     location = GetTokenBeginLocation(*token);</span></a>
+<a name="225"><span class="lineNum">     225 </span><span class="lineCov">       9437 :   pb::CodeLocation location;</span></a>
+<a name="226"><span class="lineNum">     226 </span><span class="lineCov">       9437 :   auto token = GetToken(pt);</span></a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineCov">       9437 :   if (token) {</span></a>
+<a name="228"><span class="lineNum">     228 </span><span class="lineCov">       9437 :     location = GetTokenBeginLocation(*token);</span></a>
 <a name="229"><span class="lineNum">     229 </span>            :   }</a>
-<a name="230"><span class="lineNum">     230 </span><span class="lineCov">       9194 :   return location;</span></a>
-<a name="231"><span class="lineNum">     231 </span><span class="lineCov">       9194 : }</span></a>
+<a name="230"><span class="lineNum">     230 </span><span class="lineCov">       9437 :   return location;</span></a>
+<a name="231"><span class="lineNum">     231 </span><span class="lineCov">       9437 : }</span></a>
 <a name="232"><span class="lineNum">     232 </span>            : </a>
-<a name="233"><span class="lineNum">     233 </span><span class="lineCov">      40837 : pb::CodeLocation TreeUtil::GetEndLocation(const antlr4::tree::ParseTree&amp; pt) {</span></a>
-<a name="234"><span class="lineNum">     234 </span><span class="lineCov">      40837 :   if (!pt.children.empty()) {</span></a>
-<a name="235"><span class="lineNum">     235 </span><span class="lineCov">      31651 :     return GetEndLocation(*pt.children.back());</span></a>
+<a name="233"><span class="lineNum">     233 </span><span class="lineCov">      41803 : pb::CodeLocation TreeUtil::GetEndLocation(const antlr4::tree::ParseTree&amp; pt) {</span></a>
+<a name="234"><span class="lineNum">     234 </span><span class="lineCov">      41803 :   if (!pt.children.empty()) {</span></a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineCov">      32374 :     return GetEndLocation(*pt.children.back());</span></a>
 <a name="236"><span class="lineNum">     236 </span>            :   }</a>
-<a name="237"><span class="lineNum">     237 </span><span class="lineCov">       9186 :   pb::CodeLocation location;</span></a>
-<a name="238"><span class="lineNum">     238 </span><span class="lineCov">       9186 :   auto token = GetToken(pt);</span></a>
-<a name="239"><span class="lineNum">     239 </span><span class="lineCov">       9186 :   if (token) {</span></a>
-<a name="240"><span class="lineNum">     240 </span><span class="lineCov">       9186 :     location = GetTokenEndLocation(*token);</span></a>
+<a name="237"><span class="lineNum">     237 </span><span class="lineCov">       9429 :   pb::CodeLocation location;</span></a>
+<a name="238"><span class="lineNum">     238 </span><span class="lineCov">       9429 :   auto token = GetToken(pt);</span></a>
+<a name="239"><span class="lineNum">     239 </span><span class="lineCov">       9429 :   if (token) {</span></a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineCov">       9429 :     location = GetTokenEndLocation(*token);</span></a>
 <a name="241"><span class="lineNum">     241 </span>            :   }</a>
-<a name="242"><span class="lineNum">     242 </span><span class="lineCov">       9186 :   return location;</span></a>
-<a name="243"><span class="lineNum">     243 </span><span class="lineCov">       9186 : }</span></a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">       9429 :   return location;</span></a>
+<a name="243"><span class="lineNum">     243 </span><span class="lineCov">       9429 : }</span></a>
 <a name="244"><span class="lineNum">     244 </span>            : </a>
-<a name="245"><span class="lineNum">     245 </span><span class="lineCov">       9186 : pb::CodeInterval TreeUtil::GetInterval(const antlr4::tree::ParseTree&amp; pt) {</span></a>
-<a name="246"><span class="lineNum">     246 </span><span class="lineCov">       9186 :   pb::CodeInterval interval;</span></a>
-<a name="247"><span class="lineNum">     247 </span><span class="lineCov">       9186 :   *interval.mutable_begin() = GetBeginLocation(pt);</span></a>
-<a name="248"><span class="lineNum">     248 </span><span class="lineCov">       9186 :   *interval.mutable_end() = GetEndLocation(pt);</span></a>
-<a name="249"><span class="lineNum">     249 </span><span class="lineCov">       9186 :   return interval;</span></a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineCov">       9429 : pb::CodeInterval TreeUtil::GetInterval(const antlr4::tree::ParseTree&amp; pt) {</span></a>
+<a name="246"><span class="lineNum">     246 </span><span class="lineCov">       9429 :   pb::CodeInterval interval;</span></a>
+<a name="247"><span class="lineNum">     247 </span><span class="lineCov">       9429 :   *interval.mutable_begin() = GetBeginLocation(pt);</span></a>
+<a name="248"><span class="lineNum">     248 </span><span class="lineCov">       9429 :   *interval.mutable_end() = GetEndLocation(pt);</span></a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">       9429 :   return interval;</span></a>
 <a name="250"><span class="lineNum">     250 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="251"><span class="lineNum">     251 </span>            : </a>
 <a name="252"><span class="lineNum">     252 </span><span class="lineCov">         28 : absl::string_view TreeUtil::LineSnippet(absl::string_view code,</span></a>
@@ -344,23 +344,23 @@
 <a name="282"><span class="lineNum">     282 </span><span class="lineNoCov">          0 :   return &quot;&quot;;</span></a>
 <a name="283"><span class="lineNum">     283 </span>            : }</a>
 <a name="284"><span class="lineNum">     284 </span>            : </a>
-<a name="285"><span class="lineNum">     285 </span><span class="lineCov">       9186 : static absl::string_view StringBetween(absl::string_view code, size_t begin,</span></a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineCov">       9429 : static absl::string_view StringBetween(absl::string_view code, size_t begin,</span></a>
 <a name="286"><span class="lineNum">     286 </span>            :                                        size_t end) {</a>
-<a name="287"><span class="lineNum">     287 </span><span class="lineCov">       9186 :   if (begin &gt; code.size() || begin &gt;= end) {</span></a>
+<a name="287"><span class="lineNum">     287 </span><span class="lineCov">       9429 :   if (begin &gt; code.size() || begin &gt;= end) {</span></a>
 <a name="288"><span class="lineNum">     288 </span><span class="lineNoCov">          0 :     return &quot;&quot;;</span></a>
 <a name="289"><span class="lineNum">     289 </span>            :   }</a>
-<a name="290"><span class="lineNum">     290 </span><span class="lineCov">       9186 :   const size_t delta = end - begin;</span></a>
-<a name="291"><span class="lineNum">     291 </span><span class="lineCov">       9186 :   if (begin + delta &gt;= code.size()) {</span></a>
+<a name="290"><span class="lineNum">     290 </span><span class="lineCov">       9429 :   const size_t delta = end - begin;</span></a>
+<a name="291"><span class="lineNum">     291 </span><span class="lineCov">       9429 :   if (begin + delta &gt;= code.size()) {</span></a>
 <a name="292"><span class="lineNum">     292 </span><span class="lineCov">        115 :     return code.substr(begin);</span></a>
 <a name="293"><span class="lineNum">     293 </span>            :   }</a>
-<a name="294"><span class="lineNum">     294 </span><span class="lineCov">       9071 :   return code.substr(begin, delta);</span></a>
+<a name="294"><span class="lineNum">     294 </span><span class="lineCov">       9314 :   return code.substr(begin, delta);</span></a>
 <a name="295"><span class="lineNum">     295 </span>            : }</a>
 <a name="296"><span class="lineNum">     296 </span>            : </a>
-<a name="297"><span class="lineNum">     297 </span><span class="lineCov">       9186 : absl::string_view TreeUtil::CodeSnippet(absl::string_view code,</span></a>
+<a name="297"><span class="lineNum">     297 </span><span class="lineCov">       9429 : absl::string_view TreeUtil::CodeSnippet(absl::string_view code,</span></a>
 <a name="298"><span class="lineNum">     298 </span>            :                                         const pb::CodeLocation&amp; begin,</a>
 <a name="299"><span class="lineNum">     299 </span>            :                                         const pb::CodeLocation&amp; end) {</a>
-<a name="300"><span class="lineNum">     300 </span><span class="lineCov">       9186 :   if (begin.has_position() &amp;&amp; end.has_position()) {</span></a>
-<a name="301"><span class="lineNum">     301 </span><span class="lineCov">       9175 :     return StringBetween(code, begin.position(), end.position());</span></a>
+<a name="300"><span class="lineNum">     300 </span><span class="lineCov">       9429 :   if (begin.has_position() &amp;&amp; end.has_position()) {</span></a>
+<a name="301"><span class="lineNum">     301 </span><span class="lineCov">       9418 :     return StringBetween(code, begin.position(), end.position());</span></a>
 <a name="302"><span class="lineNum">     302 </span>            :   }</a>
 <a name="303"><span class="lineNum">     303 </span><span class="lineCov">         22 :   if (!begin.has_line() || !begin.has_column() || !end.has_line() ||</span></a>
 <a name="304"><span class="lineNum">     304 </span><span class="lineCov">         33 :       !end.has_column() || begin.line() &gt; end.line() ||</span></a>
@@ -390,7 +390,7 @@
 <a name="328"><span class="lineNum">     328 </span>            : }</a>
 <a name="329"><span class="lineNum">     329 </span>            : </a>
 <a name="330"><span class="lineNum">     330 </span>            : // Helper to get the text of a antlr token w/o the &lt;EOF&gt;.</a>
-<a name="331"><span class="lineNum">     331 </span><span class="lineCov">      47209 : TokenNode::TokenNode(const antlr4::Token&amp; token) : text(token.getText()) {}</span></a>
+<a name="331"><span class="lineNum">     331 </span><span class="lineCov">      48514 : TokenNode::TokenNode(const antlr4::Token&amp; token) : text(token.getText()) {}</span></a>
 <a name="332"><span class="lineNum">     332 </span>            : </a>
 <a name="333"><span class="lineNum">     333 </span><span class="lineNoCov">          0 : bool IsAlpha(char c) {</span></a>
 <a name="334"><span class="lineNum">     334 </span><span class="lineNoCov">          0 :   return ('a' &lt;= c &amp;&amp; c &lt;= 'z') || ('A' &lt;= c &amp;&amp; c &lt;= 'Z') || c == '_';</span></a>
@@ -441,66 +441,66 @@
 <a name="379"><span class="lineNum">     379 </span><span class="lineNoCov">          0 :   return result;</span></a>
 <a name="380"><span class="lineNum">     380 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="381"><span class="lineNum">     381 </span>            : </a>
-<a name="382"><span class="lineNum">     382 </span><span class="lineCov">      48368 : TokenNode::RecomposedStruct TokenNode::Recompose() const {</span></a>
-<a name="383"><span class="lineNum">     383 </span><span class="lineCov">      48368 :   if (has_text()) {</span></a>
-<a name="384"><span class="lineNum">     384 </span><span class="lineCov">      94418 :     return TokenNode::RecomposedStruct(text.value(), text.value(),</span></a>
-<a name="385"><span class="lineNum">     385 </span><span class="lineCov">     141627 :                                        text.value());</span></a>
+<a name="382"><span class="lineNum">     382 </span><span class="lineCov">      49689 : TokenNode::RecomposedStruct TokenNode::Recompose() const {</span></a>
+<a name="383"><span class="lineNum">     383 </span><span class="lineCov">      49689 :   if (has_text()) {</span></a>
+<a name="384"><span class="lineNum">     384 </span><span class="lineCov">      97028 :     return TokenNode::RecomposedStruct(text.value(), text.value(),</span></a>
+<a name="385"><span class="lineNum">     385 </span><span class="lineCov">     145542 :                                        text.value());</span></a>
 <a name="386"><span class="lineNum">     386 </span>            :   }</a>
-<a name="387"><span class="lineNum">     387 </span><span class="lineCov">       1159 :   TokenNode::RecomposedStruct result;</span></a>
-<a name="388"><span class="lineNum">     388 </span><span class="lineCov">       1159 :   bool first_token = true;</span></a>
-<a name="389"><span class="lineNum">     389 </span><span class="lineCov">       2325 :   for (const auto&amp; token : tokens.value()) {</span></a>
-<a name="390"><span class="lineNum">     390 </span><span class="lineCov">       1166 :     auto crt = token.Recompose();</span></a>
-<a name="391"><span class="lineNum">     391 </span><span class="lineCov">       1166 :     if (first_token) {</span></a>
-<a name="392"><span class="lineNum">     392 </span><span class="lineCov">       1159 :       result.first_token = crt.first_token;</span></a>
-<a name="393"><span class="lineNum">     393 </span><span class="lineCov">       1159 :       first_token = false;</span></a>
+<a name="387"><span class="lineNum">     387 </span><span class="lineCov">       1175 :   TokenNode::RecomposedStruct result;</span></a>
+<a name="388"><span class="lineNum">     388 </span><span class="lineCov">       1175 :   bool first_token = true;</span></a>
+<a name="389"><span class="lineNum">     389 </span><span class="lineCov">       2357 :   for (const auto&amp; token : tokens.value()) {</span></a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineCov">       1182 :     auto crt = token.Recompose();</span></a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineCov">       1182 :     if (first_token) {</span></a>
+<a name="392"><span class="lineNum">     392 </span><span class="lineCov">       1175 :       result.first_token = crt.first_token;</span></a>
+<a name="393"><span class="lineNum">     393 </span><span class="lineCov">       1175 :       first_token = false;</span></a>
 <a name="394"><span class="lineNum">     394 </span><span class="lineCov">          7 :     } else if (RecomposeWithSpace(result.last_token, crt.first_token)) {</span></a>
 <a name="395"><span class="lineNum">     395 </span><span class="lineCov">          4 :       absl::StrAppend(&amp;result.text, &quot; &quot;);</span></a>
 <a name="396"><span class="lineNum">     396 </span>            :     }</a>
-<a name="397"><span class="lineNum">     397 </span><span class="lineCov">       1166 :     absl::StrAppend(&amp;result.text, crt.text);</span></a>
-<a name="398"><span class="lineNum">     398 </span><span class="lineCov">       1166 :     result.last_token = std::move(crt.last_token);</span></a>
-<a name="399"><span class="lineNum">     399 </span><span class="lineCov">       1166 :   }</span></a>
-<a name="400"><span class="lineNum">     400 </span><span class="lineCov">       1159 :   return result;</span></a>
-<a name="401"><span class="lineNum">     401 </span><span class="lineCov">       1159 : }</span></a>
+<a name="397"><span class="lineNum">     397 </span><span class="lineCov">       1182 :     absl::StrAppend(&amp;result.text, crt.text);</span></a>
+<a name="398"><span class="lineNum">     398 </span><span class="lineCov">       1182 :     result.last_token = std::move(crt.last_token);</span></a>
+<a name="399"><span class="lineNum">     399 </span><span class="lineCov">       1182 :   }</span></a>
+<a name="400"><span class="lineNum">     400 </span><span class="lineCov">       1175 :   return result;</span></a>
+<a name="401"><span class="lineNum">     401 </span><span class="lineCov">       1175 : }</span></a>
 <a name="402"><span class="lineNum">     402 </span>            : </a>
-<a name="403"><span class="lineNum">     403 </span><span class="lineCov">      48368 : TokenNode TreeUtil::TokenNodeFromTree(const antlr4::tree::ParseTree* pt) {</span></a>
-<a name="404"><span class="lineNum">     404 </span><span class="lineCov">      48368 :   if (!pt) {</span></a>
+<a name="403"><span class="lineNum">     403 </span><span class="lineCov">      49689 : TokenNode TreeUtil::TokenNodeFromTree(const antlr4::tree::ParseTree* pt) {</span></a>
+<a name="404"><span class="lineNum">     404 </span><span class="lineCov">      49689 :   if (!pt) {</span></a>
 <a name="405"><span class="lineNum">     405 </span><span class="lineNoCov">          0 :     return TokenNode();</span></a>
 <a name="406"><span class="lineNum">     406 </span>            :   }</a>
-<a name="407"><span class="lineNum">     407 </span><span class="lineCov">      48368 :   auto token = GetToken(*pt);</span></a>
-<a name="408"><span class="lineNum">     408 </span><span class="lineCov">      48368 :   if (token) {</span></a>
-<a name="409"><span class="lineNum">     409 </span><span class="lineCov">      47209 :     return TokenNode(*token);</span></a>
+<a name="407"><span class="lineNum">     407 </span><span class="lineCov">      49689 :   auto token = GetToken(*pt);</span></a>
+<a name="408"><span class="lineNum">     408 </span><span class="lineCov">      49689 :   if (token) {</span></a>
+<a name="409"><span class="lineNum">     409 </span><span class="lineCov">      48514 :     return TokenNode(*token);</span></a>
 <a name="410"><span class="lineNum">     410 </span>            :   }</a>
-<a name="411"><span class="lineNum">     411 </span><span class="lineCov">       1159 :   TokenNode::Tokens tokens;</span></a>
-<a name="412"><span class="lineNum">     412 </span><span class="lineCov">       1159 :   tokens.reserve(pt-&gt;children.size());</span></a>
-<a name="413"><span class="lineNum">     413 </span><span class="lineCov">       2325 :   for (auto child : pt-&gt;children) {</span></a>
-<a name="414"><span class="lineNum">     414 </span><span class="lineCov">       1166 :     tokens.emplace_back(TokenNodeFromTree(child));</span></a>
+<a name="411"><span class="lineNum">     411 </span><span class="lineCov">       1175 :   TokenNode::Tokens tokens;</span></a>
+<a name="412"><span class="lineNum">     412 </span><span class="lineCov">       1175 :   tokens.reserve(pt-&gt;children.size());</span></a>
+<a name="413"><span class="lineNum">     413 </span><span class="lineCov">       2357 :   for (auto child : pt-&gt;children) {</span></a>
+<a name="414"><span class="lineNum">     414 </span><span class="lineCov">       1182 :     tokens.emplace_back(TokenNodeFromTree(child));</span></a>
 <a name="415"><span class="lineNum">     415 </span>            :   }</a>
-<a name="416"><span class="lineNum">     416 </span><span class="lineCov">       1159 :   return TokenNode(std::move(tokens));</span></a>
-<a name="417"><span class="lineNum">     417 </span><span class="lineCov">       1159 : }</span></a>
+<a name="416"><span class="lineNum">     416 </span><span class="lineCov">       1175 :   return TokenNode(std::move(tokens));</span></a>
+<a name="417"><span class="lineNum">     417 </span><span class="lineCov">       1175 : }</span></a>
 <a name="418"><span class="lineNum">     418 </span>            : </a>
-<a name="419"><span class="lineNum">     419 </span><span class="lineCov">     289291 : std::vector&lt;ErrorInfo&gt; TreeUtil::FindErrors(antlr4::tree::ParseTree* pt,</span></a>
+<a name="419"><span class="lineNum">     419 </span><span class="lineCov">     297131 : std::vector&lt;ErrorInfo&gt; TreeUtil::FindErrors(antlr4::tree::ParseTree* pt,</span></a>
 <a name="420"><span class="lineNum">     420 </span>            :                                             absl::string_view code) {</a>
-<a name="421"><span class="lineNum">     421 </span><span class="lineCov">     289291 :   std::vector&lt;ErrorInfo&gt; result;</span></a>
-<a name="422"><span class="lineNum">     422 </span><span class="lineCov">     289291 :   if (!pt) {</span></a>
+<a name="421"><span class="lineNum">     421 </span><span class="lineCov">     297131 :   std::vector&lt;ErrorInfo&gt; result;</span></a>
+<a name="422"><span class="lineNum">     422 </span><span class="lineCov">     297131 :   if (!pt) {</span></a>
 <a name="423"><span class="lineNum">     423 </span><span class="lineNoCov">          0 :     return result;</span></a>
 <a name="424"><span class="lineNum">     424 </span>            :   }</a>
-<a name="425"><span class="lineNum">     425 </span><span class="lineCov">     289291 :   if (antlr4::tree::ErrorNode::is(pt)) {</span></a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">     297131 :   if (antlr4::tree::ErrorNode::is(pt)) {</span></a>
 <a name="426"><span class="lineNum">     426 </span><span class="lineCov">          6 :     ErrorInfo error;</span></a>
 <a name="427"><span class="lineNum">     427 </span><span class="lineCov">          6 :     error.location = GetBeginLocation(*pt);</span></a>
 <a name="428"><span class="lineNum">     428 </span><span class="lineCov">          6 :     error.message = pt-&gt;toString();</span></a>
 <a name="429"><span class="lineNum">     429 </span><span class="lineCov">          6 :     error.snippet = LineSnippet(code, error.location);</span></a>
 <a name="430"><span class="lineNum">     430 </span><span class="lineCov">          6 :     result.emplace_back(std::move(error));</span></a>
 <a name="431"><span class="lineNum">     431 </span><span class="lineCov">          6 :   } else {</span></a>
-<a name="432"><span class="lineNum">     432 </span><span class="lineCov">     563130 :     for (auto child : pt-&gt;children) {</span></a>
-<a name="433"><span class="lineNum">     433 </span><span class="lineCov">     273845 :       auto crt = FindErrors(child, code);</span></a>
-<a name="434"><span class="lineNum">     434 </span><span class="lineCov">     273845 :       std::move(crt.begin(), crt.end(), std::back_inserter(result));</span></a>
-<a name="435"><span class="lineNum">     435 </span><span class="lineCov">     273845 :     }</span></a>
+<a name="432"><span class="lineNum">     432 </span><span class="lineCov">     578397 :     for (auto child : pt-&gt;children) {</span></a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineCov">     281272 :       auto crt = FindErrors(child, code);</span></a>
+<a name="434"><span class="lineNum">     434 </span><span class="lineCov">     281272 :       std::move(crt.begin(), crt.end(), std::back_inserter(result));</span></a>
+<a name="435"><span class="lineNum">     435 </span><span class="lineCov">     281272 :     }</span></a>
 <a name="436"><span class="lineNum">     436 </span>            :   }</a>
-<a name="437"><span class="lineNum">     437 </span><span class="lineCov">     289291 :   return result;</span></a>
+<a name="437"><span class="lineNum">     437 </span><span class="lineCov">     297131 :   return result;</span></a>
 <a name="438"><span class="lineNum">     438 </span><span class="lineNoCov">          0 : }</span></a>
 <a name="439"><span class="lineNum">     439 </span>            : </a>
-<a name="440"><span class="lineNum">     440 </span><span class="lineCov">      47202 : std::string TreeUtil::Recompose(const antlr4::tree::ParseTree* pt) {</span></a>
-<a name="441"><span class="lineNum">     441 </span><span class="lineCov">      47202 :   return TokenNodeFromTree(pt).Recompose().text;</span></a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineCov">      48507 : std::string TreeUtil::Recompose(const antlr4::tree::ParseTree* pt) {</span></a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineCov">      48507 :   return TokenNodeFromTree(pt).Recompose().text;</span></a>
 <a name="442"><span class="lineNum">     442 </span>            : }</a>
 <a name="443"><span class="lineNum">     443 </span>            : </a>
 <a name="444"><span class="lineNum">     444 </span><span class="lineCov">          2 : ErrorInfo ErrorInfo::FromParseTree(antlr4::tree::ParseTree* pt,</span></a>
