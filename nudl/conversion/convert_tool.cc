@@ -66,6 +66,16 @@ int LogErrorLines(absl::string_view context, const absl::Status& err_status) {
 
 namespace {
 
+void ErrorLines(const absl::Status& err_status,
+                std::vector<std::string>* errors) {
+  if (!err_status.ok()) {
+    errors->emplace_back(err_status.message());
+    for (const auto& err : analysis::ExtractErrorLines(err_status)) {
+      errors->emplace_back(err);
+    }
+  }
+}
+
 // Iterates the python file paths under py_path.
 // The processor is called with the relative path from py_path.
 void IteratePythonFiles(
@@ -116,6 +126,15 @@ void ConvertTool::AddBuiltinModule() {
 absl::Status ConvertTool::LoadModule(absl::string_view module_name) {
   RET_CHECK(store_ != nullptr) << "Tool not properly prepared.";
   ASSIGN_OR_RETURN(auto module, store_->ImportModule(module_name));
+  LOG(INFO) << "Module: " << module->module_name() << " loaded OK" << std::endl;
+  modules_.insert(module);
+  return absl::OkStatus();
+}
+
+absl::Status ConvertTool::LoadModuleFromString(
+    absl::string_view module_name, absl::string_view code) {
+  RET_CHECK(store_ != nullptr) << "Tool not properly prepared.";
+  ASSIGN_OR_RETURN(auto module, store_->ImportFromString(module_name, code));
   LOG(INFO) << "Module: " << module->module_name() << " loaded OK" << std::endl;
   modules_.insert(module);
   return absl::OkStatus();
@@ -185,6 +204,27 @@ absl::Status ConvertTool::WriteConversionToStdout() {
   });
   return error;
 }
+
+absl::StatusOr<std::string> ConvertTool::ConvertToString() {
+  RET_CHECK(write_only_input_);
+  absl::Status error;
+  std::string result;
+  IterateModules([this, &result, &error](analysis::Module* module) {
+    auto convert_result = converter_->ConvertModule(module);
+    if (!convert_result.ok()) {
+      status::UpdateOrAnnotate(error, convert_result.status());
+      return;
+    }
+    for (const auto& file_spec : convert_result.value().files) {
+      absl::StrAppend(&result, file_spec.content, "\n");
+    }
+  });
+  if (!error.ok()) {
+    return error;
+  }
+  return result;
+}
+
 
 void ConvertTool::WriteTimingInfoToStdout() {
   std::cout << "Timing information:" << std::endl;
@@ -303,5 +343,32 @@ absl::Status RunConvertTool(const ConvertToolOptions& options) {
   tool.WriteTimingInfoToStdout();
   return absl::OkStatus();
 }
+
+std::string ConvertPythonSource(
+    const std::string& module_name,
+    const std::string& code,
+    const std::string& builtin_path,
+    const std::vector<std::string>& search_paths,
+    std::vector<std::string>* errors) {
+  ConvertTool tool(builtin_path, search_paths, ConvertLang::PYTHON,
+                   "", true, true);
+  auto prepare_status = tool.Prepare();
+  if (!prepare_status.ok()) {
+    errors->emplace_back(prepare_status.message());
+    ErrorLines(prepare_status, errors);
+    return "";
+  }
+  auto status = tool.LoadModuleFromString(module_name, code);
+  if (!status.ok()) {
+    ErrorLines(status, errors);
+    return "";
+  }
+  auto convert_result = tool.ConvertToString();
+  if (!convert_result.ok()) {
+    errors->emplace_back(convert_result.status().message());
+  }
+  return std::move(convert_result).value();
+}
+
 
 }  // namespace nudl

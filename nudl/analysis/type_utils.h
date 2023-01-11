@@ -113,6 +113,7 @@ class TypeUtils {
   static bool IsFloatType(const TypeSpec& type_spec);
   static bool IsNullType(const TypeSpec& type_spec);
   static bool IsNullableType(const TypeSpec& type_spec);
+  static bool IsNullLikeType(const TypeSpec& type_spec);  // Null or Nullable
   static bool IsAnyType(const TypeSpec& type_spec);
   static bool IsTupleType(const TypeSpec& type_spec);
   static bool IsNamedTupleType(const TypeSpec& type_spec);

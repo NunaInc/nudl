@@ -4,13 +4,20 @@ jobs:
   bazel-build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Cache
         uses: actions/cache@v3
         with:
           path: ${{ runner.tool_cache }}/nudl
           key: nudl-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/BUILD.bazel') }}
           restore-keys: nudl-${{ runner.os }}-${{ runner.arch }}
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          cache: 'pip' # caching pip dependencies
+      - name: Install Python dev tools
+        run: sudo apt-get install -yqq --no-install-recommends python3.8-dev
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
         with:

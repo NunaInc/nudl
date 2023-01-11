@@ -218,10 +218,22 @@ def method to_array(t: Tuple<{T}, {A: Tuple}>, value: {V: Any})
 // TODO(catalin): neet to support native types.
 typedef Engine = Struct<String>
 
+schema CollectOptions = {
+  disable_column_prunning: Bool;
+}
+
 // Collects the result of a dataset as an array.
 // Of course, it must fit in memory or so :)
 // We may choose to limit the collection to say 10k records, but
 // still should fit in memory.
-def method collect(src: Dataset<{T}>, engine: Engine) : Array<T> =>
+def method collect(src: Dataset<{T}>, engine: Engine,
+                   options: CollectOptions) : Array<T> =>
 [[skip_conversion]][[end]]
-[[pyinline]]${engine}.collect(${src})[[end]]
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]${engine}.collect(${src}, ${options})[[end]]
+
+// Returns a previously initialized engine, either by system, or
+// by other means.
+def default_engine() : Engine =>
+[[pyimport]]import nudl.dataset[[end]]
+[[pyinline]]nudl.dataset.default_engine()[[end]]

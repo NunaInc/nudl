@@ -125,7 +125,7 @@ absl::StatusOr<std::unique_ptr<TypeSpec>> TypeNull::Bind(
            << bindings.size();
   }
   ASSIGN_OR_RETURN(auto types, TypesFromBindings(bindings, false));
-  if (TypeUtils::IsNullableType(*types.front())) {
+  if (TypeUtils::IsNullLikeType(*types.front())) {
     return types.front()->Clone();
   }
   return TypeUtils::EnsureType(type_store_, kTypeNameNullable)->Bind(bindings);

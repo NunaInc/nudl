@@ -767,7 +767,7 @@ absl::Status LocalNamesRebinder::RecordLocalName(const TypeSpec* src_param,
   if (TypeUtils::IsNullType(*t1)) {
     if (TypeUtils::IsAnyType(*t2)) {  // 1:
       return absl::OkStatus();
-    } else if (TypeUtils::IsNullableType(*t2)) {  // 2: 3:
+    } else if (TypeUtils::IsNullLikeType(*t2)) {  // 2: 3:
       it->second = t2;
     } else {  // 4:
       return set_new_type(t1->Bind({TypeBindingArg{t2}}));
@@ -794,8 +794,8 @@ absl::Status LocalNamesRebinder::RecordLocalName(const TypeSpec* src_param,
       it->second = t2;
     }
   } else if (TypeUtils::IsNullType(*t2)) {
-    return set_new_type(t2->Bind({TypeBindingArg{t1}}));
-  } else if (TypeUtils::IsNullableType(*t2)) {
+    return set_new_type(t2->Bind({TypeBindingArg{t1}}));  // 9:
+  } else if (TypeUtils::IsNullableType(*t2)) {  // 10:
     ASSIGN_OR_RETURN(
         auto do_swap, swap_types(t1, t2->parameters().back()),
         _ << " Checking subtype of call type: " << t1->full_name());
@@ -804,13 +804,32 @@ absl::Status LocalNamesRebinder::RecordLocalName(const TypeSpec* src_param,
     } else {
       return set_new_type(t2->Bind({TypeBindingArg{t1}}));
     }
-  } else {
+  } else {  // 11:
     ASSIGN_OR_RETURN(auto do_swap, swap_types(t1, t2));
     if (do_swap) {
       it->second = t1;
     }
   }
   return absl::OkStatus();
+}
+
+absl::StatusOr<const TypeSpec*> LocalNamesRebinder::RebuildNullable(
+    const TypeSpec* src_param, const TypeSpec* type_spec) {
+  if (!TypeUtils::IsNullableType(*src_param)
+      || TypeUtils::IsNullableType(*type_spec)) {
+    return type_spec;
+  }
+  if (TypeUtils::IsNullType(*type_spec)
+      || src_param->parameters().back()->IsEqual(*type_spec)) {
+    return src_param;
+  }
+  ASSIGN_OR_RETURN(auto result_type,
+                   src_param->Bind({TypeBindingArg{type_spec}}),
+                   _ << "Rebuilding nullable type for: "
+                   << src_param->full_name()
+                   << " for argument: " << type_spec->full_name());
+  allocated_types.emplace_back(std::move(result_type));
+  return allocated_types.back().get();
 }
 
 absl::Status LocalNamesRebinder::ProcessType(const TypeSpec* src_param,
@@ -916,7 +935,7 @@ absl::StatusOr<const TypeSpec*> LocalNamesRebinder::RebuildType(
     }
   }
   if (!needs_rebinding) {
-    return type_spec;
+    return RebuildNullable(src_param, type_spec);
   }
   ASSIGN_OR_RETURN(auto new_allocated_type, type_spec->Bind(args),
                    _ << "Binding type dependent of changed local type names: "

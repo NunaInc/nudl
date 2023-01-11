@@ -164,9 +164,11 @@ def _join_builder_next_multi_array(t, field_name, index_field_name, index,
 
 class SparkPipeline:
 
-    def __init__(self, session: pyspark.sql.session.SparkSession):
+    def __init__(self, session: pyspark.sql.session.SparkSession,
+                 collect_options: nudl.dataset.CollectOptions):
         self.session = session
         self.steps = {}
+        self.collect_options = collect_options
 
     def step_dataset(self, step: nudl.dataset.DatasetStep) -> SparkDataset:
         if step.step_id in self.steps:
@@ -207,23 +209,24 @@ class SparkPipeline:
         raise ValueError(f"Unknown dataset step kind: {step}")
 
     def _read_csv(self, step: nudl.dataset.ReadCsvStep) -> SparkDataset:
-        fields = step.used_fields()
-        if fields is not None:
-            logging.info("Restricting CSV read %s columns to: %s", step, fields)
         df = self.session.read.csv(step.filespec, schema=pyspark_schema(step))
-        if fields is not None:
-            df = df.select(*fields)
+        if not self.collect_options.disable_column_prunning:
+            fields = step.used_fields()
+            if fields is not None:
+                logging.info("Restricting CSV read %s columns to: %s", step,
+                             fields)
+                df = df.select(*fields)
         return SparkDataset(step, df)
 
     def _read_parquet(self, step: nudl.dataset.ReadParquetStep) -> SparkDataset:
-        fields = step.used_fields()
-        if fields is not None:
-            logging.info("Restricting Parquet read %s columns to: %s", step,
-                         fields)
         df = self.session.read.format("parquet").schema(
             pyspark_schema(step)).load(step.filespec)
-        if fields is not None:
-            df = df.select(*fields)
+        if not self.collect_options.disable_column_prunning:
+            fields = step.used_fields()
+            if fields is not None:
+                logging.info("Restricting Parquet read %s columns to: %s", step,
+                             fields)
+                df = df.select(*fields)
         return SparkDataset(step, df)
 
     def _filter(self, step: nudl.dataset.FilterStep) -> SparkDataset:
@@ -256,7 +259,8 @@ class SparkPipeline:
     def _join_left(self, step: nudl.dataset.JoinLeftStep):
         assert step.source is not None
         left_src = self.step_dataset(step.source)
-        right_join_fields = step.right_join_fields()
+        right_join_fields = step.right_join_fields(
+            self.collect_options.disable_column_prunning)
         if not step.right_spec or not right_join_fields:
             logging.info("Skiping join left for %s, per no joins needed", step)
             return left_src
@@ -308,11 +312,13 @@ class SparkEngineImpl(nudl.dataset.DatasetEngine):
         super().__init__("Spark")
         self.session = session
 
-    def collect(self,
-                step: nudl.dataset.DatasetStep) -> typing.List[typing.Any]:
-        pipeline = SparkPipeline(self.session)
-        collector = nudl.dataset.FieldUsageCollector()
-        step.update_field_usage(collector, True)
-        updater = nudl.dataset.SchemaFieldsUpdater()
-        step.update_schema_fields(updater)
+    def collect(
+            self, step: nudl.dataset.DatasetStep,
+            options: nudl.dataset.CollectOptions) -> typing.List[typing.Any]:
+        pipeline = SparkPipeline(self.session, options)
+        if not options.disable_column_prunning:
+            collector = nudl.dataset.FieldUsageCollector()
+            step.update_field_usage(collector, True)
+            updater = nudl.dataset.SchemaFieldsUpdater()
+            step.update_schema_fields(updater)
         return pipeline.step_dataset(step).dataframe.collect()

@@ -116,7 +116,8 @@ def main_function main() => {
   if (flags.get_bool(use_dataset)) {
     step = analyze_dataset(generate_parquet(dir))
     engine = get_engine(flags.get_string(engine_name))
-    size = step.collect(engine)
+    options = dataset.CollectOptions(disable_column_prunning=false)
+    size = step.collect(engine, options)
       .map(t => print(t)).to_array().len()
   } else {
     size = analyze_array(generate_csv(dir)).to_array().len()

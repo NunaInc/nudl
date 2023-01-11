@@ -237,7 +237,11 @@ class _JoinProcess(apache_beam.DoFn):
 
 class BeamPipeline:
 
-    def __init__(self, runner=None, options=None):
+    def __init__(self,
+                 collect_options: nudl.dataset.CollectOptions,
+                 runner=None,
+                 options=None):
+        self.collect_options = collect_options
         self.pipeline = apache_beam.Pipeline(runner=runner, options=options)
         self.steps = {}
 
@@ -290,7 +294,9 @@ class BeamPipeline:
         # TODO(catalin): no filter support in this reader, may want to define
         #   another reader w/ proper pushdown filter support.
         # TODO(catalin): want to reshuffle ?
-        used_fields = step.used_fields()
+        used_fields = None
+        if not self.collect_options.disable_column_prunning:
+            used_fields = step.used_fields()
         if used_fields is not None:
             logging.info("Restricting Parquet read %s columns to: %s", step,
                          used_fields)
@@ -351,7 +357,8 @@ class BeamPipeline:
     def _join_left(self, step: nudl.dataset.JoinLeftStep) -> BeamDataset:
         assert step.source is not None
         left_src = self.step_dataset(step.source)
-        right_join_fields = step.right_join_fields()
+        right_join_fields = step.right_join_fields(
+            self.collect_options.disable_column_prunning)
         if not step.right_spec or not right_join_fields:
             logging.info("Skiping join left for %s, per no joins needed", step)
             return left_src
@@ -419,12 +426,13 @@ class BeamEngineImpl(nudl.dataset.DatasetEngine):
         self.runner = runner
         self.options = options
 
-    def collect(self,
-                step: nudl.dataset.DatasetStep) -> typing.List[typing.Any]:
+    def collect(
+            self, step: nudl.dataset.DatasetStep,
+            options: nudl.dataset.CollectOptions) -> typing.List[typing.Any]:
         if not isinstance(self.runner, interactive_runner.InteractiveRunner):
             raise ValueError(
                 "Cannot collect(..) on non interactive beam engine")
-        pipeline = BeamPipeline(self.runner, self.options)
+        pipeline = BeamPipeline(options, self.runner, self.options)
         collector = nudl.dataset.FieldUsageCollector()
         step.update_field_usage(collector, True)
         interactive_beam.watch({'pipeline': pipeline.pipeline})

@@ -89,8 +89,8 @@ def run_main() : Null => {
       .aggregate(t => dataset.agg(t)
       .count(1).sum({s = len(t.right_multi)}));
     engine = get_engine(flags.get_string(engine_name))
-
-    print(step.collect(engine))
+    options = dataset.CollectOptions(disable_column_prunning=false)
+    print(step.collect(engine, options))
 }
 
 def profile_main() : Null =>
