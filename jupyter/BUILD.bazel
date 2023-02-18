@@ -18,7 +18,9 @@ py_library(
     srcs_version = "PY3",
     deps = [
         ":codeutil",
+        "@pip_deps_numpy//:pkg",
         "@pip_deps_livy//:pkg",
+        "@pip_deps_pandas//:pkg",
         "@pip_deps_requests//:pkg",
     ],
 )

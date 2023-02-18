@@ -25,7 +25,6 @@ import smart_open
 import typing
 from dataschema import schema_synth, data_writer
 
-
 def read_csv(seed: typing.Any, filename: str,
              dialect: str) -> collections.abc.Iterable[typing.Any]:
     with smart_open.open(filename) as file_csv:

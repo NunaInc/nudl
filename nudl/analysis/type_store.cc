@@ -53,11 +53,15 @@ absl::optional<ScopeTypeStore*> GlobalTypeStore::FindStore(
 std::string GlobalTypeStore::DebugNames() const {
   std::string s(
       absl::StrCat("Global store with: ", scopes_.size(), " subscopes"));
+  std::cout << "---> S: " << s << "\n";
   for (const auto& it : scopes_) {
+    std::cout << "---> X: " << it.first << " -> " << it.second << "\n";
     absl::StrAppend(&s, "> Substore: ", it.first, "\n",
                     it.second->DebugNames());
   }
+  std::cout << "---> Base: " << base_store_ << "\n";
   absl::StrAppend(&s, "Base store:\n", base_store_->DebugNames());
+  std::cout << "---> Done\n";
   return s;
 }
 
@@ -105,6 +109,7 @@ absl::Status GlobalTypeStore::AddScope(std::shared_ptr<ScopeName> scope_name) {
   std::string key(scope_name->name());
   scopes_store_.emplace_back(
       std::make_unique<ScopeTypeStore>(std::move(scope_name), this));
+  RET_CHECK(scopes_store_.back().get() != nullptr);
   scopes_.emplace(std::move(key), scopes_store_.back().get());
   return absl::OkStatus();
 }
@@ -121,7 +126,9 @@ absl::Status GlobalTypeStore::AddAlias(const ScopeName& scope_name,
            << "Cannot file a type scoped names: " << scope_name.name()
            << " for adding an alias to it";
   }
-  scopes_.emplace(alias_name.name(), it->second);
+  // Make a copy for safety:
+  auto store_ptr = it->second;
+  scopes_.emplace(alias_name.name(), store_ptr);
   return absl::OkStatus();
 }
 
@@ -133,6 +140,7 @@ absl::StatusOr<const TypeSpec*> GlobalTypeStore::DeclareType(
     std::string key(scope_name.name());
     scopes_store_.emplace_back(std::make_unique<ScopeTypeStore>(
         absl::make_unique<ScopeName>(scope_name), this));
+    RET_CHECK(scopes_store_.back().get() != nullptr);
     std::tie(it, std::ignore) =
         scopes_.emplace(scope_name.name(), scopes_store_.back().get());
   }

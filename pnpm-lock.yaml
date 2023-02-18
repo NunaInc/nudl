@@ -1,0 +1,17 @@
+lockfileVersion: 5.4
+
+importers:
+
+  bazel/pyright:
+    specifiers:
+      pyright: ^1.1.290
+    devDependencies:
+      pyright: 1.1.290
+
+packages:
+
+  /pyright/1.1.290:
+    resolution: {integrity: sha512-iHT8G2+R/GUfYWxxd4ud5Lj/0H0bE1eWVR0avKKgPtkBeLkUz3sorjKpfuaJdsuJNrunzMtZsmYPD366t39klg==}
+    engines: {node: '>=12.0.0'}
+    hasBin: true
+    dev: true

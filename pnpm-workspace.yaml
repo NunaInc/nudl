@@ -1,0 +1,3 @@
+# Use `pnpm recursive  install  --lockfile-only` to update pnpm-lock.yaml file.
+packages:
+    - 'bazel/pyright'

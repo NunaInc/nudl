@@ -1,10 +1,12 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
 
-package(default_visibility = ["//visibility:public"])
+load("@npm//:defs.bzl", "npm_link_all_packages")
 
-nodejs_binary(
+npm_link_all_packages(name = "node_modules")
+
+js_binary(
     name = "pyright_launcher",
-    data = ["@npm//pyright"],
-    entry_point = "@npm//:node_modules/pyright/index.js",
+    data = ["//bazel/pyright:node_modules/pyright"],
+    entry_point = "run_pyright.js",
     visibility = ["//visibility:public"],
 )

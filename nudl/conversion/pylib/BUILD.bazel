@@ -36,10 +36,10 @@ nudl_deps = [
     "@pip_deps_pyspark//:pkg",
     "@pip_deps_pytz//:pkg",
     "@pip_deps_smart_open//:pkg",
-    "@pip_deps_apache_beam//:pkg",
 ]
 
 beam_interactive_deps = [
+    "@pip_beam_deps_apache_beam//:pkg",
     "@pip_interactive_deps_google_cloud_dataproc//:pkg",
     "@pip_interactive_deps_timeloop//:pkg",
     "@pip_interactive_deps_facets_overview//:pkg",

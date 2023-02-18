@@ -22,7 +22,6 @@ load(
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load("@rules_antlr//antlr:lang.bzl", "CPP", "PYTHON")
 load("@rules_antlr//antlr:repositories.bzl", "rules_antlr_dependencies")
-load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 load("@nuna_nudl//external/py:python_configure.bzl", "python_configure")
 
@@ -32,12 +31,6 @@ def nuna_nudl_setup_workspace():
     rules_proto_toolchains()
     protobuf_deps()
     rules_antlr_dependencies("4.10.1", CPP, PYTHON)
-    npm_install(
-        name = "npm",
-        package_json = "@nuna_nudl//bazel/pyright:package.json",
-        package_lock_json = "@nuna_nudl//bazel/pyright:package-lock.json",
-        symlink_node_modules = False,
-    )
     python_register_toolchains(
         name = "python3_9",
         python_version = "3.9",
